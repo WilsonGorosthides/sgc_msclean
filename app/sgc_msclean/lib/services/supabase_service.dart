@@ -21,4 +21,26 @@ class SupabaseService {
               .toList();
         });
   }
+  // 1. Criar novo cliente
+  Future<void> saveClient(ClientModel client) async {
+    await _supabase.from('clientes').insert({
+      'nome': client.nome,
+      'endereco': client.endereco,
+      'telefone': client.telefone,
+    });
+  }
+
+  // 2. Atualizar cliente existente
+  Future<void> updateClient(ClientModel client) async {
+    await _supabase.from('clientes').update({
+      'nome': client.nome,
+      'endereco': client.endereco,
+      'telefone': client.telefone,
+    }).eq('id', client.id!); // O '.eq' é o filtro: "onde o id seja igual a..."
+  }
+
+  // 3. Excluir cliente
+  Future<void> deleteClient(String id) async {
+    await _supabase.from('clientes').delete().eq('id', id);
+  }
 }
