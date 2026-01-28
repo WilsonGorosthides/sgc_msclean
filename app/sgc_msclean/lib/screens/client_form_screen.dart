@@ -15,33 +15,40 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
   final _service = SupabaseService();
   
   late TextEditingController _nomeController;
-  late TextEditingController _endController;
+  late TextEditingController _ruaController;
+  late TextEditingController _numController;
+  late TextEditingController _bairroController;
+  late TextEditingController _compController;
   late TextEditingController _telController;
 
   @override
   void initState() {
     super.initState();
-    // Inicializa os campos com os dados do cliente (se for edição) ou vazio
     _nomeController = TextEditingController(text: widget.client?.nome);
-    _endController = TextEditingController(text: widget.client?.endereco);
+    _ruaController = TextEditingController(text: widget.client?.rua);
+    _numController = TextEditingController(text: widget.client?.numero);
+    _bairroController = TextEditingController(text: widget.client?.bairro);
+    _compController = TextEditingController(text: widget.client?.complemento);
     _telController = TextEditingController(text: widget.client?.telefone);
   }
 
-  // --- FUNÇÃO 1: SALVAR ---
   void _salvar() async {
     if (_formKey.currentState!.validate()) {
-      final novoCliente = ClientModel(
+      final clienteEditado = ClientModel(
         id: widget.client?.id,
         nome: _nomeController.text,
-        endereco: _endController.text,
+        rua: _ruaController.text,
+        numero: _numController.text,
+        bairro: _bairroController.text,
+        complemento: _compController.text,
         telefone: _telController.text,
       );
 
       try {
         if (widget.client == null) {
-          await _service.saveClient(novoCliente);
+          await _service.saveClient(clienteEditado);
         } else {
-          await _service.updateClient(novoCliente);
+          await _service.updateClient(clienteEditado);
         }
         if (mounted) Navigator.pop(context);
       } catch (e) {
@@ -50,13 +57,12 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
     }
   }
 
-  // --- FUNÇÃO 2: CONFIRMAR EXCLUSÃO (O SEU PASSO 3) ---
   void _confirmarExclusao(BuildContext context) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Excluir Cliente?'),
-        content: const Text('Essa ação não pode ser desfeita.'),
+        content: const Text('Essa ação apagará permanentemente o cliente.'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('CANCELAR')),
           ElevatedButton(
@@ -64,8 +70,8 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
             onPressed: () async {
               await _service.deleteClient(widget.client!.id!);
               if (mounted) {
-                Navigator.pop(ctx); // Fecha o alerta
-                Navigator.pop(context); // Volta para a lista
+                Navigator.pop(ctx);
+                Navigator.pop(context);
               }
             },
             child: const Text('EXCLUIR', style: TextStyle(color: Colors.white)),
@@ -81,15 +87,14 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
       appBar: AppBar(
         title: Text(widget.client == null ? 'Novo Cliente' : 'Editar Cliente'),
         actions: [
-          // O BOTÃO DE LIXEIRA QUE VOCÊ PERGUNTOU
-          if (widget.client != null) 
+          if (widget.client != null)
             IconButton(
               icon: const Icon(Icons.delete_outline, color: Colors.red),
               onPressed: () => _confirmarExclusao(context),
             ),
         ],
       ),
-      body: Padding(
+      body: SingleChildScrollView( 
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
@@ -100,13 +105,29 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
                 decoration: const InputDecoration(labelText: 'Nome do Cliente'),
                 validator: (v) => v!.isEmpty ? 'Obrigatório' : null,
               ),
-              TextFormField(
-                controller: _endController,
-                decoration: const InputDecoration(labelText: 'Endereço Completo'),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  // MUDANÇA AQUI: Logradouro
+                  Expanded(flex: 3, child: TextFormField(controller: _ruaController, decoration: const InputDecoration(labelText: 'Rua / Logradouro'))),
+                  const SizedBox(width: 10),
+                  Expanded(flex: 1, child: TextFormField(controller: _numController, decoration: const InputDecoration(labelText: 'Nº'))),
+                ],
               ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  // MUDANÇA AQUI: Bairro / Condomínio
+                  Expanded(child: TextFormField(controller: _bairroController, decoration: const InputDecoration(labelText: 'Bairro / Condomínio'))),
+                  const SizedBox(width: 10),
+                  // MUDANÇA AQUI: Apto / Bloco
+                  Expanded(child: TextFormField(controller: _compController, decoration: const InputDecoration(labelText: 'Apto / Bloco'))),
+                ],
+              ),
+              const SizedBox(height: 10),
               TextFormField(
                 controller: _telController,
-                decoration: const InputDecoration(labelText: 'Telefone/WhatsApp'),
+                decoration: const InputDecoration(labelText: 'Telefone / WhatsApp'),
                 keyboardType: TextInputType.phone,
               ),
               const SizedBox(height: 30),

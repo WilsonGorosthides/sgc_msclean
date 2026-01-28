@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/supabase_service.dart';
 import '../models/client_model.dart';
+import 'client_form_screen.dart'; // Import da tela que criamos
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -11,7 +12,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final _service = SupabaseService();
-  String _searchQuery = ''; // Guarda o que o usuário digita
+  String _searchQuery = '';
 
   @override
   Widget build(BuildContext context) {
@@ -23,13 +24,10 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: Column(
         children: [
-          // BARRA DE BUSCA (Requisito RF-004)
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: TextField(
-              onChanged: (value) {
-                setState(() => _searchQuery = value);
-              },
+              onChanged: (value) => setState(() => _searchQuery = value),
               decoration: InputDecoration(
                 hintText: 'Buscar por nome ou rua...',
                 prefixIcon: const Icon(Icons.search, color: Colors.blueAccent),
@@ -41,8 +39,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
-          
-          // LISTA DE CLIENTES
           Expanded(
             child: StreamBuilder<List<ClientModel>>(
               stream: _service.getClientsStream(_searchQuery),
@@ -52,9 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 }
                 
                 if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(
-                    child: Text('Nenhum cliente encontrado.'),
-                  );
+                  return const Center(child: Text('Nenhum cliente encontrado.'));
                 }
 
                 final clientes = snapshot.data!;
@@ -72,11 +66,16 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: Text(cliente.nome[0].toUpperCase(), style: const TextStyle(color: Colors.white)),
                         ),
                         title: Text(cliente.nome, style: const TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text(cliente.endereco),
+                        subtitle: Text(cliente.enderecoExibicao),
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () {
-                          // Aqui enviaremos para a tela de detalhes depois
-                          print("Clicou em ${cliente.nome}");
+                          // AQUI MUDOU: Agora navega para EDIÇÃO enviando o cliente selecionado
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ClientFormScreen(client: cliente),
+                            ),
+                          );
                         },
                       ),
                     );
@@ -87,10 +86,17 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      // BOTÃO DE ADICIONAR (Para o futuro Cadastro)
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
         backgroundColor: Colors.blueAccent,
+        onPressed: () {
+          // AQUI MUDOU: Agora navega para CADASTRO (sem enviar cliente)
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const ClientFormScreen(),
+            ),
+          );
+        },
         child: const Icon(Icons.person_add, color: Colors.white),
       ),
     );
