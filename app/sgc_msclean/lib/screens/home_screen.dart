@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../services/supabase_service.dart';
 import '../models/client_model.dart';
-import 'client_form_screen.dart'; // Import da tela que criamos
+import '../utils/launcher_utils.dart'; // Importante adicionar este import
+import 'client_form_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -57,19 +58,48 @@ class _HomeScreenState extends State<HomeScreen> {
                   itemCount: clientes.length,
                   itemBuilder: (context, index) {
                     final cliente = clientes[index];
+                    
+                    final hasName = cliente.nome.trim().isNotEmpty;
+                    final displayLetter = hasName ? cliente.nome[0].toUpperCase() : '?';
+                    final displayName = hasName ? cliente.nome : "Sem Nome (${cliente.telefone})";
+
                     return Card(
                       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       child: ListTile(
                         leading: CircleAvatar(
                           backgroundColor: Colors.blueAccent,
-                          child: Text(cliente.nome[0].toUpperCase(), style: const TextStyle(color: Colors.white)),
+                          child: Text(
+                            displayLetter, 
+                            style: const TextStyle(color: Colors.white),
+                          ),
                         ),
-                        title: Text(cliente.nome, style: const TextStyle(fontWeight: FontWeight.bold)),
+                        title: Text(
+                          displayName, 
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
                         subtitle: Text(cliente.enderecoExibicao),
-                        trailing: const Icon(Icons.chevron_right),
+                        
+                        // --- AQUI ESTÁ A MUDANÇA: ADICIONANDO OS BOTÕES ---
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min, // Garante que os ícones fiquem juntos no canto
+                          children: [
+                            // Botão WhatsApp
+                            IconButton(
+                              icon: const Icon(Icons.message, color: Colors.green, size: 20),
+                              onPressed: () => LauncherUtils.abrirWhatsApp(cliente.telefone),
+                            ),
+                            // Botão Maps
+                            IconButton(
+                              icon: const Icon(Icons.location_on, color: Colors.redAccent, size: 20),
+                              onPressed: () => LauncherUtils.abrirMaps(cliente.enderecoExibicao),
+                            ),
+                            // Ícone de seta para indicar que o card abre para edição
+                            const Icon(Icons.chevron_right, color: Colors.grey),
+                          ],
+                        ),
+                        
                         onTap: () {
-                          // AQUI MUDOU: Agora navega para EDIÇÃO enviando o cliente selecionado
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -89,7 +119,6 @@ class _HomeScreenState extends State<HomeScreen> {
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.blueAccent,
         onPressed: () {
-          // AQUI MUDOU: Agora navega para CADASTRO (sem enviar cliente)
           Navigator.push(
             context,
             MaterialPageRoute(
