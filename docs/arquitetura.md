@@ -1,55 +1,58 @@
 # Documento de Arquitetura e Decisões Técnicas - SGC para MSClean
 
 ## 1. Introdução
-Este documento detalha a arquitetura de software, a stack de tecnologia (conjunto de tecnologias) e as decisões técnicas tomadas para o desenvolvimento do Sistema de Gestão de Clientes (SGC) da MSClean.
+Este documento detalha a arquitetura de software e as decisões técnicas para o desenvolvimento do SGC da MSClean, focando em velocidade de entrega e manipulação de dados.
 
 ## 2. Visão Geral da Arquitetura
-O sistema será construído seguindo um modelo **Cliente-Servidor (Backend as a Service)**. A arquitetura se baseia em um front-end multi-plataforma que se comunica com um serviço de backend gerenciado, eliminando a necessidade de construir um servidor customizado.
+O sistema utiliza o modelo **Cliente-Servidor (BaaS)**. O front-end Flutter comunica-se diretamente com o Supabase, eliminando a necessidade de um backend intermediário customizado.
 
-* **Front-end (Cliente):** Um aplicativo Flutter que roda em Android e na Web.
-* **Backend (BaaS):** O Firebase, responsável pela autenticação, banco de dados em tempo real e hospedagem.
+* **Front-end:** App Flutter para Android e Web.
+* **Backend (BaaS):** Supabase, provendo banco de dados relacional e autenticação.
 
 **Fluxo de Dados:**
 ````
-[Aplicativo Android / Web] <==> [Firebase] <==> [Firestore Database]
+[App Flutter] <==> [Supabase API] <==> [PostgreSQL Database]
 
 ````
 ## 3. Stack de Tecnologia
--   **Linguagem de Programação:** **Dart**. Por ser a linguagem oficial do Flutter, oferece alta performance e um ecossistema robusto.
--   **Framework Front-end:** **Flutter**. Escolhido por sua capacidade de compilar para múltiplas plataformas a partir de um único código-fonte, acelerando o desenvolvimento e garantindo consistência.
--   **Backend / Banco de Dados:** **Google Firebase**. Utilizado como um BaaS (Backend as a Service) para gerenciar:
-    -   **Firestore:** Banco de dados NoSQL flexível e escalável, com suporte nativo para sincronização em tempo real.
-    -   **Firebase Authentication:** Para o gerenciamento seguro do login do único usuário.
+- **Linguagem:** **Dart**.
+- **Framework:** **Flutter**. Escolhido pela agilidade e consistência visual entre Android e Web.
+- **Backend/Banco:** **Supabase**. Escolhido pela facilidade de inserção massiva de dados via SQL/Dashboard e estrutura relacional (PostgreSQL).
 
-## 4. Estrutura do Banco de Dados (Firestore)
-O banco de dados será organizado em coleções (`collections`).
+## 4. Estrutura do Banco de Dados (PostgreSQL)
+O banco será organizado em tabelas relacionais:
 
-* **Coleção:** `clientes`
-* **Documento:** Cada cliente será um documento único.
-* **Campos do Documento (baseado no `client_model.dart`):**
-    -   `nomeCompleto` (String)
-    -   `endereco` (String)
-    -   `telefone` (String)
-    -   `historicoServicos` (Array de objetos `Servico`)
-    -   `historicoPagamentos` (Array de objetos `Pagamento`)
+* **Tabela `clientes`:**
+    - `id` (uuid, PK)
+    - `nome` (text)
+    - `endereco` (text)
+    - `telefone` (text)
+* **Tabela `registros`:**
+    - `id` (uuid, PK)
+    - `cliente_id` (uuid, FK)
+    - `tipo` (text: 'Serviço' ou 'Pagamento')
+    - `descricao` (text)
+    - `valor` (numeric)
+    - `data` (timestamp)
 
-## 5. Estrutura de Diretórios do Projeto
+## 5. Estrutura de Diretórios
 A organização do código seguirá o padrão:
 ````
 
 sgc_msclean/
 ├── lib/
 │   ├── main.dart
-│   ├── models/           # Classes de dados (ex: Cliente)
-│   ├── repositories/     # Lógica de acesso ao banco de dados
-│   └── screens/          # Telas da aplicação (UI)
-├── docs/                 # Documentação do projeto (este arquivo, requisitos, etc.)
-└── test/                 # Testes unitários
+│   ├── core/             # Cores (Dark Theme) e constantes da API
+│   ├── models/           # ClientModel e RecordModel
+│   ├── services/         # Lógica do Supabase (Substitui repositories)
+│   ├── screens/          # Subpastas: home, details, form
+│   └── widgets/          # Componentes reutilizáveis (Ex: CustomTextField)
+├── docs/                 # Documentação (DRS e Arquitetura)
+└── test/
 
 ````
 
 ## 6. Ambiente de Desenvolvimento
-Os seguintes softwares são necessários para iniciar o desenvolvimento:
--   Flutter SDK
--   Editor de Código (Visual Studio Code ou Android Studio)
--   Conta no Google Firebase para configurar o projeto.
+- Flutter SDK.
+- VS Code / Android Studio.
+- Projeto configurado no Supabase Dashboard.

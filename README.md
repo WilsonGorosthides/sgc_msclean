@@ -12,7 +12,7 @@ Este projeto segue a metodologia **Ágil (Scrum Simplificado)**, permitindo entr
 ## 📈 Roadmap (Próximos Passos)
 - **Fase 1 (MVP):** Implementação das funcionalidades essenciais de cadastro, edição, listagem e busca simples de clientes.
 - **Fase 2:** Testes de usabilidade e coleta de feedback.
-- **Fase 3:** Desenvolvimento de filtros avançados e melhorias na versão desktop.
+- **Fase 3:** Melhorias na versão desktop e filtros avançados.
 
 ## 📌 Requisitos do Sistema
 
@@ -32,22 +32,19 @@ A arquitetura proposta é baseada no modelo Cliente-Servidor com um BaaS (Backen
 
 * **Linguagem:** `Dart`
 * **Framework:** `Flutter` (para Android e Web)
-* **Backend & DB:** `Google Firebase` (Firestore e Authentication)
+* **Backend & DB:** `Supabase` (PostgreSQL e Auth)
+
 
 ## 📁 Estrutura do Projeto
 ````
 sgc_msclean/
 ├── lib/
 │   ├── main.dart
-│   ├── models/
-│   │   └── client_model.dart
-│   ├── repositories/
-│   │   └── client_repository.dart
-│   └── screens/
-│       ├── client_list/
-│       │   └── client_list_screen.dart
-│       └── client_form/
-│           └── client_form_screen.dart
+│   ├── core/             # Cores (Dark Theme), constantes de API e estilos
+│   ├── models/           # Classes: ClientModel e RecordModel
+│   ├── services/         # SupabaseService.dart (Onde a mágica acontece)
+│   ├── screens/          # Pastas por tela (home, details, form)
+│   └── widgets/          # Seus botões e cards personalizados
 ├── test/
 └── pubspec.yaml
 
@@ -55,13 +52,10 @@ sgc_msclean/
 ````
 
 ## 🛠️ Como Instalar e Executar
-1.  Garanta que você tenha o **Flutter SDK** instalado.
-2.  Clone este repositório: `git clone https://github.com/seu-usuario/sgc_msclean.git`
-3.  Crie um projeto no **Firebase** e adicione as configurações ao projeto Flutter.
-4.  Execute a aplicação: `flutter run`
-
-## 🤝 Contribuição
-(Se desejar que outras pessoas contribuam no futuro, esta seção seria para orientá-las.)
+1. Garanta que você tenha o **Flutter SDK** instalado.
+2. Clone este repositório: `git clone https://github.com/seu-usuario/sgc_msclean.git`
+3. Configure as chaves do **Supabase** no arquivo de constantes.
+4. Execute a aplicação: `flutter run`
 
 ## 📜 Licença
 Este projeto está licenciado sob a licença [MIT](https://opensource.org/licenses/MIT).

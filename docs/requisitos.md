@@ -1,58 +1,41 @@
 # Documento de Requisitos de Software (DRS) - SGC para MSClean
 
 ## 1. Introdução
-
-Este documento detalha os requisitos funcionais e não funcionais para o Sistema de Gestão de Clientes (SGC) da MSClean. Guia  das fases de design, desenvolvimento e teste.
+Este documento detalha os requisitos para o desenvolvimento do Sistema de Gestão de Clientes (SGC) da MSClean. O objetivo é digitalizar o controle de clientes, serviços e pagamentos, substituindo o uso de agendas físicas e garantindo a integridade dos dados históricos.
 
 ## 2. Requisitos Funcionais (RFs)
 
 ### 2.1 Gestão de Clientes
-* **RF-001 - Cadastro de Cliente:** O sistema deve permitir o cadastro de novos clientes.
-    * **Dados:** Nome Completo, Endereço (completo), Telefone.
-* **RF-002 - Edição de Cliente:** O usuário deve ser capaz de editar as informações de um cliente existente.
-* **RF-003 - Visualização da Lista:** O sistema deve exibir uma lista de todos os clientes cadastrados.
-* **RF-004 - Busca:** O sistema deve permitir a busca de clientes usando palavras-chave (ex: nome, endereço).
+* **RF-001 - Cadastro de Cliente:** O sistema deve permitir o registro de Nome Completo, Endereço e Telefone.
+* **RF-002 - Edição de Cliente:** O usuário deve poder alterar qualquer dado cadastral de um cliente já existente.
+* **RF-003 - Visualização da Lista:** Exibição de uma lista centralizada com o resumo dos clientes cadastrados.
+* **RF-004 - Busca em Tempo Real:** Filtragem dinâmica da lista por Nome ou Endereço conforme o usuário digita.
 
-### 2.2 Gestão de Histórico
-* **RF-005 - Adicionar Histórico de Serviço:** Para cada cliente, o usuário deve poder adicionar um registro de serviço.
-    * **Dados:** Data, Descrição do Serviço, Valor do Serviço.
-* **RF-006 - Adicionar Histórico de Pagamento:** Para cada cliente, o usuário deve poder adicionar um registro de pagamento.
-    * **Dados:** Data, Valor Pago, Método de Pagamento (ex: Pix, Dinheiro).
+### 2.2 Gestão de Histórico e Financeiro
+* **RF-005 - Registro de Serviço:** Adicionar registros vinculados ao cliente contendo descrição do serviço, valor cobrado e data.
+* **RF-006 - Registro de Pagamento:** Adicionar registros de entrada financeira contendo valor pago, data e método de pagamento (Pix, Dinheiro ou Cartão).
+* **RF-007 - Separação de Fluxos:** O sistema deve distinguir visualmente e logicamente o que é um histórico de execução (serviço) e o que é um histórico de quitação (pagamento).
 
-### 2.3 Segurança
-* **RF-007 - Autenticação de Usuário Único:** O sistema deve ter um mecanismo de login para o único usuário (a proprietária da empresa).
+### 2.3 Segurança e Ações Rápidas
+* **RF-008 - Autenticação:** Acesso restrito via login (E-mail/Senha) para a proprietária.
+* **RF-009 - Integração de Contato:** Botão de ação rápida para iniciar chamada telefônica ou conversa no WhatsApp a partir dos dados do cliente.
 
 ## 3. Requisitos Não Funcionais (RNFs)
+* **RNF-001 - Usabilidade Mobile-First:** Interface otimizada para operação com uma única mão, dado o perfil de uso em campo.
+* **RNF-002 - Desempenho de Busca:** O retorno da filtragem de clientes deve ser inferior a 1 segundo.
+* **RNF-003 - Sincronização em Nuvem:** Os dados devem ser sincronizados em tempo real entre o App (Android) e o Console de Gestão (Web/Desktop).
+* **RNF-004 - Persistência Relacional:** Garantir que registros de serviço/pagamento nunca fiquem "órfãos" (devem estar sempre atrelados a um ID de cliente válido).
 
-* **RNF-001 - Usabilidade:** A interface do usuário deve ser simples, intuitiva e exigir o mínimo de treinamento para uso.
-* **RNF-002 - Desempenho:** O sistema deve ter um tempo de resposta aceitável para um único usuário (inferior a 2 segundos em operações de busca e cadastro).
-* **RNF-003 - Compatibilidade de Plataforma:** A aplicação deve ser totalmente funcional em dispositivos **Android** e em **navegadores web (desktop)**.
-* **RNF-004 - Sincronização de Dados:** Os dados cadastrados em uma plataforma devem ser instantaneamente sincronizados e acessíveis na outra.
-* **RNF-005 - Segurança:** Os dados do cliente devem ser armazenados de forma segura em um banco de dados online.
+## 4. Histórias de Usuário (HUs)
+* **H1 (Organização):** Como proprietária, quero cadastrar meus clientes para eliminar a dependência da agenda de papel.
+* **H2 (Logística):** Como proprietária, quero buscar clientes por endereço para otimizar meu trajeto de atendimento no dia a dia.
+* **H3 (Cobrança):** Como proprietária, quero visualizar o histórico de pagamentos para identificar rapidamente quem está em dia e quem possui pendências.
+* **H4 (Segregação de Dados):** Como proprietária, quero ver o histórico de serviços separado dos pagamentos para ter clareza sobre o que já foi executado.
+* **H5 (Controle de Caixa):** Como proprietária, quero registrar o método de pagamento (Pix/Dinheiro/Cartão) para facilitar o fechamento financeiro diário.
+* **H6 (Agilidade):** Como proprietária, quero um atalho para ligar para o cliente diretamente pelo app para avisar sobre atrasos ou confirmar horários.
 
-## 4. Histórias de Usuário (User Stories)
-
-* **História 1: Adicionar um Cliente**
-    * **Como** proprietária da empresa,
-    * **Eu quero** um botão para adicionar um novo cliente,
-    * **Para que** eu possa registrar as informações de contato de forma organizada.
-* **História 2: Encontrar um Cliente**
-    * **Como** proprietária da empresa,
-    * **Eu quero** uma barra de busca na lista de clientes,
-    * **Para que** eu possa encontrar rapidamente o cliente que preciso.
-* **História 3: Registrar um Serviço**
-    * **Como** proprietária da empresa,
-    * **Eu quero** adicionar um histórico de serviço a um cliente,
-    * **Para que** eu possa rastrear os trabalhos realizados.
-
-## 5. Fluxo de Casos de Uso Principal
-
-* **UC-001 - Gerenciar Clientes**
-    1.  O usuário abre o aplicativo e faz login.
-    2.  O sistema exibe a lista de clientes.
-    3.  **Cenário A - Adicionar:** O usuário clica em "Adicionar Cliente", preenche o formulário e salva.
-    4.  **Cenário B - Buscar:** O usuário digita na barra de busca. A lista é filtrada em tempo real.
-    5.  **Cenário C - Detalhes:** O usuário clica em um cliente da lista para ver seus detalhes.
-
----
-
+## 5. Fluxo Principal (UC-001)
+1. **Acesso:** Usuário realiza login.
+2. **Consulta:** Usuário visualiza a lista ou utiliza a barra de busca para localizar um cliente.
+3. **Gestão:** Ao selecionar um cliente, o usuário visualiza os detalhes e o histórico completo.
+4. **Ação:** O usuário decide entre adicionar um novo serviço, registrar um novo pagamento ou editar os dados de contato.
