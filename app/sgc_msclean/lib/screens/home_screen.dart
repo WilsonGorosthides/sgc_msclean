@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/supabase_service.dart';
 import '../models/client_model.dart';
-import '../utils/launcher_utils.dart'; // Importante adicionar este import
+import '../utils/launcher_utils.dart';
 import 'client_form_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -14,6 +14,10 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final _service = SupabaseService();
   String _searchQuery = '';
+  
+  // Variáveis de controle de ordenação (Camadas)
+  String _orderBy = 'nome'; 
+  bool _ascending = true;
 
   @override
   Widget build(BuildContext context) {
@@ -22,6 +26,31 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const Text('MSClean - Clientes'),
         centerTitle: true,
         elevation: 0,
+        actions: [
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.filter_list),
+            onSelected: (value) {
+              setState(() {
+                // Lógica de camadas: Escolha do campo + Direção
+                switch (value) {
+                  case 'nome_asc': _orderBy = 'nome'; _ascending = true; break;
+                  case 'nome_desc': _orderBy = 'nome'; _ascending = false; break;
+                  case 'bairro_asc': _orderBy = 'bairro'; _ascending = true; break;
+                  case 'bairro_desc': _orderBy = 'bairro'; _ascending = false; break;
+                }
+              });
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(enabled: false, child: Text("ORDENAR POR NOME", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold))),
+              const PopupMenuItem(value: 'nome_asc', child: Text('Nome: A → Z')),
+              const PopupMenuItem(value: 'nome_desc', child: Text('Nome: Z → A')),
+              const PopupMenuDivider(),
+              const PopupMenuItem(enabled: false, child: Text("ORDENAR POR ENDEREÇO", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold))),
+              const PopupMenuItem(value: 'bairro_asc', child: Text('Bairro: A → Z')),
+              const PopupMenuItem(value: 'bairro_desc', child: Text('Bairro: Z → A')),
+            ],
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -41,13 +70,22 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           Expanded(
-            child: StreamBuilder<List<ClientModel>>(
-              stream: _service.getClientsStream(_searchQuery),
+            child: FutureBuilder<List<ClientModel>>(
+              // Aqui chamamos a busca no servidor passando os filtros de camada
+              future: _service.searchClients(
+                _searchQuery, 
+                orderBy: _orderBy, 
+                ascending: _ascending
+              ),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
                 
+                if (snapshot.hasError) {
+                  return Center(child: Text('Erro ao carregar: ${snapshot.error}'));
+                }
+
                 if (!snapshot.hasData || snapshot.data!.isEmpty) {
                   return const Center(child: Text('Nenhum cliente encontrado.'));
                 }
@@ -59,6 +97,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   itemBuilder: (context, index) {
                     final cliente = clientes[index];
                     
+                    // Proteção contra dados vazios (Programação Defensiva)
                     final hasName = cliente.nome.trim().isNotEmpty;
                     final displayLetter = hasName ? cliente.nome[0].toUpperCase() : '?';
                     final displayName = hasName ? cliente.nome : "Sem Nome (${cliente.telefone})";
@@ -69,43 +108,34 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: ListTile(
                         leading: CircleAvatar(
                           backgroundColor: Colors.blueAccent,
-                          child: Text(
-                            displayLetter, 
-                            style: const TextStyle(color: Colors.white),
-                          ),
+                          child: Text(displayLetter, style: const TextStyle(color: Colors.white)),
                         ),
-                        title: Text(
-                          displayName, 
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
+                        title: Text(displayName, style: const TextStyle(fontWeight: FontWeight.bold)),
                         subtitle: Text(cliente.enderecoExibicao),
-                        
-                        // --- AQUI ESTÁ A MUDANÇA: ADICIONANDO OS BOTÕES ---
                         trailing: Row(
-                          mainAxisSize: MainAxisSize.min, // Garante que os ícones fiquem juntos no canto
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            // Botão WhatsApp
                             IconButton(
                               icon: const Icon(Icons.message, color: Colors.green, size: 20),
                               onPressed: () => LauncherUtils.abrirWhatsApp(cliente.telefone),
                             ),
-                            // Botão Maps
                             IconButton(
                               icon: const Icon(Icons.location_on, color: Colors.redAccent, size: 20),
                               onPressed: () => LauncherUtils.abrirMaps(cliente.enderecoExibicao),
                             ),
-                            // Ícone de seta para indicar que o card abre para edição
                             const Icon(Icons.chevron_right, color: Colors.grey),
                           ],
                         ),
-                        
-                        onTap: () {
-                          Navigator.push(
+                        onTap: () async {
+                          // Aguarda o retorno da tela de edição
+                          await Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) => ClientFormScreen(client: cliente),
                             ),
                           );
+                          // Atualiza a lista quando voltar (importante para FutureBuilder)
+                          setState(() {});
                         },
                       ),
                     );
@@ -118,13 +148,14 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.blueAccent,
-        onPressed: () {
-          Navigator.push(
+        onPressed: () async {
+          await Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => const ClientFormScreen(),
             ),
           );
+          setState(() {}); // Atualiza ao voltar do cadastro
         },
         child: const Icon(Icons.person_add, color: Colors.white),
       ),
