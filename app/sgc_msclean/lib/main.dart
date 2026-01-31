@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart'; 
-
-
+import 'screens/splash_screen.dart';
 import 'screens/home_screen.dart'; 
 
 void main() async {
@@ -34,8 +33,7 @@ class MyApp extends StatelessWidget {
         // Google Fonts para dar o ar profissional
         textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme),
       ),
-      // AQUI MUDOU: Apenas chame a tela, sem passar 'body'
-      home: const HomeScreen(), 
+      home: SplashScreen(),
     );
   }
 }

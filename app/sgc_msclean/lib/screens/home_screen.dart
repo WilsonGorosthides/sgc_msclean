@@ -3,6 +3,7 @@ import '../services/supabase_service.dart';
 import '../models/client_model.dart';
 import '../utils/launcher_utils.dart';
 import 'client_form_screen.dart';
+import 'client_details_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -14,24 +15,24 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final _service = SupabaseService();
   String _searchQuery = '';
-  
-  // Variáveis de controle de ordenação (Camadas)
   String _orderBy = 'nome'; 
   bool _ascending = true;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFF121212),
       appBar: AppBar(
-        title: const Text('MSClean - Clientes'),
+        title: const Text('MSClean - Clientes', style: TextStyle(color: Colors.white)),
         centerTitle: true,
+        backgroundColor: const Color(0xFF1E1E1E),
         elevation: 0,
         actions: [
           PopupMenuButton<String>(
-            icon: const Icon(Icons.filter_list),
+            icon: const Icon(Icons.filter_list, color: Colors.white),
+            color: const Color(0xFF2C2C2C),
             onSelected: (value) {
               setState(() {
-                // Lógica de camadas: Escolha do campo + Direção
                 switch (value) {
                   case 'nome_asc': _orderBy = 'nome'; _ascending = true; break;
                   case 'nome_desc': _orderBy = 'nome'; _ascending = false; break;
@@ -41,13 +42,11 @@ class _HomeScreenState extends State<HomeScreen> {
               });
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(enabled: false, child: Text("ORDENAR POR NOME", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold))),
-              const PopupMenuItem(value: 'nome_asc', child: Text('Nome: A → Z')),
-              const PopupMenuItem(value: 'nome_desc', child: Text('Nome: Z → A')),
-              const PopupMenuDivider(),
-              const PopupMenuItem(enabled: false, child: Text("ORDENAR POR ENDEREÇO", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold))),
-              const PopupMenuItem(value: 'bairro_asc', child: Text('Bairro: A → Z')),
-              const PopupMenuItem(value: 'bairro_desc', child: Text('Bairro: Z → A')),
+              const PopupMenuItem(enabled: false, child: Text("ORDENAR", style: TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.bold))),
+              const PopupMenuItem(value: 'nome_asc', child: Text('Nome: A → Z', style: TextStyle(color: Colors.white))),
+              const PopupMenuItem(value: 'nome_desc', child: Text('Nome: Z → A', style: TextStyle(color: Colors.white))),
+              const PopupMenuItem(value: 'bairro_asc', child: Text('Bairro: A → Z', style: TextStyle(color: Colors.white))),
+              const PopupMenuItem(value: 'bairro_desc', child: Text('Bairro: Z → A', style: TextStyle(color: Colors.white))),
             ],
           ),
         ],
@@ -58,10 +57,13 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.all(16.0),
             child: TextField(
               onChanged: (value) => setState(() => _searchQuery = value),
+              style: const TextStyle(color: Colors.white),
               decoration: InputDecoration(
                 hintText: 'Buscar por nome ou rua...',
+                hintStyle: const TextStyle(color: Colors.white54),
                 prefixIcon: const Icon(Icons.search, color: Colors.blueAccent),
                 filled: true,
+                fillColor: const Color(0xFF1E1E1E),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
@@ -71,23 +73,36 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           Expanded(
             child: FutureBuilder<List<ClientModel>>(
-              // Aqui chamamos a busca no servidor passando os filtros de camada
-              future: _service.searchClients(
-                _searchQuery, 
-                orderBy: _orderBy, 
-                ascending: _ascending
-              ),
+              future: _service.searchClients(_searchQuery, orderBy: _orderBy, ascending: _ascending),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(child: CircularProgressIndicator(color: Colors.blueAccent));
                 }
                 
+                // --- AQUI ESTÁ A MÁGICA PARA ESCONDER O ERRO FEIO ---
                 if (snapshot.hasError) {
-                  return Center(child: Text('Erro ao carregar: ${snapshot.error}'));
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.wifi_off, color: Colors.white24, size: 60),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Ops! Verifique sua conexão.',
+                          style: TextStyle(color: Colors.white, fontSize: 18),
+                        ),
+                        const SizedBox(height: 8),
+                        TextButton(
+                          onPressed: () => setState(() {}), // Recarrega a tela
+                          child: const Text('Tentar novamente', style: TextStyle(color: Colors.blueAccent)),
+                        ),
+                      ],
+                    ),
+                  );
                 }
 
                 if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text('Nenhum cliente encontrado.'));
+                  return const Center(child: Text('Nenhum cliente encontrado.', style: TextStyle(color: Colors.white70)));
                 }
 
                 final clientes = snapshot.data!;
@@ -96,45 +111,26 @@ class _HomeScreenState extends State<HomeScreen> {
                   itemCount: clientes.length,
                   itemBuilder: (context, index) {
                     final cliente = clientes[index];
-                    
-                    // Proteção contra dados vazios (Programação Defensiva)
                     final hasName = cliente.nome.trim().isNotEmpty;
-                    final displayLetter = hasName ? cliente.nome[0].toUpperCase() : '?';
-                    final displayName = hasName ? cliente.nome : "Sem Nome (${cliente.telefone})";
+                    final displayName = hasName ? cliente.nome : "Sem Nome";
 
                     return Card(
+                      color: const Color(0xFF1E1E1E),
                       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       child: ListTile(
                         leading: CircleAvatar(
                           backgroundColor: Colors.blueAccent,
-                          child: Text(displayLetter, style: const TextStyle(color: Colors.white)),
+                          child: Text(displayName[0].toUpperCase(), style: const TextStyle(color: Colors.white)),
                         ),
-                        title: Text(displayName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text(cliente.enderecoExibicao),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.message, color: Colors.green, size: 20),
-                              onPressed: () => LauncherUtils.abrirWhatsApp(cliente.telefone),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.location_on, color: Colors.redAccent, size: 20),
-                              onPressed: () => LauncherUtils.abrirMaps(cliente.enderecoExibicao),
-                            ),
-                            const Icon(Icons.chevron_right, color: Colors.grey),
-                          ],
-                        ),
+                        title: Text(displayName, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                        subtitle: Text(cliente.enderecoExibicao, style: const TextStyle(color: Colors.white70)),
+                        trailing: const Icon(Icons.chevron_right, color: Colors.white24),
                         onTap: () async {
-                          // Aguarda o retorno da tela de edição
                           await Navigator.push(
                             context,
-                            MaterialPageRoute(
-                              builder: (context) => ClientFormScreen(client: cliente),
-                            ),
+                            MaterialPageRoute(builder: (context) => ClientDetailsScreen(client: cliente)),
                           );
-                          // Atualiza a lista quando voltar (importante para FutureBuilder)
                           setState(() {});
                         },
                       ),
@@ -149,13 +145,8 @@ class _HomeScreenState extends State<HomeScreen> {
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.blueAccent,
         onPressed: () async {
-          await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const ClientFormScreen(),
-            ),
-          );
-          setState(() {}); // Atualiza ao voltar do cadastro
+          await Navigator.push(context, MaterialPageRoute(builder: (context) => const ClientFormScreen()));
+          setState(() {}); 
         },
         child: const Icon(Icons.person_add, color: Colors.white),
       ),
