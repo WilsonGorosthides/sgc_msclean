@@ -12,3 +12,8 @@ GeneratedPluginRegistrant.java
 key.properties
 **/*.keystore
 **/*.jks
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+cmake-build-*/
