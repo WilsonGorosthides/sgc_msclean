@@ -94,7 +94,8 @@ O sistema deve permitir excluir um cliente existente.
     2.  O sistema exibe a lista de clientes (ordenada por nome).
     3.  **Cenário A - Adicionar:** O usuário clica em "Adicionar Cliente", preenche o formulário e salva. O cliente aparece na lista em tempo real.
     4.  **Cenário B - Buscar:** O usuário digita na barra de busca. A lista é filtrada em tempo real por nome ou endereço.
-    5.  **Cenário C - Detalhes:** O usuário clica em um cliente da lista para ver seus detalhes.
+    5.  **Cenário C - Editar:** O usuário toca em um cliente da lista; o sistema abre o formulário pré-preenchido com os dados atuais. O usuário ajusta os campos necessários e confirma. A alteração aparece na lista em tempo real.
+    6.  **Cenário D - Excluir:** O usuário aciona a opção de excluir um cliente; o sistema solicita confirmação explícita. Ao confirmar, o cliente é removido do banco e desaparece da lista em tempo real, com feedback visual ao usuário.
 
 ## 6. Requisitos Pós-MVP
 
@@ -129,5 +130,6 @@ O sistema deve ter um mecanismo de login para o único usuário (a proprietária
 
 | Data | Versão | Autor | Descrição da mudança |
 |---|---|---|---|
-| 2026-06-27 | 1.0 | Wilson Gorosthides | Versão inicial dos requisitos. |
+| 2025-09-11 | 1.0 | Wilson Gorosthides | Versão inicial dos requisitos. |
 | 2026-06-27 | 2.0 | Wilson Gorosthides | Sincronização com a auditoria inicial: stack Supabase, escopo MVP (RF-001 a RF-004 + RF-008), critérios de aceitação verificáveis, RNFs tornados verificáveis, remoção do login do UC-001, RF-005/006/007 e História "Registrar um Serviço" movidos para Pós-MVP; novas histórias de editar e excluir cliente. |
+| 2026-06-27 | 2.1 | Wilson Gorosthides | Ajustes no UC-001: remove o Cenário C - Detalhes (não implementado, apenas `print` no código), adiciona Cenário C - Editar e Cenário D - Excluir. |
