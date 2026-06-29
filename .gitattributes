@@ -1,1 +1,22 @@
+# Normaliza fim de linha: LF no repositório por padrão
 * text=auto
+
+# Scripts dependentes de plataforma
+*.bat      text eol=crlf
+*.cmd      text eol=crlf
+*.ps1      text eol=crlf
+*.sh       text eol=lf
+gradlew    text eol=lf
+
+# Binários (nunca normalizar)
+*.png      binary
+*.jpg      binary
+*.jpeg     binary
+*.gif      binary
+*.ico      binary
+*.webp     binary
+*.ttf      binary
+*.otf      binary
+*.jar      binary
+*.keystore binary
+*.jks      binary
