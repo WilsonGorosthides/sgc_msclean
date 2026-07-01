@@ -80,6 +80,7 @@ Estilo Conventional Commits, em PT-BR, no presente:
 ```
 
 - **Vínculo com issue.** Quando houver issue relacionada, o PR a referencia (ex.: `Closes #7`).
+- **Merge:** merge commit — preserva os commits granulares da §5 na `main`. A branch é deletada após o merge.
 
 ## 7. Gestão de Issues e Labels
 
@@ -138,6 +139,12 @@ Detalhes e justificativas da stack ficam em `arquitetura.md`. Resumo operacional
 - **Backend:** Supabase (PostgreSQL gerenciado, realtime, RLS).
 - **Controle de versão:** Git + GitHub.
 - **Testes:** `flutter_test` (unitário, widget, integração).
+
+## 12. Releases e Versionamento
+
+Versões seguem SemVer (`vMAJOR.MINOR.PATCH`), marcadas como tag de git na `main`.
+Enquanto o MVP não fecha, não há tag; a primeira será `v1.0.0` (MVP completo). A tag
+é criada manualmente a partir da `main` liberável.
 
 ## Histórico de Versões
 
