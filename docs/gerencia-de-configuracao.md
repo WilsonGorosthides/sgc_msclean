@@ -142,10 +142,13 @@ Detalhes e justificativas da stack ficam em `arquitetura.md`. Resumo operacional
 
 ## 12. Releases e Versionamento
 
-Versões seguem **Versionamento Semântico** (SemVer) — formato `MAIOR.MINOR.CORREÇÃO`
+Versões seguem **Versionamento Semântico** (SemVer) — formato `MAIOR.MENOR.CORREÇÃO`
 (ex.: `v1.0.0`), como tag de git na `main`. Enquanto o MVP não fecha, não há tag; a
 primeira será `v1.0.0` (MVP completo). A tag é criada manualmente a partir da `main`
 liberável.
+
+Isto versiona o **produto**. A versão de cada **documento** é independente e segue a
+tabela de Histórico de Versões do próprio doc (1.0, 1.1, ...).
 
 ## Histórico de Versões
 
