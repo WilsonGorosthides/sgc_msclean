@@ -80,7 +80,7 @@ Estilo Conventional Commits, em PT-BR, no presente:
 ```
 
 - **Vínculo com issue.** Quando houver issue relacionada, o PR a referencia (ex.: `Closes #7`).
-- **Merge:** merge commit — preserva os commits granulares da §5 na `main`. A branch é deletada após o merge.
+- **Merge:** merge commit — preserva os commits granulares da [§5](#5-padrão-de-commits) na `main`. A branch é deletada após o merge.
 
 ## 7. Gestão de Issues e Labels
 
@@ -121,7 +121,7 @@ migrarem para Histórias de Usuário (HU), a unidade passa a ser a HU. Uma featu
 - [ ] Documentação sincronizada (requisitos/arquitetura, quando aplicável).
 - [ ] Linha adicionada ao Histórico de Versões do(s) doc(s) tocado(s).
 - [ ] Sem código de depuração (ex.: `print()`) no que foi alterado.
-- [ ] PR aberto seguindo a §6.
+- [ ] PR aberto seguindo a [§6](#6-pull-requests).
 
 ## 10. Configuração Sensível e Ambiente
 
@@ -142,9 +142,10 @@ Detalhes e justificativas da stack ficam em `arquitetura.md`. Resumo operacional
 
 ## 12. Releases e Versionamento
 
-Versões seguem SemVer (`vMAJOR.MINOR.PATCH`), marcadas como tag de git na `main`.
-Enquanto o MVP não fecha, não há tag; a primeira será `v1.0.0` (MVP completo). A tag
-é criada manualmente a partir da `main` liberável.
+Versões seguem **Versionamento Semântico** (SemVer) — formato `MAIOR.MINOR.CORREÇÃO`
+(ex.: `v1.0.0`), como tag de git na `main`. Enquanto o MVP não fecha, não há tag; a
+primeira será `v1.0.0` (MVP completo). A tag é criada manualmente a partir da `main`
+liberável.
 
 ## Histórico de Versões
 
