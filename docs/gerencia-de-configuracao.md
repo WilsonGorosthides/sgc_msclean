@@ -22,6 +22,9 @@ São controlados por versão neste repositório:
 **Não** são versionados: segredos e credenciais (`.env`, chaves do Supabase),
 artefatos de build (`build/`, `.dart_tool/`) e arquivos locais de IDE.
 
+**Nome de arquivo de doc:** kebab-case minúsculo (ex.: `gerencia-de-configuracao.md`).
+O legado `AUDITORIA_INICIAL.md` será padronizado nesse formato.
+
 ## 3. Repositório
 
 - **Origem:** https://github.com/WilsonGorosthides/sgc_msclean
@@ -76,7 +79,7 @@ Estilo Conventional Commits, em PT-BR, no presente:
 [opcional]
 ```
 
-- **Vínculo com issue.** Quando houver issue relacionada, o PR a referencia (ex.: `Closes #12`).
+- **Vínculo com issue.** Quando houver issue relacionada, o PR a referencia (ex.: `Closes #7`).
 
 ## 7. Gestão de Issues e Labels
 
@@ -117,7 +120,7 @@ migrarem para Histórias de Usuário (HU), a unidade passa a ser a HU. Uma featu
 - [ ] Documentação sincronizada (requisitos/arquitetura, quando aplicável).
 - [ ] Linha adicionada ao Histórico de Versões do(s) doc(s) tocado(s).
 - [ ] Sem código de depuração (ex.: `print()`) no que foi alterado.
-- [ ] Mudança integrada na `main` por PR.
+- [ ] PR aberto seguindo a §6.
 
 ## 10. Configuração Sensível e Ambiente
 
@@ -140,4 +143,4 @@ Detalhes e justificativas da stack ficam em `arquitetura.md`. Resumo operacional
 
 | Versão | Data | Autor | Mudança |
 |---|---|---|---|
-| 1.0 | 2026-06-29 | Wilson Gorosthides | Criação do documento de gerência de configuração. |
+| 1.0 | 2026-07-01 | Wilson Gorosthides | Criação do documento de gerência de configuração. |
