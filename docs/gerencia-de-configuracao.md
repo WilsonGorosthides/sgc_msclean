@@ -95,6 +95,7 @@ O backlog conhecido vive como issues no GitHub. Labels em uso:
 | `process` | Processo e metodologia |
 | `documentation` | Documentação |
 | `bug` | Defeito reportado |
+| `feat` | Nova funcionalidade |
 
 Dívidas técnicas são **registradas como issues**.
 
@@ -156,4 +157,4 @@ tabela de Histórico de Versões do próprio doc (1.0, 1.1, ...).
 | Versão | Data | Autor | Mudança |
 |---|---|---|---|
 | 1.0 | 2026-07-01 | Wilson Gorosthides | Criação do documento de gerência de configuração. |
-| 1.1 | 2026-07-02 | Wilson Gorosthides | Adiciona templates de PR e bug; registra label bug. |
+| 1.1 | 2026-07-02 | Wilson Gorosthides | Adiciona templates de PR e de issues (bug, feature, task) + config.yml; registra labels bug e feat. |
