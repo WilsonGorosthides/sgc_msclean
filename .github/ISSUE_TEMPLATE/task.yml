@@ -1,0 +1,25 @@
+name: Task
+description: Trabalho técnico que não é defeito nem história
+body:
+  - type: markdown
+    attributes:
+      value: "Escolha uma label ao abrir: chore, refactor, documentation ou process."
+  - type: textarea
+    id: descricao
+    attributes:
+      label: Descrição
+    validations:
+      required: true
+  - type: textarea
+    id: dod
+    attributes:
+      label: Definição de Pronto
+      placeholder: |
+        - Condição 1
+        - Condição 2
+    validations:
+      required: true
+  - type: textarea
+    id: observacoes
+    attributes:
+      label: Observações

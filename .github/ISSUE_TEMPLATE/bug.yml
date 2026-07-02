@@ -1,0 +1,62 @@
+name: Bug
+description: Reportar um defeito
+labels: [bug]
+body:
+  - type: textarea
+    id: descricao
+    attributes:
+      label: Descrição
+      description: Descreva o problema de forma clara e objetiva.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduzir
+    attributes:
+      label: Como reproduzir
+      value: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+  - type: textarea
+    id: esperado
+    attributes:
+      label: Comportamento esperado
+    validations:
+      required: true
+  - type: textarea
+    id: atual
+    attributes:
+      label: Comportamento atual
+    validations:
+      required: true
+  - type: input
+    id: plataforma
+    attributes:
+      label: Plataforma
+      description: Android ou Web.
+  - type: input
+    id: versao
+    attributes:
+      label: Versão do app / commit
+  - type: textarea
+    id: evidencias
+    attributes:
+      label: Evidências
+      description: Prints, logs ou vídeos que ajudem a entender o defeito.
+  - type: dropdown
+    id: severidade
+    attributes:
+      label: Severidade
+      options:
+        - crítica
+        - alta
+        - média
+        - baixa
+    validations:
+      required: true
+  - type: textarea
+    id: observacoes
+    attributes:
+      label: Observações

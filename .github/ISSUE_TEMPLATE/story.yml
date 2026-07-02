@@ -1,0 +1,24 @@
+name: Story
+description: História de usuário vinculada aos requisitos
+labels: [feat]
+body:
+  - type: input
+    id: link-requisitos
+    attributes:
+      label: Link Requisitos
+      description: Link para a seção do RF em docs/requisitos.md.
+    validations:
+      required: true
+  - type: textarea
+    id: descricao
+    attributes:
+      label: Descrição
+  - type: checkboxes
+    id: dod
+    attributes:
+      label: Definição de Pronto
+      options:
+        - label: Testes definidos antes da implementação
+        - label: Possui testes (unit/widget)
+        - label: Passa em todos os critérios de aceitação
+        - label: Documentação sincronizada
