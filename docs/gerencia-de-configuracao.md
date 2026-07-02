@@ -17,7 +17,7 @@ São controlados por versão neste repositório:
 - **Código-fonte** do app Flutter em `app/sgc_msclean/`.
 - **Documentação** em `docs/` (`requisitos.md`, `arquitetura.md`, `AUDITORIA_INICIAL.md`) e este documento.
 - **Arquivos de configuração do repositório**: `.gitignore`, `.gitattributes`, `pubspec.yaml`/`pubspec.lock`.
-- **Templates** de Pull Request e de issues (em `.github/`, quando criados).
+- **Templates** de Pull Request e de issues (em `.github/`).
 
 **Não** são versionados: segredos e credenciais (`.env`, chaves do Supabase),
 artefatos de build (`build/`, `.dart_tool/`) e arquivos locais de IDE.
@@ -94,6 +94,7 @@ O backlog conhecido vive como issues no GitHub. Labels em uso:
 | `refactor` | Refatoração de código |
 | `process` | Processo e metodologia |
 | `documentation` | Documentação |
+| `bug` | Defeito reportado |
 
 Dívidas técnicas são **registradas como issues**.
 
@@ -155,3 +156,4 @@ tabela de Histórico de Versões do próprio doc (1.0, 1.1, ...).
 | Versão | Data | Autor | Mudança |
 |---|---|---|---|
 | 1.0 | 2026-07-01 | Wilson Gorosthides | Criação do documento de gerência de configuração. |
+| 1.1 | 2026-07-02 | Wilson Gorosthides | Adiciona templates de PR e bug; registra label bug. |
