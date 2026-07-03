@@ -60,11 +60,19 @@ sgc_msclean/
 ````
 
 ## 🛠️ Como Instalar e Executar
-1.  Garanta que você tenha o **Flutter SDK** instalado.
-2.  Clone este repositório: `git clone https://github.com/seu-usuario/sgc_msclean.git`
-3.  Crie um projeto no **Supabase** e configure a tabela `clientes` (com as políticas de RLS).
-4.  Na raiz do app (`app/sgc_msclean/`), crie um arquivo `.env` com base no `.env.example`, preenchendo `SUPABASE_URL` e `SUPABASE_ANON_KEY`.
-5.  Execute a aplicação: `flutter run`
+O Flutter é fixado via **[FVM](https://fvm.app/)** (`.fvmrc`: Flutter 3.35.0 / Dart 3.9.0). Use sempre `fvm flutter`.
+
+```bash
+dart pub global activate fvm            # instala o FVM
+git clone https://github.com/seu-usuario/sgc_msclean.git
+cd sgc_msclean/app/sgc_msclean
+fvm use                                 # baixa a versão do .fvmrc
+cp .env.example .env                    # preencha SUPABASE_URL e SUPABASE_ANON_KEY
+fvm flutter pub get
+fvm flutter run -d chrome
+```
+
+> **Pré-requisito:** um projeto **Supabase** com a tabela `clientes` e RLS configurados — schema em [`docs/arquitetura.md`](./docs/arquitetura.md).
 
 ## 📜 Licença
 Este projeto está licenciado sob a licença [MIT](https://opensource.org/licenses/MIT).
