@@ -72,7 +72,7 @@ fvm flutter pub get
 fvm flutter run -d chrome
 ```
 
-> No Windows, clone em caminho **somente-ASCII** — acentos/travessões quebram o build Android.
+> **Pré-requisito:** um projeto **Supabase** com a tabela `clientes` e RLS configurados — schema em [`docs/arquitetura.md`](./docs/arquitetura.md).
 
 ## 📜 Licença
 Este projeto está licenciado sob a licença [MIT](https://opensource.org/licenses/MIT).
