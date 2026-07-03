@@ -96,7 +96,7 @@ O backlog conhecido vive como issues no GitHub. Labels em uso:
 | `documentation` | Documentação |
 | `bug` | Defeito reportado |
 | `feat` | Nova funcionalidade |
-| `story` | História de usuário — unidade de planejamento, 1:1 com um RF do MVP |
+| `story` | História de usuário — unidade de planejamento, 1:1 com um RF que tenha História escrita |
 
 Dívidas técnicas são **registradas como issues**.
 
