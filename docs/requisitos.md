@@ -8,6 +8,11 @@ O escopo aqui descrito reflete o **MVP** confirmado na auditoria inicial (ver `d
 
 Cada requisito funcional é marcado com **[MVP]** ou **[Pós-MVP]** e acompanhado de critérios de aceitação verificáveis (bullets objetivos, passíveis de teste).
 
+Cada História de Usuário (seção 4) corresponde 1:1 a um RF do MVP e é rastreada no
+GitHub como uma issue **Story** (label `story`), unidade de planejamento que agrega
+a(s) issue(s) `feat` de implementação como sub-issues nativas — ver
+`docs/gerencia-de-configuracao.md` §7.
+
 ## 2. Requisitos Funcionais (RFs)
 
 ### 2.1 Gestão de Clientes
@@ -133,3 +138,4 @@ O sistema deve ter um mecanismo de login para o único usuário (a proprietária
 | 2025-09-11 | 1.0 | Wilson Gorosthides | Versão inicial dos requisitos. |
 | 2026-06-27 | 2.0 | Wilson Gorosthides | Sincronização com a auditoria inicial: stack Supabase, escopo MVP (RF-001 a RF-004 + RF-008), critérios de aceitação verificáveis, RNFs tornados verificáveis, remoção do login do UC-001, RF-005/006/007 e História "Registrar um Serviço" movidos para Pós-MVP; novas histórias de editar e excluir cliente. |
 | 2026-06-27 | 2.1 | Wilson Gorosthides | Ajustes no UC-001: remove o Cenário C - Detalhes (não implementado, apenas `print` no código), adiciona Cenário C - Editar e Cenário D - Excluir. |
+| 2026-07-03 | 2.2 | Wilson Gorosthides | Adiciona nota em §1 ligando RF → História de Usuário → issue Story no rastreamento do GitHub. |
