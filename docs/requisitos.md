@@ -4,6 +4,8 @@
 
 Este documento detalha os requisitos funcionais e não funcionais do Sistema de Gestão de Clientes (SGC) da MSClean. Serve de guia para as fases de design, desenvolvimento e teste.
 
+Decisões históricas de escopo e priorização estão registradas em `docs/AUDITORIA_INICIAL.md`.
+
 Cada requisito funcional é acompanhado de critérios de aceitação verificáveis
 (bullets objetivos, passíveis de teste).
 
@@ -76,6 +78,8 @@ Para cada cliente, o usuário deve poder adicionar um registro de pagamento.
 #### RF-007 - Autenticação de Usuário Único
 O sistema deve ter um mecanismo de login para o único usuário (a proprietária da empresa).
 
+* **Nota:** A usuária é única no próprio dispositivo; o controle de acesso é exercido por RLS no Supabase (ver RNF-005).
+
 ## 3. Requisitos Não Funcionais (RNFs)
 
 * **RNF-001 - Usabilidade:** Todas as ações principais (cadastrar, buscar, editar, excluir) devem ser alcançáveis em no máximo 2 toques a partir da tela inicial, sem necessidade de treinamento prévio.
@@ -125,3 +129,4 @@ O sistema deve ter um mecanismo de login para o único usuário (a proprietária
 | 2026-06-27 | 2.0 | Wilson Gorosthides | Sincronização com a auditoria inicial: stack Supabase, escopo MVP (RF-001 a RF-004 + RF-008), critérios de aceitação verificáveis, RNFs tornados verificáveis, remoção do login do UC-001, RF-005/006/007 e História "Registrar um Serviço" movidos para Pós-MVP; novas histórias de editar e excluir cliente. |
 | 2026-06-27 | 2.1 | Wilson Gorosthides | Ajustes no UC-001: remove o Cenário C - Detalhes (não implementado, apenas `print` no código), adiciona Cenário C - Editar e Cenário D - Excluir. |
 | 2026-07-03 | 2.2 | Wilson Gorosthides | Adiciona nota em §1 ligando RF → História de Usuário → issue Story; remove a distinção MVP/Pós-MVP (RF-005/006/007 incorporados à seção 2, História 5 à seção 4, sem tags de status); Histórico de Versões renumerado de §7 para §6. |
+| 2026-07-03 | 2.3 | Wilson Gorosthides | Restaura em RF-007 a nota técnica sobre RLS/RNF-005 (perdida na limpeza de MVP/Pós-MVP); devolve em §1 o pointer geral para `docs/AUDITORIA_INICIAL.md`. |
