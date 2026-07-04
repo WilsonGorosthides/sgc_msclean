@@ -27,7 +27,7 @@ A documentação detalhada do projeto vive na pasta [`docs/`](./docs):
 
 ## 📈 Roadmap
 - **Fase 1 (MVP):** listagem, busca, cadastro, edição e exclusão de clientes.
-- **Fase 2 (Pós-MVP):** histórico de serviços, histórico de pagamentos e autenticação de usuário (ver requisitos Pós-MVP em [`docs/requisitos.md`](./docs/requisitos.md)).
+- **Fase 2 (Pós-MVP):** histórico de serviços, histórico de pagamentos e autenticação de usuário (ver RF-005 a RF-007 em [`docs/requisitos.md`](./docs/requisitos.md)).
 - **Fase 3:** melhorias futuras — busca server-side, filtros avançados e refinamentos da versão desktop.
 
 ## 📌 Requisitos do Sistema

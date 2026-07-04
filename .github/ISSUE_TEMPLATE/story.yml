@@ -1,6 +1,6 @@
 name: Story
 description: História de usuário vinculada aos requisitos
-labels: [feat]
+labels: [story]
 body:
   - type: input
     id: link-requisitos

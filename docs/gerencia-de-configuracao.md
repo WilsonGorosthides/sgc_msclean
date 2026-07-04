@@ -96,8 +96,21 @@ O backlog conhecido vive como issues no GitHub. Labels em uso:
 | `documentation` | Documentação |
 | `bug` | Defeito reportado |
 | `feat` | Nova funcionalidade |
+| `story` | História de usuário — unidade de planejamento, 1:1 com um RF que tenha História escrita |
 
 Dívidas técnicas são **registradas como issues**.
+
+### 7.1 Hierarquia Story → Feat
+
+Dado o porte do projeto, a unidade de planejamento é a **Story** — não um conceito
+maior como epic. Cada Story corresponde 1:1 a uma História de Usuário de
+`requisitos.md` §4 (e, por consequência, ao RF que ela representa).
+
+- A issue Story linka a História de Usuário correspondente e cita a(s) issue(s)
+  `feat` que ela agrega.
+- A relação Story → feat é expressa via **sub-issues nativas do GitHub** (não por
+  task list em markdown): as issues `feat` de implementação são cadastradas como
+  sub-issues da issue Story.
 
 ## 8. Sincronização Documentação ↔ Código (Princípio nº 1)
 
@@ -158,3 +171,4 @@ tabela de Histórico de Versões do próprio doc (1.0, 1.1, ...).
 |---|---|---|---|
 | 1.0 | 2026-07-01 | Wilson Gorosthides | Criação do documento de gerência de configuração. |
 | 1.1 | 2026-07-02 | Wilson Gorosthides | Adiciona template de PR e templates de issue como Issue Forms (bug, story, task) + config.yml; registra labels bug e feat. |
+| 1.2 | 2026-07-03 | Wilson Gorosthides | Registra label `story` e documenta a hierarquia Story → feat via sub-issues nativas do GitHub (§7.1). |
