@@ -36,7 +36,9 @@ O banco é relacional, organizado em tabelas.
     -   `endereco` (text)
     -   `telefone` (text)
 
-A tabela é lida via stream ordenada por `nome`. As políticas de RLS aplicáveis a `clientes` controlam o acesso (ver seção 3).
+A tabela é lida via stream ordenada por `nome`.
+
+**Row Level Security.** A tabela `clientes` tem RLS habilitada, com uma única política verificada em produção: `mvp_acesso_total_anon` (`FOR ALL`, role `anon`, `USING (true)` e `WITH CHECK (true)`). Na prática, com o RLS ligado, a role `anon` — a mesma que a `anonKey` pública carregada pelo app assume — tem acesso total de leitura e escrita à tabela, sem nenhum filtro por linha. Essa permissividade é **deliberada** para o estágio atual (usuária única, app ainda não distribuído publicamente) e tem prazo de validade: deve ser substituída por políticas restritivas quando o RF-007 (autenticação) for implementado. Ver as dívidas técnicas (seção 9) e os riscos (seção 10).
 
 ## 5. Estrutura de Diretórios do Projeto
 A organização real do código:
@@ -102,7 +104,7 @@ A auditoria registrou cobertura real de 0% — o único teste era o template pad
 | Busca client-side | Volume pequeno justifica filtrar em memória; UX em tempo real sem ida ao servidor | Quando a base ultrapassar ~500 clientes ou latência incomodar |
 | Sem camada de repository | Escopo MVP com fonte única (Supabase) não justifica indireção | Quando surgir cache local, múltiplas fontes ou troca de backend |
 | Tabela `clientes` em português | Decisão histórica do código atual; refactor envolve renomear tabela, ajustar service e migrar dados | Em refactor futuro com padronização para inglês |
-| RLS a verificar no painel | Não verificável pelo código; depende de configuração no Supabase | Antes de tornar o repositório público ou expor o app |
+| RLS deliberadamente permissiva | Política `mvp_acesso_total_anon` dá acesso total à role `anon` (`USING/WITH CHECK (true)`); aceitável só enquanto o app tem usuária única e não é distribuído | Ao implementar o RF-007 (autenticação): trocar por políticas restritivas por usuário |
 | `.env.example` ausente | Quem clona o repositório não sabe quais chaves preencher | Próximo passo imediato (já listado na auditoria) |
 | `pubspec.yaml` com descrição genérica | Ainda está com o placeholder "A new Flutter project." | Junto com a criação do .env.example |
 | `print()` em produção | Usado em home_screen para o onTap; saída sem propósito de log | No refactor da tela de detalhes (RF futuro) |
@@ -111,7 +113,7 @@ A auditoria registrou cobertura real de 0% — o único teste era o template pad
 
 | Risco | Probabilidade | Impacto | Mitigação |
 |---|---|---|---|
-| RLS mal configurada expor dados de clientes | Média | Alto | Verificar políticas no painel do Supabase antes de tornar o repo público; documentar políticas como parte do README |
+| Política de RLS permissiva expor dados de clientes | Média | Alto | Risco residual conhecido: com a `mvp_acesso_total_anon`, qualquer um de posse da `anonKey` tem acesso total à tabela. Mitigação real: não distribuir a `anonKey` amplamente (app não publicado) até o RF-007 substituir a política por regras restritivas |
 | Crescimento da base degradar a busca client-side | Baixa (curto prazo) | Médio | Monitorar volume; migrar para busca server-side (ilike/full-text) quando ultrapassar limiar de ~500 registros |
 | Perda do `.env` por falta de exemplo no repositório | Alta | Médio | Criar `.env.example` com chaves esperadas e instruções |
 | Documentação voltar a divergir do código | Média | Médio | Definição de pronto inclui atualização de docs; revisão a cada commit que mexer em model, stack ou estrutura |
@@ -124,6 +126,7 @@ A auditoria registrou cobertura real de 0% — o único teste era o template pad
 | 2025-09-11 | 1.0 | Wilson Gorosthides | Versão inicial (descrevia Firebase) |
 | 2026-06-27 | 2.0 | Wilson Gorosthides | Sincronização com auditoria: Supabase, model real, justificativas técnicas, estratégia de testes |
 | 2026-06-27 | 2.1 | Wilson Gorosthides | Adição das seções de dívidas técnicas, riscos e histórico de versões |
+| 2026-07-08 | 2.2 | Wilson Gorosthides | Documentação da política de RLS `mvp_acesso_total_anon` (verificada em produção, deliberadamente permissiva até o RF-007) nas seções 4, 9 e 10 |
 
 ## 12. Ambiente de Desenvolvimento
 Os seguintes softwares e configurações são necessários para iniciar o desenvolvimento:
