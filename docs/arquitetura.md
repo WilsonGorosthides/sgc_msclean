@@ -36,7 +36,9 @@ O banco é relacional, organizado em tabelas.
     -   `endereco` (text)
     -   `telefone` (text)
 
-A tabela é lida via stream ordenada por `nome`. As políticas de RLS aplicáveis a `clientes` controlam o acesso (ver seção 3).
+A tabela é lida via stream ordenada por `nome`.
+
+**Row Level Security.** A tabela `clientes` tem RLS habilitada, com uma única política verificada em produção: `mvp_acesso_total_anon` (`FOR ALL`, role `anon`, `USING (true)` e `WITH CHECK (true)`). Na prática, com o RLS ligado, a role `anon` — a mesma que a `anonKey` pública carregada pelo app assume — tem acesso total de leitura e escrita à tabela, sem nenhum filtro por linha. Essa permissividade é **deliberada** para o estágio atual (usuária única, app ainda não distribuído publicamente) e tem prazo de validade: deve ser substituída por políticas restritivas quando o RF-007 (autenticação) for implementado. Ver as dívidas técnicas (seção 9) e os riscos (seção 10).
 
 ## 5. Estrutura de Diretórios do Projeto
 A organização real do código:
