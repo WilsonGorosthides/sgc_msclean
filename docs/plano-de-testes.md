@@ -172,3 +172,88 @@ persegue um número de cobertura (ex.: "80% de linhas") — perseguir percentual
 projeto deste porte incentiva testes de baixo valor só para inflar a métrica. O que
 importa é que cada critério de aceitação verificável tenha um caso de teste que o
 exercite, o que a matriz de rastreabilidade (seção 7) torna auditável.
+
+## 7. Matriz de Rastreabilidade
+
+Liga cada RF do MVP ao seu critério de aceitação (copiado literalmente de
+`requisitos.md` §2) e ao nome do caso de teste que o exercita. Casos de RFs ainda
+não implementados (RF-001, RF-002, RF-008) ficam **a definir** até o teste ser
+escrito, na ordem "teste antes da feature".
+
+| RF | Critério de aceitação (`requisitos.md` §2) | Caso de teste |
+|---|---|---|
+| RF-001 | Nome, Endereço e Telefone são campos obrigatórios. | `a definir` |
+| RF-001 | Ao tentar salvar com qualquer campo obrigatório vazio (ou só com espaços em branco), o sistema bloqueia o salvamento e exibe mensagem indicando o(s) campo(s) pendente(s). | `a definir` |
+| RF-001 | O Telefone aceita apenas dígitos, espaços e os símbolos `+ ( ) -`; outros caracteres são rejeitados na validação. | `a definir` |
+| RF-001 | Após salvar com sucesso, o novo cliente aparece na lista sem necessidade de recarregar a tela (atualização em tempo real via stream). | `a definir` |
+| RF-001 | Após salvar, o formulário é fechado e o usuário retorna à lista. | `a definir` |
+| RF-002 | O formulário de edição abre pré-preenchido com os dados atuais do cliente. | `a definir` |
+| RF-002 | As mesmas validações do cadastro (RF-001) se aplicam: campos obrigatórios e formato de telefone. | `a definir` |
+| RF-002 | Uma edição só é considerada salva após o usuário confirmar; nesse momento os dados são persistidos no banco e refletidos na lista em tempo real. | `a definir` |
+| RF-002 | Ao cancelar, nenhuma alteração é gravada e os dados originais do cliente permanecem intactos. | `a definir` |
+| RF-003 | A lista é ordenada por Nome em ordem alfabética crescente (ordenação padrão). | `home_screen_test: lista populada em ordem alfabética` |
+| RF-003 | Cada item exibe, no mínimo, Nome e Endereço. | `home_screen_test: item exibe nome e endereço` |
+| RF-003 | A lista reflete inserções, edições e exclusões em tempo real (stream), sem ação manual de atualização. | `home_screen_test: lista reage à emissão da stream` |
+| RF-003 | Quando não há nenhum cliente cadastrado, a tela exibe a mensagem "Nenhum cliente encontrado." em vez de uma lista vazia silenciosa. | `home_screen_test: estado vazio exibe mensagem` |
+| RF-004 | A busca filtra por **Nome** ou **Endereço** (correspondência de substring). | `supabase_service_test: filtro por nome ou endereço` |
+| RF-004 | A busca é **case-insensitive** (não diferencia maiúsculas de minúsculas). | `supabase_service_test: filtro case-insensitive` |
+| RF-004 | A lista é filtrada em tempo real conforme o usuário digita, sem necessidade de botão "buscar". | `home_screen_test: filtragem ao digitar na busca` |
+| RF-004 | Quando nenhum cliente corresponde ao termo, a tela exibe a mensagem "Nenhum cliente encontrado.". | `home_screen_test: busca sem correspondência exibe mensagem` |
+| RF-004 | Com o campo de busca vazio, todos os clientes são exibidos. | `home_screen_test: busca vazia exibe todos` |
+| RF-008 | A exclusão exige confirmação explícita do usuário (diálogo "Confirmar exclusão?") antes de efetivar. | `a definir` |
+| RF-008 | Ao cancelar a confirmação, o cliente **não** é removido e permanece na lista. | `a definir` |
+| RF-008 | Ao confirmar, o cliente é removido do banco e desaparece da lista em tempo real. | `a definir` |
+| RF-008 | Após a exclusão bem-sucedida, o sistema dá feedback visual (ex.: SnackBar "Cliente excluído"). | `a definir` |
+
+Os nomes de caso de teste para RF-003 e RF-004 são o alvo pretendido da suíte; à
+medida que os testes forem escritos, esta tabela é a fonte que confirma que nenhum
+critério ficou descoberto.
+
+## 8. Modelo de Severidade e Prioridade
+
+Classificação simplificada, com **dois níveis** em cada eixo — suficiente para o
+porte do projeto (usuária única, um desenvolvedor). Severidade descreve o impacto
+técnico do defeito; prioridade, a urgência de corrigi-lo.
+
+**Severidade:**
+
+| Nível | Significado |
+|---|---|
+| Alta | Bloqueia uma funcionalidade do MVP ou corrompe/perde dados de cliente (ex.: salvar não persiste, exclusão remove o cliente errado, lista não carrega). |
+| Baixa | Não bloqueia o uso; afeta acabamento ou casos de borda (ex.: mensagem com texto impreciso, ordenação incorreta com acentuação). |
+
+**Prioridade:**
+
+| Nível | Significado |
+|---|---|
+| Alta | Corrigir antes de fechar o RF/abrir o PR. |
+| Baixa | Pode virar issue e ser tratado depois, sem travar a entrega atual. |
+
+Regra prática: todo defeito de severidade Alta é prioridade Alta. Um defeito de
+severidade Baixa pode ser prioridade Baixa (vira dívida/issue) quando não
+compromete os critérios de aceitação do RF em entrega.
+
+## 9. Plano de Execução
+
+Fluxo de trabalho solo, aplicado por feature do MVP:
+
+1. **Branch.** Criar branch dedicada da `main` atualizada
+   (`<tipo>/<descricao>`, `gerencia-de-configuracao.md` §4).
+2. **Testes antes do código.** Escrever os casos de teste do RF a partir dos
+   critérios de aceitação de `requisitos.md` §2 (a suíte falha — vermelho — porque
+   a feature ainda não existe).
+3. **Implementação.** Implementar a feature até os testes passarem.
+4. **Suíte verde.** `fvm flutter test` e `fvm flutter analyze` sem falhas nem erros.
+5. **PR.** Abrir o PR seguindo `gerencia-de-configuracao.md` §6 (título
+   `pr(<tipo>): ...`, corpo no template, `Closes #N`).
+6. **Autorrevisão.** Revisar o próprio diff antes do merge — código, testes e
+   sincronização de documentação (Definição de Pronto, §9 da GCS).
+
+Enquanto não houver CI (seção 5.2), os passos 4 e 6 são executados manualmente pelo
+desenvolvedor; a suíte local verde é o gate de qualidade.
+
+## 10. Histórico de Versões
+
+| Data | Versão | Autor | Descrição da mudança |
+|---|---|---|---|
+| 2026-07-10 | 1.0 | Wilson Gorosthides | Criação do plano de testes do MVP: estratégia (pirâmide de 3 camadas com E2E como Fase 2), níveis de teste, automação com `mocktail`, cobertura qualitativa, matriz de rastreabilidade dos RFs do MVP, modelo de severidade/prioridade e plano de execução solo. |
