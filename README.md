@@ -17,6 +17,7 @@ A documentação detalhada do projeto vive na pasta [`docs/`](./docs):
 - [`AUDITORIA_INICIAL.md`](./docs/AUDITORIA_INICIAL.md) — diagnóstico do estado real do projeto e decisões de escopo.
 - [`requisitos.md`](./docs/requisitos.md) — requisitos funcionais e não funcionais (fonte da verdade).
 - [`arquitetura.md`](./docs/arquitetura.md) — arquitetura, stack e decisões técnicas (fonte da verdade).
+- [`plano-de-testes.md`](./docs/plano-de-testes.md) — estratégia de testes, níveis e matriz de rastreabilidade do MVP.
 
 ## ✅ Status do MVP
 - [x] Listagem de clientes
