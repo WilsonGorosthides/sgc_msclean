@@ -47,17 +47,15 @@ Detalhes de decisões técnicas, fluxo de dados e diagrama de componentes em [`d
 ## 📁 Estrutura do Projeto
 ````
 sgc_msclean/
-├── app/
-│   └── sgc_msclean/
-│       ├── lib/
-│       │   ├── main.dart
-│       │   ├── models/
-│       │   │   └── client_model.dart
-│       │   ├── screens/
-│       │   │   └── home_screen.dart
-│       │   └── services/
-│       │       └── supabase_service.dart
-│       └── test/
+├── lib/
+│   ├── main.dart
+│   ├── models/
+│   │   └── client_model.dart
+│   ├── screens/
+│   │   └── home_screen.dart
+│   └── services/
+│       └── supabase_service.dart
+├── test/
 └── docs/
 ````
 
@@ -67,7 +65,7 @@ O Flutter é fixado via **[FVM](https://fvm.app/)** (`.fvmrc`: Flutter 3.35.0 / 
 ```bash
 dart pub global activate fvm            # instala o FVM
 git clone https://github.com/seu-usuario/sgc_msclean.git
-cd sgc_msclean/app/sgc_msclean
+cd sgc_msclean
 fvm use                                 # baixa a versão do .fvmrc
 cp .env.example .env                    # preencha SUPABASE_URL e SUPABASE_ANON_KEY
 fvm flutter pub get
