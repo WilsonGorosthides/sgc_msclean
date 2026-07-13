@@ -24,7 +24,7 @@ até o teste ser escrito, na ordem "teste antes da feature".
 | RF-002 | As mesmas validações do cadastro (RF-001) se aplicam: campos obrigatórios e formato de telefone. | `a definir` |
 | RF-002 | Uma edição só é considerada salva após o usuário confirmar; nesse momento os dados são persistidos no banco e refletidos na lista em tempo real. | `a definir` |
 | RF-002 | Ao cancelar, nenhuma alteração é gravada e os dados originais do cliente permanecem intactos. | `a definir` |
-| RF-003 | A lista é ordenada por Nome em ordem alfabética crescente (ordenação padrão). | `home_screen_test: lista populada em ordem alfabética` |
+| RF-003 | A lista é ordenada por Nome em ordem alfabética crescente (ordenação padrão). | `home_screen_test: lista populada em ordem alfabética` · `supabase_service_test: ordena por nome em ordem alfabética crescente` |
 | RF-003 | Cada item exibe, no mínimo, Nome e Endereço. | `home_screen_test: item exibe nome e endereço` |
 | RF-003 | A lista reflete inserções, edições e exclusões em tempo real (stream), sem ação manual de atualização. | `home_screen_test: lista reage à emissão da stream` |
 | RF-003 | Quando não há nenhum cliente cadastrado, a tela exibe a mensagem "Nenhum cliente encontrado." em vez de uma lista vazia silenciosa. | `home_screen_test: estado vazio exibe mensagem` |
@@ -50,3 +50,4 @@ descoberto.
 |---|---|---|---|
 | 2026-07-11 | 1.0 | Wilson Gorosthides | Extração da matriz de rastreabilidade da seção 7 de `plano-de-testes.md` para documento próprio (RF do MVP ↔ critério de aceitação ↔ caso de teste). |
 | 2026-07-13 | 1.1 | Wilson Gorosthides | Casos de teste de RF-003 e RF-004 confirmados: deixam de ser alvo pretendido e passam a existir na suíte (`test/unit/`, `test/widget/`), implementados na issue #28. |
+| 2026-07-13 | 1.2 | Wilson Gorosthides | Adiciona `supabase_service_test: ordena por nome em ordem alfabética crescente` ao critério de ordenação do RF-003 — o caso de widget cobre a renderização; este cobre a ordenação pedida ao Supabase (bug da issue #39). |
