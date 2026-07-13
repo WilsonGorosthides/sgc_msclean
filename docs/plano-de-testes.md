@@ -128,9 +128,14 @@ Aplicam-se por feature do MVP (unidade = RF de `requisitos.md`).
 - `fvm flutter analyze` sem erros.
 - Rastreabilidade atualizada (seção 7): o RF aponta para o(s) caso(s) de teste real.
 
-Estes critérios são locais (suíte rodando na máquina do desenvolvedor). Não há
-etapa de "build instalável em device" como gate — a validação é a suíte local
-verde mais a verificação manual opcional em chrome/emulador.
+Estes critérios são locais (suíte rodando na máquina do desenvolvedor). O gate
+obrigatório é a **suíte verde** — não há etapa de "build instalável em device"
+como critério de saída, e nenhum RF fica bloqueado se o aparelho da cliente não
+estiver acessível no momento do fechamento.
+
+A verificação manual é **complementar** ao gate e, quando feita, segue a ordem de
+preferência da seção 2.1: primeiro o dispositivo físico da cliente; emulador
+Android ou `chrome` como alternativa.
 
 ## 4. Níveis de Teste
 
