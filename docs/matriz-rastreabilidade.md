@@ -38,12 +38,15 @@ até o teste ser escrito, na ordem "teste antes da feature".
 | RF-008 | Ao confirmar, o cliente é removido do banco e desaparece da lista em tempo real. | `a definir` |
 | RF-008 | Após a exclusão bem-sucedida, o sistema dá feedback visual (ex.: SnackBar "Cliente excluído"). | `a definir` |
 
-Os nomes de caso de teste para RF-003 e RF-004 são o alvo pretendido da suíte; à
-medida que os testes forem escritos, esta tabela é a fonte que confirma que nenhum
-critério ficou descoberto.
+Os casos de teste de RF-003 e RF-004 estão **implementados e passando** — vivem em
+`test/unit/supabase_service_test.dart` e `test/widget/home_screen_test.dart`, com
+os nomes exatos desta tabela (issue #28). À medida que os demais RFs forem
+desenvolvidos, esta tabela é a fonte que confirma que nenhum critério ficou
+descoberto.
 
 ## Histórico de Versões
 
 | Data | Versão | Autor | Descrição da mudança |
 |---|---|---|---|
 | 2026-07-11 | 1.0 | Wilson Gorosthides | Extração da matriz de rastreabilidade da seção 7 de `plano-de-testes.md` para documento próprio (RF do MVP ↔ critério de aceitação ↔ caso de teste). |
+| 2026-07-13 | 1.1 | Wilson Gorosthides | Casos de teste de RF-003 e RF-004 confirmados: deixam de ser alvo pretendido e passam a existir na suíte (`test/unit/`, `test/widget/`), implementados na issue #28. |
