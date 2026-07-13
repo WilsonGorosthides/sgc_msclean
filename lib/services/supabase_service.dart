@@ -15,7 +15,9 @@ class SupabaseService {
     return _supabase
         .from('clientes')
         .stream(primaryKey: ['id'])
-        .order('nome') // Organiza por ordem alfabética
+        // ascending: true explícito — o padrão do .order() da stream é
+        // decrescente, diferente do PostgREST via REST (issue #39)
+        .order('nome', ascending: true)
         .map((data) => filtrarClientes(data, query));
   }
 
