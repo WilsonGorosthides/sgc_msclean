@@ -3,14 +3,17 @@ import '../services/supabase_service.dart';
 import '../models/client_model.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({super.key, this.service});
+
+  // Nos testes injeta-se um service falso; em produção usa o real.
+  final SupabaseService? service;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final _service = SupabaseService();
+  late final _service = widget.service ?? SupabaseService();
   String _searchQuery = ''; // Guarda o que o usuário digita
 
   @override
