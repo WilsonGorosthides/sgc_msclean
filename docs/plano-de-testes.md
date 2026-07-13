@@ -36,25 +36,35 @@ desenvolvimento.
 
 ### 1.3 Owner
 
-Projeto solo. Wilson Gorosthides acumula os papéis de desenvolvimento e QA:
-escreve os testes, implementa as features e faz a autorrevisão antes do PR.
+Wilson Gorosthides.
 
 ## 2. Estratégia e Tipos de Teste
 
 ### 2.1 Ambiente de testes
 
-Os testes rodam **localmente**, sem matriz de dispositivos físicos — o app não
-depende de hardware específico (RNF-003: um único código-fonte para Android e web
-desktop, sem sensores, câmera ou recursos nativos críticos).
+Os **testes automatizados** (unitário e widget) rodam **localmente**, via
+`fvm flutter test`, sem depender de hardware — não exigem device, emulador nem
+navegador.
 
-| Recurso | Comando |
-|---|---|
-| Testes automatizados (unit + widget) | `fvm flutter test` |
-| Execução manual em web desktop | `fvm flutter run -d chrome` |
-| Execução manual em Android | `fvm flutter run -d <emulador>` |
+A **verificação manual** prioriza o **dispositivo físico real da cliente** —
+proprietária da MSClean e usuária única do sistema —, sempre que ele estiver
+disponível. A razão é o RNF-001 (usabilidade: qualquer ação em no máximo 2 toques,
+sem treinamento prévio): esse requisito só é verificável de verdade nas condições
+reais de uso dela, no aparelho, no tamanho de tela e no contexto em que o app será
+usado no dia a dia. Emulador Android e `fvm flutter run -d chrome` são a
+**alternativa**, usada quando o device da cliente não está acessível.
 
-A verificação manual em Android usa **emulador**; não há requisito de device físico
-nem de cobrir múltiplos modelos/versões de aparelho.
+| Recurso | Comando | Quando |
+|---|---|---|
+| Testes automatizados (unit + widget) | `fvm flutter test` | Sempre; independe de hardware |
+| Verificação manual no device da cliente | `fvm flutter run -d <device>` | Preferencial, quando disponível |
+| Verificação manual em emulador Android | `fvm flutter run -d <emulador>` | Alternativa |
+| Verificação manual em web desktop | `fvm flutter run -d chrome` | Alternativa |
+
+Isto **não** é uma matriz de compatibilidade de múltiplos modelos. O RNF-003 pede
+apenas que o app compile e funcione em Android e web desktop, sem exigência de
+cobertura de mercado (versões de Android, tamanhos de tela, fabricantes). O que se
+faz aqui é teste **dirigido à usuária real**: um único aparelho, o dela.
 
 ### 2.2 Tipos de teste
 
