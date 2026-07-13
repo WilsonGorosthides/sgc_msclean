@@ -14,7 +14,7 @@ Claude Code), passa por revisão humana.
 
 São controlados por versão neste repositório:
 
-- **Código-fonte** do app Flutter em `app/sgc_msclean/`.
+- **Código-fonte** do app Flutter na raiz do repositório (`lib/`, `test/`, plataformas).
 - **Documentação** em `docs/` (`requisitos.md`, `arquitetura.md`, `AUDITORIA_INICIAL.md`) e este documento.
 - **Arquivos de configuração do repositório**: `.gitignore`, `.gitattributes`, `pubspec.yaml`/`pubspec.lock`.
 - **Templates** de Pull Request e de issues (em `.github/`).
@@ -32,9 +32,12 @@ O legado `AUDITORIA_INICIAL.md` será padronizado nesse formato.
 - **Estrutura:**
 
 ```
-sgc_msclean/
-├── app/sgc_msclean/   ← aplicação Flutter
+sgc_msclean/           ← raiz do repo = raiz do app Flutter
+├── lib/               ← código-fonte do app
+├── test/              ← testes automatizados
+├── android/ … web/    ← pastas de plataforma do Flutter
 ├── docs/              ← documentação técnica e de processo
+├── pubspec.yaml       ← manifesto do app
 ├── .gitattributes     ← normalização de fim de linha (LF)
 └── README.md
 ```
@@ -172,3 +175,4 @@ tabela de Histórico de Versões do próprio doc (1.0, 1.1, ...).
 | 1.0 | 2026-07-01 | Wilson Gorosthides | Criação do documento de gerência de configuração. |
 | 1.1 | 2026-07-02 | Wilson Gorosthides | Adiciona template de PR e templates de issue como Issue Forms (bug, story, task) + config.yml; registra labels bug e feat. |
 | 1.2 | 2026-07-03 | Wilson Gorosthides | Registra label `story` e documenta a hierarquia Story → feat via sub-issues nativas do GitHub (§7.1). |
+| 1.3 | 2026-07-13 | Wilson Gorosthides | Atualiza §2 e §3 após a movimentação do projeto Flutter de `app/sgc_msclean/` para a raiz do repositório (issue #8). |

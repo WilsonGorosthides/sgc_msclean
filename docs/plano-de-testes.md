@@ -148,7 +148,8 @@ Android ou `chrome` como alternativa.
 Mocks e *fakes* compartilhados ficam em `test/mocks/` (ex.: mock do cliente
 Supabase e da stream de `clientes`).
 
-Os diretórios são relativos à raiz do app Flutter (`app/sgc_msclean/`). Substituem o
+Os diretórios são relativos à raiz do repositório, que desde a issue #8 coincide
+com a raiz do app Flutter. Substituem o
 `test/widget_test.dart` legado — o smoke test do contador, que a auditoria
 registrou como quebrado e será removido ao entrarem os primeiros testes reais
 (`arquitetura.md` §8).
@@ -250,3 +251,4 @@ desenvolvedor; a suíte local verde é o gate de qualidade.
 | Data | Versão | Autor | Descrição da mudança |
 |---|---|---|---|
 | 2026-07-10 | 1.0 | Wilson Gorosthides | Criação do plano de testes do MVP: estratégia (pirâmide de 3 camadas com E2E como Fase 2), níveis de teste, automação com `mocktail`, cobertura qualitativa, matriz de rastreabilidade dos RFs do MVP, modelo de severidade/prioridade e plano de execução solo. |
+| 2026-07-13 | 1.1 | Wilson Gorosthides | Ajusta §4 após a movimentação do projeto Flutter de `app/sgc_msclean/` para a raiz do repositório (issue #8): diretórios de teste passam a ser relativos à raiz do repo. |
