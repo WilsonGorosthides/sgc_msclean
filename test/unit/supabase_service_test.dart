@@ -1,10 +1,19 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:sgc_msclean/models/client_model.dart';
 import 'package:sgc_msclean/services/supabase_service.dart';
 
-// Testes unitários do filtro da busca (RF-004), sobre a função pura
-// SupabaseService.filtrarClientes — os nomes dos casos seguem
+import '../mocks/mock_supabase_client.dart';
+
+// Testes unitários do SupabaseService: filtro da busca (RF-004) sobre a
+// função pura filtrarClientes, e ordenação da stream (RF-003) por
+// verificação de interação — os nomes dos casos seguem
 // docs/matriz-rastreabilidade.md.
 void main() {
+  setUpAll(() {
+    registerFallbackValue(<String>[]);
+    registerFallbackValue((List<Map<String, dynamic>> _) => <ClientModel>[]);
+  });
   final linhas = [
     {
       'id': '1',
@@ -52,6 +61,31 @@ void main() {
 
       final misturadas = SupabaseService.filtrarClientes(linhas, 'fLoReS');
       expect(misturadas.map((c) => c.nome), ['Ana Souza', 'Carla Dias']);
+    });
+
+    test('ordena por nome em ordem alfabética crescente', () {
+      final client = MockSupabaseClient();
+      final queryBuilder = MockSupabaseQueryBuilder();
+      final streamBuilder = MockSupabaseStreamFilterBuilder();
+
+      // thenAnswer porque SupabaseQueryBuilder implementa Future, e o
+      // mocktail veta thenReturn com Future.
+      when(() => client.from('clientes')).thenAnswer((_) => queryBuilder);
+      // idem para os builders da stream, que estendem Stream
+      when(() => queryBuilder.stream(primaryKey: any(named: 'primaryKey')))
+          .thenAnswer((_) => streamBuilder);
+      when(() =>
+              streamBuilder.order(any(), ascending: any(named: 'ascending')))
+          .thenAnswer((_) => streamBuilder);
+      when(() => streamBuilder.map<List<ClientModel>>(any()))
+          .thenAnswer((_) => const Stream<List<ClientModel>>.empty());
+
+      SupabaseService(client: client).getClientsStream('');
+
+      // RF-003: a ordenação pedida ao Supabase deve ser crescente (A→Z).
+      // Sem ascending: true explícito, o padrão do .order() da stream do
+      // supabase 2.10.2 é decrescente — bug registrado na issue #39.
+      verify(() => streamBuilder.order('nome', ascending: true)).called(1);
     });
   });
 }
