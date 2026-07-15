@@ -79,7 +79,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () {
                           // Aqui enviaremos para a tela de detalhes depois
-                          print("Clicou em ${cliente.nome}");
                         },
                       ),
                     );
