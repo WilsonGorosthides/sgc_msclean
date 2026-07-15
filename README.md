@@ -19,6 +19,7 @@ A documentação detalhada do projeto vive na pasta [`docs/`](./docs):
 - [`arquitetura.md`](./docs/arquitetura.md) — arquitetura, stack e decisões técnicas (fonte da verdade).
 - [`plano-de-testes.md`](./docs/plano-de-testes.md) — estratégia de testes, níveis e fluxo de execução do MVP.
 - [`matriz-rastreabilidade.md`](./docs/matriz-rastreabilidade.md) — matriz RF ↔ critério de aceitação ↔ caso de teste do MVP.
+- [`casos-de-teste.md`](./docs/casos-de-teste.md) — casos de teste formais do MVP (CTs numerados com passos e resultado esperado).
 
 ## ✅ Status do MVP
 - [x] Listagem de clientes
