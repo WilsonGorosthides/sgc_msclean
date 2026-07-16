@@ -14,4 +14,13 @@ class ClientModel {
       telefone: map['telefone'] ?? '',
     );
   }
+
+  // Mapa para escrita no banco; sem o id, que é gerado pelo Supabase.
+  Map<String, dynamic> toMap() {
+    return {
+      'nome': nome,
+      'endereco': endereco,
+      'telefone': telefone,
+    };
+  }
 }
