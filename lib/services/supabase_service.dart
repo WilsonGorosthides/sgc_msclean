@@ -21,6 +21,11 @@ class SupabaseService {
         .map((data) => filtrarClientes(data, query));
   }
 
+  // Cadastra um cliente novo (RF-001); o id é gerado pelo Supabase.
+  Future<void> addClient(ClientModel client) async {
+    await _supabase.from('clientes').insert(client.toMap());
+  }
+
   // Mapeia as linhas da tabela e aplica o filtro da busca (RF-004):
   // substring em nome ou endereço, sem diferenciar maiúsculas de minúsculas.
   // Função pura: testável sem mockar a stream do Supabase.
