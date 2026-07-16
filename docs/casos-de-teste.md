@@ -26,7 +26,8 @@
 
 ### CT-001 — Campos obrigatórios do cadastro
 - **Critério:** "Nome, Endereço e Telefone são campos obrigatórios."
-- **Tipo:** Widget · **Situação:** a implementar
+- **Tipo:** Widget · **Situação:** implementado
+- **Teste:** `client_form_screen_test: exige nome, endereço e telefone`
 - **Pré-condições:** formulário de cadastro aberto.
 - **Passos:**
   1. Acionar o salvar sem preencher nenhum campo.
@@ -37,7 +38,9 @@
 - **Critério:** "Ao tentar salvar com qualquer campo obrigatório vazio (ou só
   com espaços em branco), o sistema bloqueia o salvamento e exibe mensagem
   indicando o(s) campo(s) pendente(s)."
-- **Tipo:** Widget · **Situação:** a implementar
+- **Tipo:** Widget · **Situação:** implementado
+- **Teste:** `client_form_screen_test: bloqueia salvar com campo vazio ou só
+  espaços`
 - **Pré-condições:** formulário de cadastro aberto.
 - **Passos:**
   1. Preencher Nome e Endereço válidos e deixar Telefone com `"   "` (só
@@ -50,7 +53,11 @@
 ### CT-003 — Validação do formato do telefone
 - **Critério:** "O Telefone aceita apenas dígitos, espaços e os símbolos
   `+ ( ) -`; outros caracteres são rejeitados na validação."
-- **Tipo:** Unitário (função de validação pura) + Widget · **Situação:** a implementar
+- **Tipo:** Unitário (função de validação pura) + Widget · **Situação:** implementado
+- **Testes:** `validadores: telefone aceita dígitos, espaços e + ( ) -`,
+  `validadores: telefone rejeita caracteres inválidos` (unitários, função
+  pura `Validadores.telefone`) e `client_form_screen_test: telefone rejeita
+  caracteres inválidos` (widget)
 - **Pré-condições:** função de validação disponível / formulário aberto.
 - **Passos:**
   1. Validar entradas aceitas: `"11 91234-5678"`, `"+55 (11) 91234-5678"`.
@@ -61,7 +68,8 @@
 ### CT-004 — Cliente salvo aparece na lista em tempo real
 - **Critério:** "Após salvar com sucesso, o novo cliente aparece na lista sem
   necessidade de recarregar a tela (atualização em tempo real via stream)."
-- **Tipo:** Widget · **Situação:** a implementar
+- **Tipo:** Widget · **Situação:** implementado
+- **Teste:** `home_screen_test: cliente salvo aparece na lista via stream`
 - **Pré-condições:** lista aberta com a stream ativa; formulário acessível
   pelo botão de adicionar.
 - **Passos:**
@@ -72,16 +80,27 @@
 - **Resultado esperado:** o método de gravação do service é chamado com os
   dados preenchidos e o cliente novo aparece na lista sem ação manual de
   atualização.
+- **Nota:** o `SupabaseService.addClient` em si **não tem teste unitário**,
+  por decisão registrada: é um repasse de uma linha pro Supabase, e mockar a
+  cadeia `Future` do builder provaria quase nada. O insert real contra banco
+  é responsabilidade do E2E da Fase 2 (`plano-de-testes.md` §2.3). Neste CT,
+  o service é mockado e verifica-se a chamada com os dados corretos.
 
 ### CT-005 — Formulário fecha após salvar
 - **Critério:** "Após salvar, o formulário é fechado e o usuário retorna à
   lista."
-- **Tipo:** Widget · **Situação:** a implementar
+- **Tipo:** Widget · **Situação:** implementado
+- **Teste:** `client_form_screen_test: salvar fecha o formulário`
 - **Pré-condições:** formulário de cadastro aberto com dados válidos.
 - **Passos:**
   1. Acionar o salvar com os três campos válidos.
 - **Resultado esperado:** o formulário é fechado e a tela da lista volta a ser
   exibida.
+- **Nota:** cobertura extra além dos critérios formais (robustez decidida no
+  desenho do RF-001): se o insert **falha** (ex.: sem internet), o app exibe
+  SnackBar "Erro ao salvar. Tente novamente." e o formulário permanece aberto
+  com os dados digitados — teste `client_form_screen_test: falha ao salvar
+  exibe erro e mantém o formulário aberto`.
 
 ## RF-002 — Edição de Cliente
 
@@ -312,3 +331,4 @@
 | Data | Versão | Autor | Descrição da mudança |
 |---|---|---|---|
 | 2026-07-15 | 1.0 | Wilson Gorosthides | Criação dos casos de teste formais do MVP: CT-001 a CT-022 cobrindo todos os critérios de aceitação da matriz de rastreabilidade (RF-001/002/003/004/008) e CT-023 manual de RNF-001 no dispositivo da cliente. |
+| 2026-07-15 | 1.1 | Wilson Gorosthides | CT-001 a CT-005 confirmados como implementados (RF-001, issue #25), com os nomes reais dos testes; nota no CT-004 sobre a ausência deliberada de teste unitário do `addClient` (coberto pelo E2E da Fase 2) e nota no CT-005 sobre a cobertura extra do SnackBar de erro no insert. |

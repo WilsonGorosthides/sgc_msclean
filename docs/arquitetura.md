@@ -48,9 +48,12 @@ lib/
 ├── models/
 │   └── client_model.dart           # ClientModel: id, nome, endereco, telefone
 ├── screens/
-│   └── home_screen.dart            # lista de clientes + barra de busca
-└── services/
-    └── supabase_service.dart       # acesso ao Supabase (stream de leitura)
+│   ├── home_screen.dart            # lista de clientes + barra de busca
+│   └── client_form_screen.dart     # formulário de cadastro (RF-001; reusável na edição)
+├── services/
+│   └── supabase_service.dart       # acesso ao Supabase (stream de leitura + insert)
+└── utils/
+    └── validators.dart             # validações puras do formulário (obrigatório, telefone)
 ```
 Fora de `lib/`: `docs/` (esta documentação e os requisitos) e `test/` (testes).
 
@@ -127,6 +130,7 @@ A auditoria registrou cobertura real de 0% — o único teste era o template pad
 | 2026-06-27 | 2.0 | Wilson Gorosthides | Sincronização com auditoria: Supabase, model real, justificativas técnicas, estratégia de testes |
 | 2026-06-27 | 2.1 | Wilson Gorosthides | Adição das seções de dívidas técnicas, riscos e histórico de versões |
 | 2026-07-08 | 2.2 | Wilson Gorosthides | Documentação da política de RLS `mvp_acesso_total_anon` (verificada em produção, deliberadamente permissiva até o RF-007) nas seções 4, 9 e 10 |
+| 2026-07-15 | 2.3 | Wilson Gorosthides | Atualiza a estrutura de diretórios (§5) com o RF-001: `client_form_screen.dart`, `utils/validators.dart` e o insert no service |
 
 ## 12. Ambiente de Desenvolvimento
 Os seguintes softwares e configurações são necessários para iniciar o desenvolvimento:
