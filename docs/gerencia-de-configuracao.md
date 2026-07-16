@@ -83,6 +83,7 @@ Estilo Conventional Commits, em PT-BR, no presente:
 ```
 
 - **Vínculo com issue.** Quando houver issue relacionada, o PR a referencia (ex.: `Closes #7`).
+- **Gate de CI obrigatório.** A `main` é protegida por ruleset (`main-protegida`): o merge só é possível com o check `analyze + test` do workflow de CI verde no PR (`.github/workflows/ci.yml`, ver `plano-de-testes.md` §5.2). A ruleset também bloqueia force push e deleção da `main`.
 - **Merge:** merge commit — preserva os commits granulares da [§5](#5-padrão-de-commits) na `main`. A branch é deletada após o merge.
 
 ## 7. Gestão de Issues e Labels
@@ -176,3 +177,4 @@ tabela de Histórico de Versões do próprio doc (1.0, 1.1, ...).
 | 1.1 | 2026-07-02 | Wilson Gorosthides | Adiciona template de PR e templates de issue como Issue Forms (bug, story, task) + config.yml; registra labels bug e feat. |
 | 1.2 | 2026-07-03 | Wilson Gorosthides | Registra label `story` e documenta a hierarquia Story → feat via sub-issues nativas do GitHub (§7.1). |
 | 1.3 | 2026-07-13 | Wilson Gorosthides | Atualiza §2 e §3 após a movimentação do projeto Flutter de `app/sgc_msclean/` para a raiz do repositório (issue #8). |
+| 1.4 | 2026-07-16 | Wilson Gorosthides | §6: registra o gate de CI obrigatório no merge (ruleset `main-protegida` exigindo o check `analyze + test`, com bloqueio de force push e deleção da `main`) — issue #45. |
