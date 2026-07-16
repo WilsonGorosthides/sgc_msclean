@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:sgc_msclean/models/client_model.dart';
+import 'package:sgc_msclean/screens/client_form_screen.dart';
 import 'package:sgc_msclean/screens/home_screen.dart';
 
 import '../mocks/mock_supabase_client.dart';
@@ -28,6 +29,10 @@ void main() {
       nome: 'Carla Dias',
       endereco: 'Rua das Flores, 30',
       telefone: '11 93333-3333');
+
+  setUpAll(() {
+    registerFallbackValue(ClientModel(nome: '', endereco: '', telefone: ''));
+  });
 
   setUp(() {
     service = MockSupabaseService();
@@ -134,6 +139,50 @@ void main() {
       await tester.pump();
 
       expect(find.text('Nenhum cliente encontrado.'), findsOneWidget);
+    });
+
+    testWidgets('cliente salvo aparece na lista via stream', (tester) async {
+      // CT-004: FAB abre o formulário; salvar grava via service; a lista
+      // reflete o cliente novo quando a stream emite — sem recarga manual.
+      final controller = StreamController<List<ClientModel>>(sync: true);
+      addTearDown(controller.close);
+      when(() => service.getClientsStream(''))
+          .thenAnswer((_) => controller.stream);
+      when(() => service.addClient(any())).thenAnswer((_) async {});
+
+      await bombearTela(tester);
+      controller.add([ana]);
+      await tester.pump();
+
+      await tester.tap(find.byType(FloatingActionButton));
+      await tester.pumpAndSettle();
+      expect(find.byType(ClientFormScreen), findsOneWidget);
+
+      await tester.enterText(
+          find.byKey(const Key('campo_nome')), 'Débora Prado');
+      await tester.enterText(
+          find.byKey(const Key('campo_endereco')), 'Rua das Acácias, 45');
+      await tester.enterText(
+          find.byKey(const Key('campo_telefone')), '11 94444-4444');
+      await tester.tap(find.byKey(const Key('botao_salvar')));
+      await tester.pumpAndSettle();
+
+      // voltou pra lista e o service recebeu os dados digitados
+      expect(find.byType(ClientFormScreen), findsNothing);
+      final salvo = verify(() => service.addClient(captureAny()))
+          .captured
+          .single as ClientModel;
+      expect(salvo.nome, 'Débora Prado');
+
+      // a stream emite a lista com o cliente novo e ele aparece sem recarga
+      final debora = ClientModel(
+          id: '4',
+          nome: 'Débora Prado',
+          endereco: 'Rua das Acácias, 45',
+          telefone: '11 94444-4444');
+      controller.add([ana, debora]);
+      await tester.pump();
+      expect(find.text('Débora Prado'), findsOneWidget);
     });
 
     testWidgets('busca vazia exibe todos', (tester) async {
