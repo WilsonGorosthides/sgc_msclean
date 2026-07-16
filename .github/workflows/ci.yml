@@ -1,0 +1,37 @@
+# CI do SGC MSClean: gate automático de qualidade em cada PR
+# (docs/plano-de-testes.md §5.2). Roda flutter analyze + flutter test
+# com a mesma versão do Flutter fixada no .fvmrc.
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  verificacao:
+    name: analyze + test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.35.0' # manter em sincronia com o .fvmrc
+          channel: stable
+          cache: true
+
+      # o pubspec declara .env como asset, mas o real fica fora do
+      # versionamento (RNF-005); os testes não o leem, então o example basta
+      - name: Cria .env a partir do exemplo
+        run: cp .env.example .env
+
+      - name: Dependências
+        run: flutter pub get
+
+      - name: Análise estática
+        run: flutter analyze
+
+      - name: Testes
+        run: flutter test
