@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/supabase_service.dart';
 import '../models/client_model.dart';
+import 'client_form_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key, this.service});
@@ -89,9 +90,13 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      // BOTÃO DE ADICIONAR (Para o futuro Cadastro)
+      // BOTÃO DE ADICIONAR (RF-001)
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () {
+          Navigator.of(context).push(MaterialPageRoute(
+            builder: (_) => ClientFormScreen(service: _service),
+          ));
+        },
         backgroundColor: Colors.blueAccent,
         child: const Icon(Icons.person_add, color: Colors.white),
       ),

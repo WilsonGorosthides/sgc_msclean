@@ -24,7 +24,7 @@ A documentação detalhada do projeto vive na pasta [`docs/`](./docs):
 ## ✅ Status do MVP
 - [x] Listagem de clientes
 - [x] Busca por palavra-chave
-- [ ] Cadastro
+- [x] Cadastro
 - [ ] Edição
 - [ ] Exclusão
 
@@ -53,9 +53,12 @@ sgc_msclean/
 │   ├── models/
 │   │   └── client_model.dart
 │   ├── screens/
-│   │   └── home_screen.dart
-│   └── services/
-│       └── supabase_service.dart
+│   │   ├── home_screen.dart
+│   │   └── client_form_screen.dart
+│   ├── services/
+│   │   └── supabase_service.dart
+│   └── utils/
+│       └── validators.dart
 ├── test/
 └── docs/
 ````
