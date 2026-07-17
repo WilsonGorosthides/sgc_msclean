@@ -1,22 +1,18 @@
-# Registro de Execuções de Teste — SGC para MSClean
+# Registro de Execuções de Testes Manuais — SGC para MSClean
 
-> Registra cada **rodada de verificação manual** executada no projeto: quando foi,
-> contra qual versão, em qual ambiente, o que passou, o que falhou e quais issues
-> nasceram dela. Fecha o ciclo dos artefatos de teste: o
-> `plano-de-testes.md` define a estratégia, o `casos-de-teste.md` define **como**
-> executar cada CT, a `matriz-rastreabilidade.md` audita a **cobertura** — e este
-> documento audita a **execução**, que os outros três não registram.
+> Registra cada rodada de **testes manuais**: data, versão testada, ambiente,
+> resultados e issues abertas. O plano define a estratégia, os casos o roteiro,
+> a matriz a cobertura — este documento, a **execução**.
 >
-> Os testes **automatizados** não entram aqui: a execução deles já é registrada
-> pelo próprio CI (workflow `analyze + test` em cada PR, `plano-de-testes.md`
-> §5.2).
+> Testes **automatizados** ficam de fora: o CI já registra cada execução
+> (`analyze + test` por PR).
 
 ## Convenções
 
 - Cada rodada é uma seção `Execução NNN`, em ordem cronológica.
-- Toda rodada registra: **data**, **objeto** (PR/branch/commit testado),
-  **ambiente** (conforme `plano-de-testes.md` §2.1), **executor** e o resultado
-  passo a passo, mapeado aos CT-IDs de `casos-de-teste.md` quando houver.
+- Toda rodada registra **data**, **objeto** (PR/commit testado), **ambiente**
+  (`plano-de-testes.md` §2.1), **executor** e o resultado por passo, mapeado aos
+  CT-IDs de `casos-de-teste.md` quando houver.
 - **Resultados possíveis:**
 
 | Resultado | Significado |
@@ -26,11 +22,9 @@
 | Reprovado | Comportamento observado diferente do esperado (vira issue de bug). |
 | Adiado | Passo não executado nesta rodada, com motivo e destino registrados. |
 
-- Todo achado (reprovação, ressalva ou observação relevante) referencia a issue
-  aberta a partir dele — o registro aponta, a issue acompanha.
-- Ocorrências de **ambiente/infraestrutura** durante a rodada (ex.: backend
-  indisponível) são registradas na própria execução, mesmo quando não são defeito
-  do app: fazem parte do que foi vivido e do que a rodada ensinou.
+- Todo achado (reprovação ou ressalva) referencia a issue aberta a partir dele.
+- Ocorrências de **ambiente** (ex.: backend fora do ar) também são registradas,
+  mesmo quando não são defeito do app.
 
 ## Execução 001 — Verificação manual do RF-001 (pré-merge do PR #44)
 
@@ -109,4 +103,4 @@ a ocorrência de ambiente, diagnosticada e resolvida). Merge realizado em
 
 | Data | Versão | Autor | Descrição da mudança |
 |---|---|---|---|
-| 2026-07-17 | 1.0 | Wilson Gorosthides | Criação do registro de execuções de teste, com as convenções de registro e a Execução 001 (verificação manual do RF-001, pré-merge do PR #44) — issue #49. |
+| 2026-07-17 | 1.0 | Wilson Gorosthides | Criação do registro de execuções de testes manuais, com as convenções de registro e a Execução 001 (RF-001, pré-merge do PR #44) — issue #49. |

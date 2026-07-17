@@ -20,7 +20,7 @@ A documentação detalhada do projeto vive na pasta [`docs/`](./docs):
 - [`plano-de-testes.md`](./docs/plano-de-testes.md) — estratégia de testes, níveis e fluxo de execução do MVP.
 - [`matriz-rastreabilidade.md`](./docs/matriz-rastreabilidade.md) — matriz RF ↔ critério de aceitação ↔ caso de teste do MVP.
 - [`casos-de-teste.md`](./docs/casos-de-teste.md) — casos de teste formais do MVP (CTs numerados com passos e resultado esperado).
-- [`execucoes-de-teste.md`](./docs/execucoes-de-teste.md) — registro das rodadas de verificação manual (data, ambiente, resultados por CT e issues abertas).
+- [`execucoes-de-testes-manuais.md`](./docs/execucoes-de-testes-manuais.md) — registro das rodadas de testes manuais (data, ambiente, resultados por CT e issues abertas).
 
 ## ✅ Status do MVP
 - [x] Listagem de clientes

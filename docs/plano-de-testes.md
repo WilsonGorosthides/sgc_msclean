@@ -136,7 +136,8 @@ estiver acessível no momento do fechamento.
 A verificação manual é **complementar** ao gate e, quando feita, segue a ordem de
 preferência da seção 2.1: primeiro o dispositivo físico da cliente; emulador
 Android ou `chrome` como alternativa. Cada rodada de verificação manual realizada
-é registrada em **[`docs/execucoes-de-teste.md`](./execucoes-de-teste.md)** —
+é registrada em
+**[`docs/execucoes-de-testes-manuais.md`](./execucoes-de-testes-manuais.md)** —
 data, objeto, ambiente, resultado por CT e issues abertas a partir dos achados.
 
 ## 4. Níveis de Teste
@@ -254,4 +255,4 @@ O passo 4 é executado localmente pelo desenvolvedor e repetido pela CI no PR
 | 2026-07-10 | 1.0 | Wilson Gorosthides | Criação do plano de testes do MVP: estratégia (pirâmide de 3 camadas com E2E como Fase 2), níveis de teste, automação com `mocktail`, cobertura qualitativa, matriz de rastreabilidade dos RFs do MVP, modelo de severidade/prioridade e plano de execução solo. |
 | 2026-07-13 | 1.1 | Wilson Gorosthides | Ajusta §4 após a movimentação do projeto Flutter de `app/sgc_msclean/` para a raiz do repositório (issue #8): diretórios de teste passam a ser relativos à raiz do repo. |
 | 2026-07-15 | 1.2 | Wilson Gorosthides | §5.2: CI configurada com GitHub Actions (analyze + test em cada PR, issue #45) — dívida quitada no gatilho previsto (RF-001 entregue); §9 ajustado para o gate duplo (suíte local + workflow no PR). |
-| 2026-07-17 | 1.3 | Wilson Gorosthides | §3.2: verificações manuais passam a ser registradas em `docs/execucoes-de-teste.md` (registro de execuções de teste, issue #49). |
+| 2026-07-17 | 1.3 | Wilson Gorosthides | §3.2: verificações manuais passam a ser registradas em `docs/execucoes-de-testes-manuais.md` (registro de execuções de testes manuais, issue #49). |
