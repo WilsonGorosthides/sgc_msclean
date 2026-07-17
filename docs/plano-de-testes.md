@@ -166,17 +166,16 @@ registrou como quebrado e será removido ao entrarem os primeiros testes reais
 
 ### 5.2 Integração Contínua (CI)
 
-**Não há CI configurado.** O repositório ainda não tem `.github/workflows` — os
-testes rodam apenas localmente, por decisão manual do desenvolvedor.
+**CI configurada** (`.github/workflows/ci.yml`, issue #45): GitHub Actions roda
+`flutter analyze` e `flutter test` em cada PR para a `main` (e em push na
+`main`), com a versão do Flutter fixada em sincronia com o `.fvmrc`. O gatilho
+previsto na criação deste plano — "quando o RF-001 estiver perto de fechar" —
+disparou com a entrega do RF-001 (issue #25).
 
-Isto é **dívida técnica registrada**, não uma capacidade existente:
-
-| Item | Situação | Quando abrir issue |
-|---|---|---|
-| CI (GitHub Actions) rodando `flutter analyze` + `flutter test` em cada PR | Inexistente | Quando o RF-001 estiver perto de fechar — a primeira feature de escrita torna a regressão silenciosa cara o bastante para justificar o gate automático. |
-
-Enquanto não houver CI, o gate de qualidade é a suíte local verde exigida pela
-Definição de Pronto (`gerencia-de-configuracao.md` §9).
+O gate de qualidade passa a ser duplo: a suíte local verde exigida pela
+Definição de Pronto (`gerencia-de-configuracao.md` §9) **e** o workflow verde no
+PR. O CI não substitui a execução local (que continua obrigatória antes do
+push); ele protege contra o que escapar dela.
 
 ## 6. Cobertura
 
@@ -243,8 +242,8 @@ Fluxo de trabalho solo, aplicado por feature do MVP:
 6. **Autorrevisão.** Revisar o próprio diff antes do merge — código, testes e
    sincronização de documentação (Definição de Pronto, §9 da GCS).
 
-Enquanto não houver CI (seção 5.2), os passos 4 e 6 são executados manualmente pelo
-desenvolvedor; a suíte local verde é o gate de qualidade.
+O passo 4 é executado localmente pelo desenvolvedor e repetido pela CI no PR
+(seção 5.2); o passo 6 permanece manual.
 
 ## 10. Histórico de Versões
 
@@ -252,3 +251,4 @@ desenvolvedor; a suíte local verde é o gate de qualidade.
 |---|---|---|---|
 | 2026-07-10 | 1.0 | Wilson Gorosthides | Criação do plano de testes do MVP: estratégia (pirâmide de 3 camadas com E2E como Fase 2), níveis de teste, automação com `mocktail`, cobertura qualitativa, matriz de rastreabilidade dos RFs do MVP, modelo de severidade/prioridade e plano de execução solo. |
 | 2026-07-13 | 1.1 | Wilson Gorosthides | Ajusta §4 após a movimentação do projeto Flutter de `app/sgc_msclean/` para a raiz do repositório (issue #8): diretórios de teste passam a ser relativos à raiz do repo. |
+| 2026-07-15 | 1.2 | Wilson Gorosthides | §5.2: CI configurada com GitHub Actions (analyze + test em cada PR, issue #45) — dívida quitada no gatilho previsto (RF-001 entregue); §9 ajustado para o gate duplo (suíte local + workflow no PR). |
