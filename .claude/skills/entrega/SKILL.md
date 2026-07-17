@@ -6,8 +6,8 @@ description: Fluxo GCS completo de entrega de uma issue - branch, teste-antes, c
 # Entrega de uma issue (fluxo GCS)
 
 Executa a entrega completa de uma issue seguindo `docs/gerencia-de-configuracao.md`
-e `docs/plano-de-testes.md` §9. As regras permanentes do `CLAUDE.md` da raiz valem
-o tempo todo (commits PT-BR sem acentos, `fvm flutter`, nunca tocar no `.env`).
+e `docs/plano-de-testes.md` §9. Regras de commit e código valem conforme o
+`CLAUDE.md` da raiz — não repetidas aqui.
 
 ## Entrada
 
@@ -30,6 +30,9 @@ Número da issue (ex.: `/entrega 26`). Sem número, perguntar qual issue entrega
    ("a implementar" → nome real do teste).
 4. **Gate local.** `fvm flutter test` e `fvm flutter analyze` verdes. Reverter o
    ruído das pastas de plataforma: `git checkout -- linux/ macos/ windows/`.
+   Se falhar: diagnosticar o erro e corrigir com um commit `fix:` adicional
+   antes de seguir; se não resolver em poucas tentativas, parar e reportar o
+   erro ao desenvolvedor em vez de insistir ou pular a etapa.
 5. **PARAR para revisão.** Apresentar ao desenvolvedor: lista de commits, resumo
    do diff e o que mudou em docs. **Não fazer push sem o "ok"** — a menos que a
    tarefa tenha autorizado explicitamente o push.

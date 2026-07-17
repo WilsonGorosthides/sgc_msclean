@@ -29,7 +29,10 @@ Usuária única: a proprietária. Desenvolvedor solo.
 - **Credenciais**: nunca ler ou expor valores do `.env` (gitignored); o
   `.env.example` (valores fictícios) é o versionado.
 
-## Pegadinha recorrente
+## Pegadinhas recorrentes
 
-`fvm flutter pub get`/`test` reescreve arquivos gerados em `linux/`, `macos/` e
-`windows/` (ruído de EOL). Antes de commitar: `git checkout -- linux/ macos/ windows/`.
+- `fvm flutter pub get`/`test` reescreve arquivos gerados em `linux/`, `macos/` e
+  `windows/` (ruído de EOL). Antes de commitar: `git checkout -- linux/ macos/ windows/`.
+- Commits `test:` vermelhos quebram a build de propósito — é o rastro do
+  teste-antes no histórico (plano de testes §9), não descuido. Se um dia um
+  `git bisect` cair num commit vermelho, usar `git bisect skip` e seguir a busca.
