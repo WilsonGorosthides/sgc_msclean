@@ -10,12 +10,17 @@ class Validadores {
     return null;
   }
 
-  // Telefone: apenas dígitos, espaços e os símbolos + ( ) - (RF-001).
+  // Telefone: apenas dígitos, espaços e os símbolos + ( ) -, com no mínimo
+  // 8 dígitos — só dígitos contam no piso, que aceita fixo local sem DDD
+  // (RF-001, decisão da issue #48).
   static String? telefone(String? valor) {
     final pendente = obrigatorio(valor, 'telefone');
     if (pendente != null) return pendente;
     if (!RegExp(r'^[\d\s()+\-]+$').hasMatch(valor!.trim())) {
       return 'Use apenas dígitos, espaços e + ( ) -';
+    }
+    if (valor.replaceAll(RegExp(r'\D'), '').length < 8) {
+      return 'Telefone deve ter pelo menos 8 dígitos';
     }
     return null;
   }

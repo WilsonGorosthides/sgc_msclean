@@ -15,7 +15,18 @@ void main() {
     test('telefone aceita dígitos, espaços e + ( ) -', () {
       expect(Validadores.telefone('11 91234-5678'), isNull);
       expect(Validadores.telefone('+55 (11) 91234-5678'), isNull);
-      expect(Validadores.telefone('1234'), isNull);
+      expect(Validadores.telefone('12345678'), isNull);
+    });
+
+    test('telefone exige no mínimo 8 dígitos, contando só dígitos', () {
+      const mensagem = 'Telefone deve ter pelo menos 8 dígitos';
+      // Menos de 8 dígitos: rejeitado (símbolos e espaços não contam).
+      expect(Validadores.telefone('1234'), mensagem);
+      expect(Validadores.telefone('192'), mensagem);
+      expect(Validadores.telefone('(12) 3456-7'), mensagem);
+      // 8 dígitos ou mais: aceito (fixo local sem DDD é hábito legítimo).
+      expect(Validadores.telefone('3456-7890'), isNull);
+      expect(Validadores.telefone('+55 (11) 91234-5678'), isNull);
     });
 
     test('telefone rejeita caracteres inválidos', () {

@@ -20,6 +20,7 @@ até o teste ser escrito, na ordem "teste antes da feature".
 | RF-001 | Nome, Endereço e Telefone são campos obrigatórios. | CT-001 — `client_form_screen_test: exige nome, endereço e telefone` |
 | RF-001 | Ao tentar salvar com qualquer campo obrigatório vazio (ou só com espaços em branco), o sistema bloqueia o salvamento e exibe mensagem indicando o(s) campo(s) pendente(s). | CT-002 — `client_form_screen_test: bloqueia salvar com campo vazio ou só espaços` |
 | RF-001 | O Telefone aceita apenas dígitos, espaços e os símbolos `+ ( ) -`; outros caracteres são rejeitados na validação. | CT-003 — `validadores: telefone rejeita caracteres inválidos` · `client_form_screen_test: telefone rejeita caracteres inválidos` |
+| RF-001 | O Telefone deve conter no mínimo **8 dígitos**; apenas dígitos contam na verificação (espaços e os símbolos `+ ( ) -` são ignorados na contagem). | CT-024 — `validadores: telefone exige no mínimo 8 dígitos, contando só dígitos` |
 | RF-001 | Após salvar com sucesso, o novo cliente aparece na lista sem necessidade de recarregar a tela (atualização em tempo real via stream). | CT-004 — `home_screen_test: cliente salvo aparece na lista via stream` |
 | RF-001 | Após salvar, o formulário é fechado e o usuário retorna à lista. | CT-005 — `client_form_screen_test: salvar fecha o formulário` |
 | RF-002 | O formulário de edição abre pré-preenchido com os dados atuais do cliente. | CT-006 — a implementar |
@@ -55,3 +56,4 @@ descoberto.
 | 2026-07-13 | 1.2 | Wilson Gorosthides | Adiciona `supabase_service_test: ordena por nome em ordem alfabética crescente` ao critério de ordenação do RF-003 — o caso de widget cobre a renderização; este cobre a ordenação pedida ao Supabase (bug da issue #39). |
 | 2026-07-15 | 1.3 | Wilson Gorosthides | Coluna "Caso de teste" passa a referenciar os CT-IDs de `docs/casos-de-teste.md` (CT-001 a CT-022): "a definir" vira "CT-NNN — a implementar" e os testes existentes ganham o prefixo do seu CT. |
 | 2026-07-15 | 1.4 | Wilson Gorosthides | CT-001 a CT-005 confirmados com os nomes reais dos testes da suíte (RF-001 implementado, issue #25). |
+| 2026-07-18 | 1.5 | Wilson Gorosthides | Nova linha do RF-001: mínimo de 8 dígitos no telefone ↔ CT-024 (decisão de requisito da issue #48). |
