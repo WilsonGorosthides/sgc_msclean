@@ -18,9 +18,13 @@ São controlados por versão neste repositório:
 - **Documentação** em `docs/` (`requisitos.md`, `arquitetura.md`, `AUDITORIA_INICIAL.md`) e este documento.
 - **Arquivos de configuração do repositório**: `.gitignore`, `.gitattributes`, `pubspec.yaml`/`pubspec.lock`.
 - **Templates** de Pull Request e de issues (em `.github/`).
+- **Instruções de agente de IA**: `CLAUDE.md` na raiz (regras permanentes do
+  projeto, carregadas em toda sessão) e as skills em `.claude/skills/` (fluxos
+  invocáveis, ex.: `/entrega`).
 
 **Não** são versionados: segredos e credenciais (`.env`, chaves do Supabase),
-artefatos de build (`build/`, `.dart_tool/`) e arquivos locais de IDE.
+artefatos de build (`build/`, `.dart_tool/`), arquivos locais de IDE e a
+configuração local do agente de IA (`.claude/settings.local.json`).
 
 **Nome de arquivo de doc:** kebab-case minúsculo (ex.: `gerencia-de-configuracao.md`).
 O legado `AUDITORIA_INICIAL.md` será padronizado nesse formato.
@@ -178,3 +182,4 @@ tabela de Histórico de Versões do próprio doc (1.0, 1.1, ...).
 | 1.2 | 2026-07-03 | Wilson Gorosthides | Registra label `story` e documenta a hierarquia Story → feat via sub-issues nativas do GitHub (§7.1). |
 | 1.3 | 2026-07-13 | Wilson Gorosthides | Atualiza §2 e §3 após a movimentação do projeto Flutter de `app/sgc_msclean/` para a raiz do repositório (issue #8). |
 | 1.4 | 2026-07-16 | Wilson Gorosthides | §6: registra o gate de CI obrigatório no merge (ruleset `main-protegida` exigindo o check `analyze + test`, com bloqueio de force push e deleção da `main`) — issue #45. |
+| 1.5 | 2026-07-17 | Wilson Gorosthides | §2: registra as instruções de agente de IA (`CLAUDE.md` e `.claude/skills/`) como itens de configuração versionados e `.claude/settings.local.json` como não versionado — issue #51. |
