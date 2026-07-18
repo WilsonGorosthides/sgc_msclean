@@ -245,6 +245,23 @@ void main() {
       expect(find.text('Rua Nova, 99'), findsOneWidget);
     });
 
+    testWidgets('busca não recria a assinatura da stream', (tester) async {
+      // Defeito real observado no CT-008 (RF-002): cada rebuild da Home
+      // criava uma assinatura realtime nova no Supabase (uma por tecla na
+      // busca), e o churn de canais derruba a entrega de eventos UPDATE.
+      // A tela deve assinar a stream UMA vez, por toda a sua vida.
+      when(() => service.getClientsStream(any()))
+          .thenAnswer((_) => Stream.value([ana, bruno]));
+
+      await bombearTela(tester);
+
+      await tester.enterText(find.byType(TextField), 'Ana');
+      await tester.pump();
+      await tester.pump();
+
+      verify(() => service.getClientsStream(any())).called(1);
+    });
+
     testWidgets('busca vazia exibe todos', (tester) async {
       when(() => service.getClientsStream(''))
           .thenAnswer((_) => Stream.value([ana, bruno, carla]));
