@@ -185,6 +185,66 @@ void main() {
       expect(find.text('Débora Prado'), findsOneWidget);
     });
 
+    testWidgets('editar abre formulário pré-preenchido', (tester) async {
+      // CT-006: tocar no item da lista abre a edição com os dados atuais
+      when(() => service.getClientsStream(''))
+          .thenAnswer((_) => Stream.value([ana]));
+
+      await bombearTela(tester);
+
+      await tester.tap(find.text('Ana Souza'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ClientFormScreen), findsOneWidget);
+      expect(find.text('Ana Souza'), findsOneWidget);
+      expect(find.text('Rua das Flores, 10'), findsOneWidget);
+      expect(find.text('11 91111-1111'), findsOneWidget);
+    });
+
+    testWidgets('edição confirmada persiste e reflete na lista via stream',
+        (tester) async {
+      // CT-008: nada é gravado antes do salvar; na confirmação o service
+      // recebe os novos dados (com o id) e a lista reflete via stream.
+      final controller = StreamController<List<ClientModel>>(sync: true);
+      addTearDown(controller.close);
+      when(() => service.getClientsStream(''))
+          .thenAnswer((_) => controller.stream);
+      when(() => service.updateClient(any())).thenAnswer((_) async {});
+
+      await bombearTela(tester);
+      controller.add([ana]);
+      await tester.pump();
+
+      await tester.tap(find.text('Ana Souza'));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+          find.byKey(const Key('campo_endereco')), 'Rua Nova, 99');
+      verifyNever(() => service.updateClient(any()));
+
+      await tester.tap(find.byKey(const Key('botao_salvar')));
+      await tester.pumpAndSettle();
+
+      // voltou pra lista e o update recebeu os novos dados do cliente certo
+      expect(find.byType(ClientFormScreen), findsNothing);
+      final salvo = verify(() => service.updateClient(captureAny()))
+          .captured
+          .single as ClientModel;
+      expect(salvo.id, '1');
+      expect(salvo.nome, 'Ana Souza');
+      expect(salvo.endereco, 'Rua Nova, 99');
+
+      // a stream emite a lista atualizada e a mudança aparece sem recarga
+      final anaEditada = ClientModel(
+          id: '1',
+          nome: 'Ana Souza',
+          endereco: 'Rua Nova, 99',
+          telefone: '11 91111-1111');
+      controller.add([anaEditada]);
+      await tester.pump();
+      expect(find.text('Rua Nova, 99'), findsOneWidget);
+    });
+
     testWidgets('busca vazia exibe todos', (tester) async {
       when(() => service.getClientsStream(''))
           .thenAnswer((_) => Stream.value([ana, bruno, carla]));
