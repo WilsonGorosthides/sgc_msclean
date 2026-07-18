@@ -14,7 +14,9 @@
 ## Convenções
 
 - A numeração CT-001…CT-022 segue a ordem das linhas da matriz de
-  rastreabilidade; CT-023 é o caso manual de RNF-001.
+  rastreabilidade; CT-023 é o caso manual de RNF-001. CT-024, criado depois
+  (issue #48), cobre o piso de dígitos do telefone (RF-001) e fica junto do
+  CT-003 — o número fora de ordem preserva a numeração dos demais CTs.
 - Critérios de aceitação são copiados literalmente da matriz.
 - Nos CTs automatizados, os "passos" descrevem o que o teste executa; nos
   manuais, o que a pessoa executa.
@@ -64,6 +66,27 @@
   2. Validar entradas rejeitadas: `"11 91234-5678a"`, `"tel: 1234"`, `"12#34"`.
 - **Resultado esperado:** as entradas do passo 1 passam; as do passo 2 são
   rejeitadas com mensagem de formato inválido, bloqueando o salvamento.
+
+### CT-024 — Mínimo de 8 dígitos no telefone
+- **Critério:** "O Telefone deve conter no mínimo **8 dígitos**; apenas
+  dígitos contam na verificação (espaços e os símbolos `+ ( ) -` são
+  ignorados na contagem)."
+- **Tipo:** Unitário (função de validação pura) · **Situação:** implementado
+- **Teste:** `validadores: telefone exige no mínimo 8 dígitos, contando só
+  dígitos`
+- **Pré-condições:** função de validação disponível.
+- **Passos:**
+  1. Validar entradas rejeitadas (menos de 8 dígitos): `"1234"`, `"192"`,
+     `"(12) 3456-7"`.
+  2. Validar entradas aceitas (8 dígitos ou mais): `"3456-7890"`,
+     `"+55 (11) 91234-5678"`.
+- **Resultado esperado:** as entradas do passo 1 são rejeitadas com a mensagem
+  "Telefone deve ter pelo menos 8 dígitos"; as do passo 2 passam.
+- **Nota:** a ligação do validador ao formulário (mensagem exibida e
+  salvamento bloqueado) já é coberta pelo teste de widget do CT-003. Piso de
+  8 decidido na issue #48: aceita fixo local digitado sem DDD; pode subir
+  para 10 se a importação da agenda real (#23) mostrar que todos os contatos
+  têm DDD.
 
 ### CT-004 — Cliente salvo aparece na lista em tempo real
 - **Critério:** "Após salvar com sucesso, o novo cliente aparece na lista sem
@@ -332,3 +355,4 @@
 |---|---|---|---|
 | 2026-07-15 | 1.0 | Wilson Gorosthides | Criação dos casos de teste formais do MVP: CT-001 a CT-022 cobrindo todos os critérios de aceitação da matriz de rastreabilidade (RF-001/002/003/004/008) e CT-023 manual de RNF-001 no dispositivo da cliente. |
 | 2026-07-15 | 1.1 | Wilson Gorosthides | CT-001 a CT-005 confirmados como implementados (RF-001, issue #25), com os nomes reais dos testes; nota no CT-004 sobre a ausência deliberada de teste unitário do `addClient` (coberto pelo E2E da Fase 2) e nota no CT-005 sobre a cobertura extra do SnackBar de erro no insert. |
+| 2026-07-18 | 1.2 | Wilson Gorosthides | Adiciona CT-024 — mínimo de 8 dígitos no telefone (novo critério do RF-001, issue #48), posicionado junto ao CT-003; convenção de numeração atualizada para explicar o número fora de ordem. |
