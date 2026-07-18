@@ -9,8 +9,8 @@ class ClientFormScreen extends StatefulWidget {
   // Nos testes injeta-se um service falso; em produção usa o real.
   final SupabaseService? service;
 
-  // null = cadastro (RF-001); preenchido = edição, pré-preenchendo os
-  // campos (uso previsto no RF-002).
+  // null = cadastro (RF-001); preenchido = edição (RF-002): campos
+  // pré-preenchidos e salvamento via update, preservando o id.
   final ClientModel? cliente;
 
   @override
@@ -39,12 +39,18 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
   Future<void> _salvar() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _salvando = true);
+    final cliente = ClientModel(
+      id: widget.cliente?.id,
+      nome: _nomeController.text.trim(),
+      endereco: _enderecoController.text.trim(),
+      telefone: _telefoneController.text.trim(),
+    );
     try {
-      await _service.addClient(ClientModel(
-        nome: _nomeController.text.trim(),
-        endereco: _enderecoController.text.trim(),
-        telefone: _telefoneController.text.trim(),
-      ));
+      if (widget.cliente == null) {
+        await _service.addClient(cliente);
+      } else {
+        await _service.updateClient(cliente);
+      }
       if (!mounted) return;
       Navigator.of(context).pop();
     } catch (_) {
@@ -62,7 +68,7 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Novo Cliente'),
+        title: Text(widget.cliente == null ? 'Novo Cliente' : 'Editar Cliente'),
         centerTitle: true,
         elevation: 0,
       ),

@@ -78,8 +78,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         title: Text(cliente.nome, style: const TextStyle(fontWeight: FontWeight.bold)),
                         subtitle: Text(cliente.endereco),
                         trailing: const Icon(Icons.chevron_right),
+                        // EDIÇÃO (RF-002): abre o formulário pré-preenchido
                         onTap: () {
-                          // Aqui enviaremos para a tela de detalhes depois
+                          Navigator.of(context).push(MaterialPageRoute(
+                            builder: (_) => ClientFormScreen(
+                                service: _service, cliente: cliente),
+                          ));
                         },
                       ),
                     );

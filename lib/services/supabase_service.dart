@@ -26,6 +26,11 @@ class SupabaseService {
     await _supabase.from('clientes').insert(client.toMap());
   }
 
+  // Atualiza um cliente existente pela chave primária (RF-002).
+  Future<void> updateClient(ClientModel client) async {
+    await _supabase.from('clientes').update(client.toMap()).eq('id', client.id!);
+  }
+
   // Mapeia as linhas da tabela e aplica o filtro da busca (RF-004):
   // substring em nome ou endereço, sem diferenciar maiúsculas de minúsculas.
   // Função pura: testável sem mockar a stream do Supabase.
