@@ -15,12 +15,21 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   late final _service = widget.service ?? SupabaseService();
-  // Assinatura única da stream, criada uma vez e viva pela tela inteira:
-  // recriá-la a cada rebuild (ex.: por tecla digitada na busca) derruba a
-  // entrega de eventos UPDATE do realtime (CT-008).
-  late final Stream<List<ClientModel>> _clientesStream =
-      _service.getClientsStream();
+  // Assinatura única da stream, viva enquanto a tela está em foco: não é
+  // recriada por rebuild (ex.: tecla na busca — o churn derruba o realtime),
+  // apenas renovada no retorno do formulário (issue #57: o projeto Supabase
+  // não entrega eventos UPDATE; a renovação garante o reflexo da edição).
+  late Stream<List<ClientModel>> _clientesStream = _service.getClientsStream();
   String _searchQuery = ''; // Guarda o que o usuário digita
+
+  // Abre o formulário (cadastro ou edição) e renova a stream ao voltar.
+  Future<void> _abrirFormulario({ClientModel? cliente}) async {
+    await Navigator.of(context).push(MaterialPageRoute(
+      builder: (_) => ClientFormScreen(service: _service, cliente: cliente),
+    ));
+    if (!mounted) return;
+    setState(() => _clientesStream = _service.getClientsStream());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -86,12 +95,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         subtitle: Text(cliente.endereco),
                         trailing: const Icon(Icons.chevron_right),
                         // EDIÇÃO (RF-002): abre o formulário pré-preenchido
-                        onTap: () {
-                          Navigator.of(context).push(MaterialPageRoute(
-                            builder: (_) => ClientFormScreen(
-                                service: _service, cliente: cliente),
-                          ));
-                        },
+                        onTap: () => _abrirFormulario(cliente: cliente),
                       ),
                     );
                   },
@@ -103,11 +107,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       // BOTÃO DE ADICIONAR (RF-001)
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.of(context).push(MaterialPageRoute(
-            builder: (_) => ClientFormScreen(service: _service),
-          ));
-        },
+        onPressed: _abrirFormulario,
         backgroundColor: Colors.blueAccent,
         child: const Icon(Icons.person_add, color: Colors.white),
       ),
