@@ -136,17 +136,23 @@ void main() {
     });
 
     testWidgets('cliente salvo aparece na lista via stream', (tester) async {
-      // CT-004: FAB abre o formulário; salvar grava via service; a lista
-      // reflete o cliente novo quando a stream emite — sem recarga manual.
-      final controller = StreamController<List<ClientModel>>(sync: true);
-      addTearDown(controller.close);
+      // CT-004: FAB abre o formulário; salvar grava via service; ao
+      // retornar, a Home renova a stream e o cliente novo aparece na
+      // lista — sem recarga manual do usuário.
+      final debora = ClientModel(
+          id: '4',
+          nome: 'Débora Prado',
+          endereco: 'Rua das Acácias, 45',
+          telefone: '11 94444-4444');
+      final respostas = [
+        Stream.value([ana]),
+        Stream.value([ana, debora]),
+      ];
       when(() => service.getClientsStream())
-          .thenAnswer((_) => controller.stream);
+          .thenAnswer((_) => respostas.removeAt(0));
       when(() => service.addClient(any())).thenAnswer((_) async {});
 
       await bombearTela(tester);
-      controller.add([ana]);
-      await tester.pump();
 
       await tester.tap(find.byType(FloatingActionButton));
       await tester.pumpAndSettle();
@@ -168,14 +174,7 @@ void main() {
           .single as ClientModel;
       expect(salvo.nome, 'Débora Prado');
 
-      // a stream emite a lista com o cliente novo e ele aparece sem recarga
-      final debora = ClientModel(
-          id: '4',
-          nome: 'Débora Prado',
-          endereco: 'Rua das Acácias, 45',
-          telefone: '11 94444-4444');
-      controller.add([ana, debora]);
-      await tester.pump();
+      // a Home renovou a stream no retorno e o cliente novo está na lista
       expect(find.text('Débora Prado'), findsOneWidget);
     });
 
@@ -195,19 +194,26 @@ void main() {
       expect(find.text('11 91111-1111'), findsOneWidget);
     });
 
-    testWidgets('edição confirmada persiste e reflete na lista via stream',
+    testWidgets('edição confirmada persiste e reflete na lista ao voltar',
         (tester) async {
-      // CT-008: nada é gravado antes do salvar; na confirmação o service
-      // recebe os novos dados (com o id) e a lista reflete via stream.
-      final controller = StreamController<List<ClientModel>>(sync: true);
-      addTearDown(controller.close);
+      // CT-008 (critério renegociado, requisitos.md 2.4 / issue #57): nada
+      // é gravado antes do salvar; na confirmação o service recebe os novos
+      // dados (com o id) e, ao retornar do formulário, a Home renova a
+      // stream — a lista exibe a alteração sem recarga manual do usuário.
+      final anaEditada = ClientModel(
+          id: '1',
+          nome: 'Ana Souza',
+          endereco: 'Rua Nova, 99',
+          telefone: '11 91111-1111');
+      final respostas = [
+        Stream.value([ana]),
+        Stream.value([anaEditada]),
+      ];
       when(() => service.getClientsStream())
-          .thenAnswer((_) => controller.stream);
+          .thenAnswer((_) => respostas.removeAt(0));
       when(() => service.updateClient(any())).thenAnswer((_) async {});
 
       await bombearTela(tester);
-      controller.add([ana]);
-      await tester.pump();
 
       await tester.tap(find.text('Ana Souza'));
       await tester.pumpAndSettle();
@@ -228,14 +234,8 @@ void main() {
       expect(salvo.nome, 'Ana Souza');
       expect(salvo.endereco, 'Rua Nova, 99');
 
-      // a stream emite a lista atualizada e a mudança aparece sem recarga
-      final anaEditada = ClientModel(
-          id: '1',
-          nome: 'Ana Souza',
-          endereco: 'Rua Nova, 99',
-          telefone: '11 91111-1111');
-      controller.add([anaEditada]);
-      await tester.pump();
+      // a Home renovou a stream no retorno e a lista mostra a alteração
+      verify(() => service.getClientsStream()).called(2);
       expect(find.text('Rua Nova, 99'), findsOneWidget);
     });
 
