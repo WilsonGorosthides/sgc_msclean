@@ -99,8 +99,67 @@ ambiente real; nenhum defeito de código encontrado (a única falha observada fo
 a ocorrência de ambiente, diagnosticada e resolvida). Merge realizado em
 2026-07-16; achados rastreados nas issues #47 e #48.
 
+## Execução 002 — Verificação manual do RF-002 (pré-merge do PR #55)
+
+- **Data:** 2026-07-18 e 2026-07-19 (duas rodadas).
+- **Objeto:** PR #55 (`feat/edicao-de-cliente`) — RF-002 Edição de Cliente,
+  antes do merge; inclui regressão do critério novo do telefone (CT-024,
+  PR #54, já mergeado).
+- **Ambiente:** web desktop (`fvm flutter run -d chrome`), contra o Supabase
+  real do MVP.
+- **Executor:** o desenvolvedor.
+
+### Rodada 1 (2026-07-18)
+
+| Passo | O que verificou | CT(s) | Resultado |
+|---|---|---|---|
+| A1–A5 | Telefone: `1234`/`192` bloqueados; 8 dígitos e formatado aceitos; `12#34` rejeitado | CT-024, CT-003 | Aprovado |
+| B6 | Toque no cliente abre o formulário pré-preenchido | CT-006 | Aprovado |
+| B7 | Validações do cadastro valem na edição | CT-007 | Aprovado |
+| B8 | Edição refletida na lista em tempo real | CT-008 | **Reprovado** |
+| B9 | Cancelar (voltar) não grava nada | CT-009 | Aprovado com ressalva |
+| C10 | Regressão: cadastro, busca, estado vazio | CT-004, CT-014–018 | Aprovado |
+
+- **CT-008 (reprovado):** o banco atualizava (confirmado no painel e via F5),
+  mas a lista aberta não refletia; reabrir o cliente mostrava o dado antigo.
+- **CT-009 (ressalva):** não há botão "Cancelar" dedicado — o voltar é o
+  mecanismo de cancelamento, o que atende o critério; registrado como
+  observação de conformidade.
+
+### Diagnóstico do CT-008 (entre as rodadas)
+
+Investigação em camadas, nesta ordem: **(1)** publication do servidor ok
+(`pg_publication`: insert/update/delete todos `true`); **(2)** F5 sempre
+trazia o dado novo — escrita íntegra, problema só na entrega do evento;
+**(3)** upgrade do `supabase_flutter` 2.12→2.16 sem efeito (revertido);
+**(4)** defeito real de arquitetura corrigido — a Home recriava a assinatura
+realtime a cada rebuild (churn por tecla na busca); a assinatura única
+resolveu a lista vazia na abertura, mas não o UPDATE; **(5)** teste puro
+(edição pelo painel com o app parado) provou que o evento UPDATE **não
+chega** ao app. Conclusão: limitação do projeto Supabase atual — **issue
+#57**. Critério do RF-002 **renegociado** (`requisitos.md` 2.4): reflexo
+"imediatamente ao retornar do formulário" (a Home renova a stream no
+retorno), em vez de "em tempo real".
+
+### Rodada 2 (2026-07-19, pós-renegociação)
+
+| Passo | O que verificou | CT(s) | Resultado |
+|---|---|---|---|
+| 1 | Telefone editado aparece ao reabrir o cliente após salvar | CT-008 | Aprovado |
+| 2 | Cliente novo aparece na lista ao voltar do cadastro | CT-004 | Aprovado |
+| 3 | Voltar sem salvar mantém a lista intacta | CT-009 | Aprovado |
+| 4 | Busca filtra e restaura normalmente | CT-014–018 | Aprovado |
+
+### Veredicto
+
+**PR #55 validado** contra o critério renegociado: todos os CTs do RF-002
+aprovados na rodada 2; o achado da rodada 1 virou correção de arquitetura
+(assinatura única), mudança de requisito documentada e a issue #57 para
+restaurar o realtime pleno no futuro.
+
 ## Histórico de Versões
 
 | Data | Versão | Autor | Descrição da mudança |
 |---|---|---|---|
 | 2026-07-17 | 1.0 | Wilson Gorosthides | Criação do registro de execuções de testes manuais, com as convenções de registro e a Execução 001 (RF-001, pré-merge do PR #44) — issue #49. |
+| 2026-07-19 | 1.1 | Wilson Gorosthides | Execução 002 (RF-002, pré-merge do PR #55): duas rodadas, com o diagnóstico do CT-008 (realtime UPDATE não entregue, issue #57), a renegociação do critério (`requisitos.md` 2.4) e a aprovação final. |
