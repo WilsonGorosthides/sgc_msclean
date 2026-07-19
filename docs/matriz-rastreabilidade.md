@@ -25,7 +25,7 @@ até o teste ser escrito, na ordem "teste antes da feature".
 | RF-001 | Após salvar, o formulário é fechado e o usuário retorna à lista. | CT-005 — `client_form_screen_test: salvar fecha o formulário` |
 | RF-002 | O formulário de edição abre pré-preenchido com os dados atuais do cliente. | CT-006 — `home_screen_test: editar abre formulário pré-preenchido` |
 | RF-002 | As mesmas validações do cadastro (RF-001) se aplicam: campos obrigatórios e formato de telefone. | CT-007 — `client_form_screen_test: edição aplica as validações do cadastro` |
-| RF-002 | Uma edição só é considerada salva após o usuário confirmar; nesse momento os dados são persistidos no banco e refletidos na lista em tempo real. | CT-008 — `home_screen_test: edição confirmada persiste e reflete na lista via stream` |
+| RF-002 | Uma edição só é considerada salva após o usuário confirmar; nesse momento os dados são persistidos no banco e refletidos na lista imediatamente ao retornar do formulário. | CT-008 — `home_screen_test: edição confirmada persiste e reflete na lista ao voltar` |
 | RF-002 | Ao cancelar, nenhuma alteração é gravada e os dados originais do cliente permanecem intactos. | CT-009 — `client_form_screen_test: cancelar edição não grava nada` |
 | RF-003 | A lista é ordenada por Nome em ordem alfabética crescente (ordenação padrão). | CT-010 — `home_screen_test: lista populada em ordem alfabética` · `supabase_service_test: ordena por nome em ordem alfabética crescente` |
 | RF-003 | Cada item exibe, no mínimo, Nome e Endereço. | CT-011 — `home_screen_test: item exibe nome e endereço` |
@@ -58,3 +58,4 @@ descoberto.
 | 2026-07-15 | 1.4 | Wilson Gorosthides | CT-001 a CT-005 confirmados com os nomes reais dos testes da suíte (RF-001 implementado, issue #25). |
 | 2026-07-18 | 1.5 | Wilson Gorosthides | Nova linha do RF-001: mínimo de 8 dígitos no telefone ↔ CT-024 (decisão de requisito da issue #48). |
 | 2026-07-18 | 1.6 | Wilson Gorosthides | CT-006 a CT-009 confirmados com os nomes reais dos testes da suíte (RF-002 implementado, issue #26); nota introdutória atualizada — só RF-008 segue pendente. |
+| 2026-07-19 | 1.7 | Wilson Gorosthides | Linha do CT-008 alinhada ao critério renegociado do RF-002 (`requisitos.md` 2.4, issue #57): reflexo da edição ao retornar do formulário. |
