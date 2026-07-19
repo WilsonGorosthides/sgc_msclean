@@ -15,6 +15,11 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   late final _service = widget.service ?? SupabaseService();
+  // Assinatura única da stream, criada uma vez e viva pela tela inteira:
+  // recriá-la a cada rebuild (ex.: por tecla digitada na busca) derruba a
+  // entrega de eventos UPDATE do realtime (CT-008).
+  late final Stream<List<ClientModel>> _clientesStream =
+      _service.getClientsStream();
   String _searchQuery = ''; // Guarda o que o usuário digita
 
   @override
@@ -49,19 +54,21 @@ class _HomeScreenState extends State<HomeScreen> {
           // LISTA DE CLIENTES
           Expanded(
             child: StreamBuilder<List<ClientModel>>(
-              stream: _service.getClientsStream(_searchQuery),
+              stream: _clientesStream,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                
-                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+
+                // busca (RF-004) aplicada sobre a lista emitida, no widget
+                final clientes = SupabaseService.filtrarClientes(
+                    snapshot.data ?? [], _searchQuery);
+
+                if (clientes.isEmpty) {
                   return const Center(
                     child: Text('Nenhum cliente encontrado.'),
                   );
                 }
-
-                final clientes = snapshot.data!;
 
                 return ListView.builder(
                   itemCount: clientes.length,

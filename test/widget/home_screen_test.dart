@@ -45,7 +45,7 @@ void main() {
 
   group('home_screen_test:', () {
     testWidgets('lista populada em ordem alfabética', (tester) async {
-      when(() => service.getClientsStream(''))
+      when(() => service.getClientsStream())
           .thenAnswer((_) => Stream.value([ana, bruno, carla]));
 
       await bombearTela(tester);
@@ -58,7 +58,7 @@ void main() {
     });
 
     testWidgets('item exibe nome e endereço', (tester) async {
-      when(() => service.getClientsStream(''))
+      when(() => service.getClientsStream())
           .thenAnswer((_) => Stream.value([ana]));
 
       await bombearTela(tester);
@@ -72,7 +72,7 @@ void main() {
       // determinístico (sem corrida entre microtask e frame do pump).
       final controller = StreamController<List<ClientModel>>(sync: true);
       addTearDown(controller.close);
-      when(() => service.getClientsStream(''))
+      when(() => service.getClientsStream())
           .thenAnswer((_) => controller.stream);
 
       await bombearTela(tester);
@@ -94,7 +94,7 @@ void main() {
     });
 
     testWidgets('estado vazio exibe mensagem', (tester) async {
-      when(() => service.getClientsStream(''))
+      when(() => service.getClientsStream())
           .thenAnswer((_) => Stream.value([]));
 
       await bombearTela(tester);
@@ -103,17 +103,15 @@ void main() {
     });
 
     testWidgets('filtragem ao digitar na busca', (tester) async {
-      when(() => service.getClientsStream(''))
+      // a stream é única; o filtro acontece no widget sobre a lista emitida
+      when(() => service.getClientsStream())
           .thenAnswer((_) => Stream.value([ana, bruno]));
-      when(() => service.getClientsStream('Ana'))
-          .thenAnswer((_) => Stream.value([ana]));
 
       await bombearTela(tester);
       expect(find.text('Bruno Lima'), findsOneWidget);
 
       await tester.enterText(find.byType(TextField), 'Ana');
-      await tester.pump(); // rebuild com a nova stream
-      await tester.pump(); // primeira emissão da nova stream
+      await tester.pump(); // rebuild com o filtro novo
 
       expect(find.text('Ana Souza'), findsOneWidget);
       expect(find.text('Bruno Lima'), findsNothing);
@@ -121,21 +119,17 @@ void main() {
       // ao limpar o campo, a lista volta ao completo
       await tester.enterText(find.byType(TextField), '');
       await tester.pump();
-      await tester.pump();
 
       expect(find.text('Bruno Lima'), findsOneWidget);
     });
 
     testWidgets('busca sem correspondência exibe mensagem', (tester) async {
-      when(() => service.getClientsStream(''))
+      when(() => service.getClientsStream())
           .thenAnswer((_) => Stream.value([ana, bruno]));
-      when(() => service.getClientsStream('inexistente'))
-          .thenAnswer((_) => Stream.value([]));
 
       await bombearTela(tester);
 
       await tester.enterText(find.byType(TextField), 'inexistente');
-      await tester.pump();
       await tester.pump();
 
       expect(find.text('Nenhum cliente encontrado.'), findsOneWidget);
@@ -146,7 +140,7 @@ void main() {
       // reflete o cliente novo quando a stream emite — sem recarga manual.
       final controller = StreamController<List<ClientModel>>(sync: true);
       addTearDown(controller.close);
-      when(() => service.getClientsStream(''))
+      when(() => service.getClientsStream())
           .thenAnswer((_) => controller.stream);
       when(() => service.addClient(any())).thenAnswer((_) async {});
 
@@ -187,7 +181,7 @@ void main() {
 
     testWidgets('editar abre formulário pré-preenchido', (tester) async {
       // CT-006: tocar no item da lista abre a edição com os dados atuais
-      when(() => service.getClientsStream(''))
+      when(() => service.getClientsStream())
           .thenAnswer((_) => Stream.value([ana]));
 
       await bombearTela(tester);
@@ -207,7 +201,7 @@ void main() {
       // recebe os novos dados (com o id) e a lista reflete via stream.
       final controller = StreamController<List<ClientModel>>(sync: true);
       addTearDown(controller.close);
-      when(() => service.getClientsStream(''))
+      when(() => service.getClientsStream())
           .thenAnswer((_) => controller.stream);
       when(() => service.updateClient(any())).thenAnswer((_) async {});
 
@@ -250,7 +244,7 @@ void main() {
       // criava uma assinatura realtime nova no Supabase (uma por tecla na
       // busca), e o churn de canais derruba a entrega de eventos UPDATE.
       // A tela deve assinar a stream UMA vez, por toda a sua vida.
-      when(() => service.getClientsStream(any()))
+      when(() => service.getClientsStream())
           .thenAnswer((_) => Stream.value([ana, bruno]));
 
       await bombearTela(tester);
@@ -259,11 +253,11 @@ void main() {
       await tester.pump();
       await tester.pump();
 
-      verify(() => service.getClientsStream(any())).called(1);
+      verify(() => service.getClientsStream()).called(1);
     });
 
     testWidgets('busca vazia exibe todos', (tester) async {
-      when(() => service.getClientsStream(''))
+      when(() => service.getClientsStream())
           .thenAnswer((_) => Stream.value([ana, bruno, carla]));
 
       await bombearTela(tester);
