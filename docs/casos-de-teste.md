@@ -130,17 +130,20 @@
 ### CT-006 — Formulário de edição pré-preenchido
 - **Critério:** "O formulário de edição abre pré-preenchido com os dados
   atuais do cliente."
-- **Tipo:** Widget · **Situação:** a implementar
+- **Tipo:** Widget · **Situação:** implementado
+- **Teste:** `home_screen_test: editar abre formulário pré-preenchido`
 - **Pré-condições:** cliente existente na lista.
 - **Passos:**
-  1. Abrir a edição de um cliente da lista.
+  1. Abrir a edição de um cliente da lista (toque no item).
 - **Resultado esperado:** os campos Nome, Endereço e Telefone exibem os
   valores atuais do cliente.
 
 ### CT-007 — Edição aplica as validações do cadastro
 - **Critério:** "As mesmas validações do cadastro (RF-001) se aplicam: campos
   obrigatórios e formato de telefone."
-- **Tipo:** Widget · **Situação:** a implementar
+- **Tipo:** Widget · **Situação:** implementado
+- **Teste:** `client_form_screen_test: edição aplica as validações do
+  cadastro`
 - **Pré-condições:** formulário de edição aberto e pré-preenchido.
 - **Passos:**
   1. Apagar o Nome (deixar vazio) e acionar o salvar.
@@ -151,21 +154,33 @@
 
 ### CT-008 — Edição persiste só após confirmar
 - **Critério:** "Uma edição só é considerada salva após o usuário confirmar;
-  nesse momento os dados são persistidos no banco e refletidos na lista em
-  tempo real."
-- **Tipo:** Widget · **Situação:** a implementar
+  nesse momento os dados são persistidos no banco e refletidos na lista
+  imediatamente ao retornar do formulário."
+- **Tipo:** Widget · **Situação:** implementado
+- **Teste:** `home_screen_test: edição confirmada persiste e reflete na
+  lista ao voltar`
 - **Pré-condições:** formulário de edição aberto e pré-preenchido.
 - **Passos:**
   1. Alterar o Endereço.
   2. Confirmar o salvamento.
 - **Resultado esperado:** o método de atualização do service é chamado com os
-  novos dados apenas na confirmação, e a lista reflete a alteração em tempo
-  real (via stream).
+  novos dados apenas na confirmação, e a lista exibe a alteração ao retornar
+  do formulário (a Home renova a stream no retorno).
+- **Nota:** o critério original pedia reflexo "em tempo real" (via evento da
+  stream); foi renegociado em `requisitos.md` 2.4 porque os eventos UPDATE do
+  realtime não são entregues pelo projeto Supabase atual — diagnóstico e
+  caminho de restauração na issue #57.
+- **Nota:** o `SupabaseService.updateClient` em si **não tem teste unitário**,
+  pela mesma decisão registrada no CT-004 para o `addClient`: repasse de uma
+  linha pro Supabase; o update real contra banco é responsabilidade do E2E
+  da Fase 2 (`plano-de-testes.md` §2.3). Neste CT, o service é mockado e
+  verifica-se a chamada com os dados corretos (incluindo o `id`).
 
 ### CT-009 — Cancelar edição não grava nada
 - **Critério:** "Ao cancelar, nenhuma alteração é gravada e os dados originais
   do cliente permanecem intactos."
-- **Tipo:** Widget · **Situação:** a implementar
+- **Tipo:** Widget · **Situação:** implementado
+- **Teste:** `client_form_screen_test: cancelar edição não grava nada`
 - **Pré-condições:** formulário de edição aberto, com alterações digitadas e
   não confirmadas.
 - **Passos:**
@@ -356,3 +371,5 @@
 | 2026-07-15 | 1.0 | Wilson Gorosthides | Criação dos casos de teste formais do MVP: CT-001 a CT-022 cobrindo todos os critérios de aceitação da matriz de rastreabilidade (RF-001/002/003/004/008) e CT-023 manual de RNF-001 no dispositivo da cliente. |
 | 2026-07-15 | 1.1 | Wilson Gorosthides | CT-001 a CT-005 confirmados como implementados (RF-001, issue #25), com os nomes reais dos testes; nota no CT-004 sobre a ausência deliberada de teste unitário do `addClient` (coberto pelo E2E da Fase 2) e nota no CT-005 sobre a cobertura extra do SnackBar de erro no insert. |
 | 2026-07-18 | 1.2 | Wilson Gorosthides | Adiciona CT-024 — mínimo de 8 dígitos no telefone (novo critério do RF-001, issue #48), posicionado junto ao CT-003; convenção de numeração atualizada para explicar o número fora de ordem. |
+| 2026-07-18 | 1.3 | Wilson Gorosthides | CT-006 a CT-009 confirmados como implementados (RF-002, issue #26), com os nomes reais dos testes; nota no CT-008 sobre a ausência deliberada de teste unitário do `updateClient` (mesma decisão do `addClient`, coberto pelo E2E da Fase 2). |
+| 2026-07-19 | 1.4 | Wilson Gorosthides | CT-008 alinhado ao critério renegociado do RF-002 (`requisitos.md` 2.4): reflexo da edição ao retornar do formulário em vez de "em tempo real"; nome do teste e nota sobre a issue #57 (eventos UPDATE do realtime não entregues). |

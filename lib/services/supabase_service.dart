@@ -9,8 +9,11 @@ class SupabaseService {
 
   SupabaseClient get _supabase => _client ?? Supabase.instance.client;
 
-  // Busca a lista de clientes em tempo real
-  Stream<List<ClientModel>> getClientsStream(String query) {
+  // Busca a lista de clientes em tempo real. Sem parâmetro de busca:
+  // a assinatura realtime é única e vive pela tela inteira — recriá-la a
+  // cada mudança de filtro derruba a entrega de eventos UPDATE (CT-008);
+  // o filtro da busca é aplicado no widget, sobre a lista emitida.
+  Stream<List<ClientModel>> getClientsStream() {
     // Pegamos a stream da tabela 'clientes'
     return _supabase
         .from('clientes')
@@ -18,7 +21,7 @@ class SupabaseService {
         // ascending: true explícito — o padrão do .order() da stream é
         // decrescente, diferente do PostgREST via REST (issue #39)
         .order('nome', ascending: true)
-        .map((data) => filtrarClientes(data, query));
+        .map((data) => data.map(ClientModel.fromMap).toList());
   }
 
   // Cadastra um cliente novo (RF-001); o id é gerado pelo Supabase.
@@ -26,13 +29,17 @@ class SupabaseService {
     await _supabase.from('clientes').insert(client.toMap());
   }
 
-  // Mapeia as linhas da tabela e aplica o filtro da busca (RF-004):
-  // substring em nome ou endereço, sem diferenciar maiúsculas de minúsculas.
-  // Função pura: testável sem mockar a stream do Supabase.
+  // Atualiza um cliente existente pela chave primária (RF-002).
+  Future<void> updateClient(ClientModel client) async {
+    await _supabase.from('clientes').update(client.toMap()).eq('id', client.id!);
+  }
+
+  // Filtro da busca (RF-004): substring em nome ou endereço, sem
+  // diferenciar maiúsculas de minúsculas. Função pura: testável sem
+  // mockar a stream do Supabase.
   static List<ClientModel> filtrarClientes(
-      List<Map<String, dynamic>> data, String query) {
-    return data
-        .map((element) => ClientModel.fromMap(element))
+      List<ClientModel> clientes, String query) {
+    return clientes
         .where((client) =>
             client.nome.toLowerCase().contains(query.toLowerCase()) ||
             client.endereco.toLowerCase().contains(query.toLowerCase()))

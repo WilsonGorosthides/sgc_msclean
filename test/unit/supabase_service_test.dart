@@ -14,52 +14,51 @@ void main() {
     registerFallbackValue(<String>[]);
     registerFallbackValue((List<Map<String, dynamic>> _) => <ClientModel>[]);
   });
-  final linhas = [
-    {
-      'id': '1',
-      'nome': 'Ana Souza',
-      'endereco': 'Rua das Flores, 10',
-      'telefone': '11 91111-1111',
-    },
-    {
-      'id': '2',
-      'nome': 'Bruno Lima',
-      'endereco': 'Avenida Central, 200',
-      'telefone': '11 92222-2222',
-    },
-    {
-      'id': '3',
-      'nome': 'Carla Dias',
-      'endereco': 'Rua das Flores, 30',
-      'telefone': '11 93333-3333',
-    },
+  // filtrarClientes opera sobre a lista de modelos já emitida pela stream
+  // (o filtro da busca vive no widget; a assinatura da stream é única)
+  final clientes = [
+    ClientModel(
+        id: '1',
+        nome: 'Ana Souza',
+        endereco: 'Rua das Flores, 10',
+        telefone: '11 91111-1111'),
+    ClientModel(
+        id: '2',
+        nome: 'Bruno Lima',
+        endereco: 'Avenida Central, 200',
+        telefone: '11 92222-2222'),
+    ClientModel(
+        id: '3',
+        nome: 'Carla Dias',
+        endereco: 'Rua das Flores, 30',
+        telefone: '11 93333-3333'),
   ];
 
   group('supabase_service_test:', () {
     test('filtro por nome ou endereço', () {
-      final porNome = SupabaseService.filtrarClientes(linhas, 'Bruno');
+      final porNome = SupabaseService.filtrarClientes(clientes, 'Bruno');
       expect(porNome.map((c) => c.nome), ['Bruno Lima']);
 
-      final porEndereco = SupabaseService.filtrarClientes(linhas, 'Flores');
+      final porEndereco = SupabaseService.filtrarClientes(clientes, 'Flores');
       expect(porEndereco.map((c) => c.nome), ['Ana Souza', 'Carla Dias']);
 
       final semCorrespondencia =
-          SupabaseService.filtrarClientes(linhas, 'inexistente');
+          SupabaseService.filtrarClientes(clientes, 'inexistente');
       expect(semCorrespondencia, isEmpty);
 
-      final buscaVazia = SupabaseService.filtrarClientes(linhas, '');
+      final buscaVazia = SupabaseService.filtrarClientes(clientes, '');
       expect(buscaVazia.length, 3);
     });
 
     test('filtro case-insensitive', () {
-      final maiusculas = SupabaseService.filtrarClientes(linhas, 'BRUNO');
+      final maiusculas = SupabaseService.filtrarClientes(clientes, 'BRUNO');
       expect(maiusculas.map((c) => c.nome), ['Bruno Lima']);
 
       final minusculas =
-          SupabaseService.filtrarClientes(linhas, 'avenida central');
+          SupabaseService.filtrarClientes(clientes, 'avenida central');
       expect(minusculas.map((c) => c.nome), ['Bruno Lima']);
 
-      final misturadas = SupabaseService.filtrarClientes(linhas, 'fLoReS');
+      final misturadas = SupabaseService.filtrarClientes(clientes, 'fLoReS');
       expect(misturadas.map((c) => c.nome), ['Ana Souza', 'Carla Dias']);
     });
 
@@ -80,7 +79,7 @@ void main() {
       when(() => streamBuilder.map<List<ClientModel>>(any()))
           .thenAnswer((_) => const Stream<List<ClientModel>>.empty());
 
-      SupabaseService(client: client).getClientsStream('');
+      SupabaseService(client: client).getClientsStream();
 
       // RF-003: a ordenação pedida ao Supabase deve ser crescente (A→Z).
       // Sem ascending: true explícito, o padrão do .order() da stream do

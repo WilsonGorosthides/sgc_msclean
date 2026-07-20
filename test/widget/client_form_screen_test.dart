@@ -6,11 +6,18 @@ import 'package:sgc_msclean/screens/client_form_screen.dart';
 
 import '../mocks/mock_supabase_client.dart';
 
-// Testes de widget do formulário de cadastro (RF-001), com
+// Testes de widget do formulário de cadastro e edição (RF-001/RF-002), com
 // MockSupabaseService injetado — roteiros em docs/casos-de-teste.md
-// (CT-001, CT-002, CT-003, CT-005 e o caso extra de robustez do erro).
+// (CT-001, CT-002, CT-003, CT-005, CT-007, CT-009 e o caso extra de
+// robustez do erro).
 void main() {
   late MockSupabaseService service;
+
+  final cliente = ClientModel(
+      id: '7',
+      nome: 'Ana Souza',
+      endereco: 'Rua das Flores, 10',
+      telefone: '11 91111-1111');
 
   setUpAll(() {
     registerFallbackValue(ClientModel(nome: '', endereco: '', telefone: ''));
@@ -124,6 +131,54 @@ void main() {
 
       expect(find.text('Erro ao salvar. Tente novamente.'), findsOneWidget);
       expect(find.byType(ClientFormScreen), findsOneWidget);
+    });
+
+    testWidgets('edição aplica as validações do cadastro', (tester) async {
+      // CT-007: as regras do cadastro valem também no modo edição
+      await tester.pumpWidget(MaterialApp(
+          home: ClientFormScreen(service: service, cliente: cliente)));
+
+      await tester.enterText(campoNome, ''); // apaga o nome
+      await tester.tap(botaoSalvar);
+      await tester.pump();
+      expect(find.text('Informe o nome'), findsOneWidget);
+
+      await tester.enterText(campoNome, 'Ana Souza');
+      await tester.enterText(campoTelefone, '12#34');
+      await tester.tap(botaoSalvar);
+      await tester.pump();
+      expect(
+          find.text('Use apenas dígitos, espaços e + ( ) -'), findsOneWidget);
+
+      verifyNever(() => service.updateClient(any()));
+      verifyNever(() => service.addClient(any()));
+    });
+
+    testWidgets('cancelar edição não grava nada', (tester) async {
+      // CT-009: fechar sem confirmar não pode chamar gravação alguma
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+          body: Builder(
+            builder: (context) => TextButton(
+              onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+                builder: (_) =>
+                    ClientFormScreen(service: service, cliente: cliente),
+              )),
+              child: const Text('abrir'),
+            ),
+          ),
+        ),
+      ));
+      await tester.tap(find.text('abrir'));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(campoEndereco, 'Rua Nova, 99');
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ClientFormScreen), findsNothing);
+      verifyNever(() => service.updateClient(any()));
+      verifyNever(() => service.addClient(any()));
     });
   });
 }
