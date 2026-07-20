@@ -38,6 +38,27 @@ desenvolvimento.
 
 Wilson Gorosthides.
 
+### 1.4 Fundamentação (ATDD)
+
+A estratégia teste-antes deste plano segue **ATDD (Acceptance Test-Driven
+Development)**: os casos de teste são **derivados dos critérios de aceitação** de
+`requisitos.md` §2 e escritos **antes** da implementação da feature (o ciclo
+red→green do §9). O critério de aceitação é a especificação executável — o teste
+que o exercita é o roteiro que guia o código, não uma verificação escrita depois.
+Sobre um projeto de usuária única e desenvolvedor solo, ATDD mantém cada entrega
+rastreável a um requisito acordado, sem a cerimônia de papéis (cliente/QA/dev)
+que a técnica pressupõe em times maiores.
+
+Referências:
+
+- ATDD — Agile Alliance: <https://www.agilealliance.org/glossary/atdd/>
+- Test-Driven Development — Martin Fowler:
+  <https://martinfowler.com/bliki/TestDrivenDevelopment.html>
+- Introducing BDD — Dan North: <https://dannorth.net/introducing-bdd/>
+- Kent Beck, *Test-Driven Development: By Example* (Addison-Wesley, 2002).
+- Markus Gärtner, *ATDD by Example* (Addison-Wesley, 2012).
+- Gojko Adzic, *Specification by Example* (Manning, 2011).
+
 ## 2. Estratégia e Tipos de Teste
 
 ### 2.1 Ambiente de testes
@@ -175,10 +196,14 @@ registrou como quebrado e será removido ao entrarem os primeiros testes reais
 previsto na criação deste plano — "quando o RF-001 estiver perto de fechar" —
 disparou com a entrega do RF-001 (issue #25).
 
-O gate de qualidade passa a ser duplo: a suíte local verde exigida pela
-Definição de Pronto (`gerencia-de-configuracao.md` §9) **e** o workflow verde no
-PR. O CI não substitui a execução local (que continua obrigatória antes do
-push); ele protege contra o que escapar dela.
+O gate de qualidade é duplo: a **suíte local verde, rodada pelo desenvolvedor**
+antes de autorizar o push (exigida pela Definição de Pronto,
+`gerencia-de-configuracao.md` §9) **e** o workflow verde no PR. Durante o
+desenvolvimento assistido por agente, este roda apenas os testes **direcionados**
+ao arquivo da feature (red→green); a suíte completa e o `analyze` são executados
+pelo desenvolvedor, dono do merge. O CI não substitui essa execução local (que
+continua obrigatória antes do push); permanece a **rede de segurança** que roda
+tudo e protege contra o que escapar dela.
 
 ## 6. Cobertura
 
@@ -237,16 +262,23 @@ Fluxo de trabalho solo, aplicado por feature do MVP:
    (`<tipo>/<descricao>`, `gerencia-de-configuracao.md` §4).
 2. **Testes antes do código.** Escrever os casos de teste do RF a partir dos
    critérios de aceitação de `requisitos.md` §2 (a suíte falha — vermelho — porque
-   a feature ainda não existe).
-3. **Implementação.** Implementar a feature até os testes passarem.
-4. **Suíte verde.** `fvm flutter test` e `fvm flutter analyze` sem falhas nem erros.
+   a feature ainda não existe). Aqui basta rodar os testes **direcionados** ao
+   arquivo em trabalho (`fvm flutter test test/<arquivo>`) para confirmar o
+   vermelho.
+3. **Implementação.** Implementar a feature até os testes **direcionados**
+   passarem (verde verificável no arquivo da feature).
+4. **Suíte verde (gate do desenvolvedor).** O **desenvolvedor** roda a suíte
+   completa (`fvm flutter test`) e o `fvm flutter analyze` sem falhas nem erros
+   antes de autorizar o push. Este é o gate final; o agente não o substitui.
 5. **PR.** Abrir o PR seguindo `gerencia-de-configuracao.md` §6 (título
    `pr(<tipo>): ...`, corpo no template, `Closes #N`).
 6. **Autorrevisão.** Revisar o próprio diff antes do merge — código, testes e
    sincronização de documentação (Definição de Pronto, §9 da GCS).
 
-O passo 4 é executado localmente pelo desenvolvedor e repetido pela CI no PR
-(seção 5.2); o passo 6 permanece manual.
+Os testes direcionados dos passos 2–3 são a verificação red→green feita durante o
+desenvolvimento; o passo 4 (suíte completa + `analyze`) é executado localmente
+pelo desenvolvedor e repetido pela CI no PR (seção 5.2); o passo 6 permanece
+manual.
 
 ## 10. Histórico de Versões
 
@@ -256,3 +288,4 @@ O passo 4 é executado localmente pelo desenvolvedor e repetido pela CI no PR
 | 2026-07-13 | 1.1 | Wilson Gorosthides | Ajusta §4 após a movimentação do projeto Flutter de `app/sgc_msclean/` para a raiz do repositório (issue #8): diretórios de teste passam a ser relativos à raiz do repo. |
 | 2026-07-15 | 1.2 | Wilson Gorosthides | §5.2: CI configurada com GitHub Actions (analyze + test em cada PR, issue #45) — dívida quitada no gatilho previsto (RF-001 entregue); §9 ajustado para o gate duplo (suíte local + workflow no PR). |
 | 2026-07-17 | 1.3 | Wilson Gorosthides | §3.2: verificações manuais passam a ser registradas em `docs/execucoes-de-testes-manuais.md` (registro de execuções de testes manuais, issue #49). |
+| 2026-07-20 | 1.4 | Wilson Gorosthides | Gate híbrido (issue #56): §5.2 e §9 atribuem a suíte completa + `analyze` ao desenvolvedor, com o agente rodando testes direcionados nos passos 2–3; nova §1.4 registra a fundamentação ATDD (casos derivados dos critérios de aceitação, escritos antes da implementação) com referências. |
