@@ -157,9 +157,43 @@ aprovados na rodada 2; o achado da rodada 1 virou correção de arquitetura
 (assinatura única), mudança de requisito documentada e a issue #57 para
 restaurar o realtime pleno no futuro.
 
+## Execução 003 — Verificação manual do RF-008 (pré-merge do PR de exclusão)
+
+- **Data:** 2026-07-20.
+- **Objeto:** branch `feat/exclusao-de-cliente` — RF-008 Exclusão de Cliente,
+  antes do merge.
+- **Ambiente:** web desktop (`fvm flutter run -d chrome`), contra o Supabase
+  real do MVP.
+- **Executor:** o desenvolvedor.
+
+### Resultados
+
+| Passo | O que verificou | CT(s) | Resultado |
+|---|---|---|---|
+| 1 | Lixeira abre o diálogo "Confirmar exclusão?"; nada removido antes | CT-019 | Aprovado |
+| 2 | Cancelar mantém o cliente na lista | CT-020 | Aprovado |
+| 3 | Confirmar remove do banco e some da lista imediatamente | CT-021 | Aprovado |
+| 4 | SnackBar "Cliente excluído" após a exclusão | CT-022 | Aprovado |
+| 5 | Toque na linha (não na lixeira) abre a edição | Regressão RF-002 | Aprovado |
+| 6 | Cadastro e busca seguem funcionando | Regressão | Aprovado |
+
+- **Ponto de atenção do passo 3:** o reflexo da exclusão foi imediato,
+  garantido pela renovação local da stream após a ação (critério renegociado,
+  `requisitos.md` 2.5). Diferente do UPDATE do RF-002, o DELETE nativo do
+  realtime **não** foi testado isoladamente aqui — a renovação foi adotada por
+  consistência e robustez, sem presumir que o DELETE falhe (contexto na
+  issue #57).
+
+### Veredicto
+
+**RF-008 validado** em rodada única: os quatro critérios aprovados, sem
+regressão no cadastro, edição e busca. Com esta feature, o MVP fica completo
+(5/5).
+
 ## Histórico de Versões
 
 | Data | Versão | Autor | Descrição da mudança |
 |---|---|---|---|
 | 2026-07-17 | 1.0 | Wilson Gorosthides | Criação do registro de execuções de testes manuais, com as convenções de registro e a Execução 001 (RF-001, pré-merge do PR #44) — issue #49. |
 | 2026-07-19 | 1.1 | Wilson Gorosthides | Execução 002 (RF-002, pré-merge do PR #55): duas rodadas, com o diagnóstico do CT-008 (realtime UPDATE não entregue, issue #57), a renegociação do critério (`requisitos.md` 2.4) e a aprovação final. |
+| 2026-07-20 | 1.2 | Wilson Gorosthides | Execução 003 (RF-008, pré-merge do PR de exclusão): rodada única, quatro CTs aprovados, sem regressão; reflexo da exclusão imediato via renovação da stream (`requisitos.md` 2.5). MVP completo. |

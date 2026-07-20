@@ -63,7 +63,7 @@ O sistema deve permitir excluir um cliente existente.
 * **Critérios de aceitação:**
   - A exclusão exige confirmação explícita do usuário (diálogo "Confirmar exclusão?") antes de efetivar.
   - Ao cancelar a confirmação, o cliente **não** é removido e permanece na lista.
-  - Ao confirmar, o cliente é removido do banco e desaparece da lista em tempo real.
+  - Ao confirmar, o cliente é removido do banco e desaparece da lista imediatamente após a confirmação.
   - Após a exclusão bem-sucedida, o sistema dá feedback visual (ex.: SnackBar "Cliente excluído").
 
 #### RF-005 - Adicionar Histórico de Serviço
@@ -132,3 +132,4 @@ O sistema deve ter um mecanismo de login para o único usuário (a proprietária
 | 2026-07-03 | 2.2 | Wilson Gorosthides | Adiciona nota em §1 ligando RF → História de Usuário → issue Story e um pointer geral para `docs/AUDITORIA_INICIAL.md`; remove a distinção MVP/Pós-MVP (RF-005/006/007 incorporados à seção 2, História 5 à seção 4, sem tags de status), preservando em RF-007 a nota técnica sobre RLS/RNF-005; Histórico de Versões renumerado de §7 para §6. |
 | 2026-07-18 | 2.3 | Wilson Gorosthides | Novo critério de aceitação no RF-001: telefone com no mínimo 8 dígitos, contando apenas dígitos (decisão de requisito da issue #48; piso pode subir para 10 após a importação da agenda real, #23). |
 | 2026-07-19 | 2.4 | Wilson Gorosthides | RF-002: critério de reflexo da edição renegociado de "em tempo real" para "imediatamente ao retornar do formulário" — os eventos UPDATE do realtime não são entregues pelo projeto Supabase atual (diagnóstico e caminho de restauração na issue #57). |
+| 2026-07-20 | 2.5 | Wilson Gorosthides | RF-008: critério de reflexo da exclusão renegociado de "em tempo real" para "imediatamente após a confirmação" — por consistência com o RF-002 e por robustez, a lista é renovada após a exclusão, independentemente de o evento DELETE nativo do realtime ser entregue (não presumido como quebrado; contexto na issue #57). |

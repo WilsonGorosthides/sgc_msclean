@@ -266,5 +266,85 @@ void main() {
       expect(find.text('Bruno Lima'), findsOneWidget);
       expect(find.text('Carla Dias'), findsOneWidget);
     });
+
+    testWidgets('exclusão pede confirmação antes de remover', (tester) async {
+      // CT-019: tocar na lixeira abre o diálogo; nada é removido antes da
+      // resposta do usuário.
+      when(() => service.getClientsStream())
+          .thenAnswer((_) => Stream.value([ana, bruno]));
+
+      await bombearTela(tester);
+
+      await tester.tap(find.byKey(const Key('excluir_1')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Confirmar exclusão?'), findsOneWidget);
+      verifyNever(() => service.deleteClient(any()));
+    });
+
+    testWidgets('cancelar a confirmação não remove', (tester) async {
+      // CT-020: cancelar o diálogo não chama exclusão e mantém o cliente.
+      when(() => service.getClientsStream())
+          .thenAnswer((_) => Stream.value([ana, bruno]));
+
+      await bombearTela(tester);
+
+      await tester.tap(find.byKey(const Key('excluir_1')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Cancelar'));
+      await tester.pumpAndSettle();
+
+      verifyNever(() => service.deleteClient(any()));
+      expect(find.text('Ana Souza'), findsOneWidget);
+    });
+
+    testWidgets('confirmar remove e a lista reflete ao renovar a stream',
+        (tester) async {
+      // CT-021 (critério renegociado, requisitos.md 2.5): confirmar chama
+      // deleteClient com o cliente certo; a Home renova a stream e o item
+      // some da lista, sem depender do evento DELETE do realtime (issue #57).
+      final respostas = [
+        Stream.value([ana, bruno]),
+        Stream.value([bruno]),
+      ];
+      when(() => service.getClientsStream())
+          .thenAnswer((_) => respostas.removeAt(0));
+      when(() => service.deleteClient(any())).thenAnswer((_) async {});
+
+      await bombearTela(tester);
+
+      await tester.tap(find.byKey(const Key('excluir_1')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Excluir'));
+      await tester.pumpAndSettle();
+
+      final excluido = verify(() => service.deleteClient(captureAny()))
+          .captured
+          .single as ClientModel;
+      expect(excluido.id, '1');
+      verify(() => service.getClientsStream()).called(2);
+      expect(find.text('Ana Souza'), findsNothing);
+      expect(find.text('Bruno Lima'), findsOneWidget);
+    });
+
+    testWidgets('exclusão bem-sucedida exibe feedback', (tester) async {
+      // CT-022: SnackBar "Cliente excluído" após a exclusão confirmada.
+      final respostas = [
+        Stream.value([ana]),
+        Stream.value(<ClientModel>[]),
+      ];
+      when(() => service.getClientsStream())
+          .thenAnswer((_) => respostas.removeAt(0));
+      when(() => service.deleteClient(any())).thenAnswer((_) async {});
+
+      await bombearTela(tester);
+
+      await tester.tap(find.byKey(const Key('excluir_1')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Excluir'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Cliente excluído'), findsOneWidget);
+    });
   });
 }

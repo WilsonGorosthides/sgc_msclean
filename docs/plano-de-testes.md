@@ -23,11 +23,11 @@ Este plano cobre os requisitos funcionais do **MVP**:
 
 | RF | Descrição | Situação atual |
 |---|---|---|
-| RF-001 | Cadastro de Cliente | Não implementado |
-| RF-002 | Edição de Cliente | Não implementado |
+| RF-001 | Cadastro de Cliente | Implementado |
+| RF-002 | Edição de Cliente | Implementado |
 | RF-003 | Visualização da Lista | Implementado |
 | RF-004 | Busca por palavra-chave | Implementado |
-| RF-008 | Exclusão de Cliente | Não implementado |
+| RF-008 | Exclusão de Cliente | Implementado |
 
 **Fora de escopo** deste plano: RF-005 (histórico de serviço), RF-006 (histórico de
 pagamento) e RF-007 (autenticação), previstos para o Pós-MVP (ver README, seção
@@ -289,3 +289,4 @@ manual.
 | 2026-07-15 | 1.2 | Wilson Gorosthides | §5.2: CI configurada com GitHub Actions (analyze + test em cada PR, issue #45) — dívida quitada no gatilho previsto (RF-001 entregue); §9 ajustado para o gate duplo (suíte local + workflow no PR). |
 | 2026-07-17 | 1.3 | Wilson Gorosthides | §3.2: verificações manuais passam a ser registradas em `docs/execucoes-de-testes-manuais.md` (registro de execuções de testes manuais, issue #49). |
 | 2026-07-20 | 1.4 | Wilson Gorosthides | Gate híbrido (issue #56): §5.2 e §9 atribuem a suíte completa + `analyze` ao desenvolvedor, com o agente rodando testes direcionados nos passos 2–3; nova §1.4 registra a fundamentação ATDD (casos derivados dos critérios de aceitação, escritos antes da implementação) com referências. |
+| 2026-07-20 | 1.5 | Wilson Gorosthides | §1.2: tabela de escopo atualizada — RF-001, RF-002 e RF-008 passam a "Implementado" (MVP completo, issue #27). |

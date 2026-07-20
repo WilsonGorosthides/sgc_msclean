@@ -306,38 +306,51 @@
 ### CT-019 — Exclusão exige confirmação
 - **Critério:** "A exclusão exige confirmação explícita do usuário (diálogo
   \"Confirmar exclusão?\") antes de efetivar."
-- **Tipo:** Widget · **Situação:** a implementar
+- **Tipo:** Widget · **Situação:** implementado
+- **Teste:** `home_screen_test: exclusão pede confirmação antes de remover`
 - **Pré-condições:** cliente existente na lista.
 - **Passos:**
-  1. Acionar a exclusão de um cliente.
+  1. Acionar a exclusão de um cliente (lixeira no item).
 - **Resultado esperado:** um diálogo de confirmação é exibido; nada é removido
   antes da resposta.
 
 ### CT-020 — Cancelar confirmação não remove
 - **Critério:** "Ao cancelar a confirmação, o cliente **não** é removido e
   permanece na lista."
-- **Tipo:** Widget · **Situação:** a implementar
+- **Tipo:** Widget · **Situação:** implementado
+- **Teste:** `home_screen_test: cancelar a confirmação não remove`
 - **Pré-condições:** diálogo de confirmação de exclusão aberto.
 - **Passos:**
   1. Cancelar o diálogo.
 - **Resultado esperado:** nenhuma chamada de exclusão ao service; o cliente
   permanece na lista.
 
-### CT-021 — Confirmar remove em tempo real
+### CT-021 — Confirmar remove e reflete na lista
 - **Critério:** "Ao confirmar, o cliente é removido do banco e desaparece da
-  lista em tempo real."
-- **Tipo:** Widget · **Situação:** a implementar
+  lista imediatamente após a confirmação."
+- **Tipo:** Widget · **Situação:** implementado
+- **Teste:** `home_screen_test: confirmar remove e a lista reflete ao renovar
+  a stream`
 - **Pré-condições:** diálogo de confirmação de exclusão aberto.
 - **Passos:**
   1. Confirmar o diálogo.
-  2. Simular a emissão da stream sem o cliente excluído.
+  2. A Home renova a stream após a exclusão.
 - **Resultado esperado:** o método de exclusão do service é chamado com o
   cliente correto; o item desaparece da lista sem ação manual.
+- **Nota:** o critério original pedia reflexo "em tempo real"; foi renegociado
+  em `requisitos.md` 2.5 para reflexo logo após a confirmação. Por consistência
+  com o RF-002 e por robustez, a Home renova a stream após a exclusão,
+  independentemente de o evento DELETE nativo do realtime ser entregue — sem
+  presumir que ele falhe (ao contrário do UPDATE, o DELETE não foi diagnosticado
+  como quebrado; ver contexto na issue #57). O `SupabaseService.deleteClient`
+  **não tem teste unitário**, pela mesma decisão do `addClient`/`updateClient`
+  (repasse de uma linha, coberto pelo E2E da Fase 2).
 
 ### CT-022 — Feedback visual após excluir
 - **Critério:** "Após a exclusão bem-sucedida, o sistema dá feedback visual
   (ex.: SnackBar \"Cliente excluído\")."
-- **Tipo:** Widget · **Situação:** a implementar
+- **Tipo:** Widget · **Situação:** implementado
+- **Teste:** `home_screen_test: exclusão bem-sucedida exibe feedback`
 - **Pré-condições:** exclusão confirmada com sucesso.
 - **Passos:**
   1. Confirmar a exclusão de um cliente.
@@ -373,3 +386,4 @@
 | 2026-07-18 | 1.2 | Wilson Gorosthides | Adiciona CT-024 — mínimo de 8 dígitos no telefone (novo critério do RF-001, issue #48), posicionado junto ao CT-003; convenção de numeração atualizada para explicar o número fora de ordem. |
 | 2026-07-18 | 1.3 | Wilson Gorosthides | CT-006 a CT-009 confirmados como implementados (RF-002, issue #26), com os nomes reais dos testes; nota no CT-008 sobre a ausência deliberada de teste unitário do `updateClient` (mesma decisão do `addClient`, coberto pelo E2E da Fase 2). |
 | 2026-07-19 | 1.4 | Wilson Gorosthides | CT-008 alinhado ao critério renegociado do RF-002 (`requisitos.md` 2.4): reflexo da edição ao retornar do formulário em vez de "em tempo real"; nome do teste e nota sobre a issue #57 (eventos UPDATE do realtime não entregues). |
+| 2026-07-20 | 1.5 | Wilson Gorosthides | CT-019 a CT-022 confirmados como implementados (RF-008, issue #27), com os nomes reais dos testes; CT-021 alinhado ao critério renegociado (`requisitos.md` 2.5, reflexo após a confirmação) e nota sobre a ausência deliberada de teste unitário do `deleteClient`. |
