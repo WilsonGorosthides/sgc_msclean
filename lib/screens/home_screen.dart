@@ -31,6 +31,43 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() => _clientesStream = _service.getClientsStream());
   }
 
+  // Exclui um cliente (RF-008) após confirmação explícita. A lista é
+  // renovada no sucesso — o reflexo não depende do evento DELETE do
+  // realtime (issue #57), garantindo remoção imediata na tela.
+  Future<void> _excluirCliente(ClientModel cliente) async {
+    final confirmado = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Confirmar exclusão?'),
+        content: Text('Remover ${cliente.nome} da lista?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Excluir'),
+          ),
+        ],
+      ),
+    );
+    if (confirmado != true || !mounted) return;
+    try {
+      await _service.deleteClient(cliente);
+      if (!mounted) return;
+      setState(() => _clientesStream = _service.getClientsStream());
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Cliente excluído')),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Erro ao excluir. Tente novamente.')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -93,7 +130,21 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         title: Text(cliente.nome, style: const TextStyle(fontWeight: FontWeight.bold)),
                         subtitle: Text(cliente.endereco),
-                        trailing: const Icon(Icons.chevron_right),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // EXCLUSÃO (RF-008): lixeira por item; a linha
+                            // continua abrindo a edição no toque.
+                            IconButton(
+                              key: Key('excluir_${cliente.id}'),
+                              icon: const Icon(Icons.delete_outline,
+                                  color: Colors.redAccent),
+                              tooltip: 'Excluir',
+                              onPressed: () => _excluirCliente(cliente),
+                            ),
+                            const Icon(Icons.chevron_right),
+                          ],
+                        ),
                         // EDIÇÃO (RF-002): abre o formulário pré-preenchido
                         onTap: () => _abrirFormulario(cliente: cliente),
                       ),

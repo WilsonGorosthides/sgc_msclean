@@ -34,6 +34,11 @@ class SupabaseService {
     await _supabase.from('clientes').update(client.toMap()).eq('id', client.id!);
   }
 
+  // Remove um cliente pela chave primária (RF-008).
+  Future<void> deleteClient(ClientModel client) async {
+    await _supabase.from('clientes').delete().eq('id', client.id!);
+  }
+
   // Filtro da busca (RF-004): substring em nome ou endereço, sem
   // diferenciar maiúsculas de minúsculas. Função pura: testável sem
   // mockar a stream do Supabase.
