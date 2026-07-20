@@ -18,8 +18,11 @@ Usuária única: a proprietária. Desenvolvedor solo.
   commit por passo lógico (GCS §5).
 - **Teste-antes**: commit do teste vermelho separado do commit da implementação
   verde (plano de testes §9). Os CTs de `docs/casos-de-teste.md` são o roteiro.
-- **Gate local antes de qualquer push**: `fvm flutter test` e
-  `fvm flutter analyze` verdes. Usar sempre `fvm flutter`, nunca `flutter` direto.
+- **Gate local antes do push (do desenvolvedor)**: a suíte completa
+  (`fvm flutter test`) e o `fvm flutter analyze` são executados pelo
+  **desenvolvedor** antes de autorizar o push; o agente roda apenas testes
+  **direcionados** ao(s) arquivo(s) da feature durante o desenvolvimento, para
+  verificar o red→green. Usar sempre `fvm flutter`, nunca `flutter` direto.
 - **Parar antes do push** e aguardar a revisão humana do desenvolvedor, salvo
   instrução explícita em contrário na tarefa.
 - **PR**: título `pr(<tipo>): ...`, corpo no template da GCS §6, `Closes #N` fora
