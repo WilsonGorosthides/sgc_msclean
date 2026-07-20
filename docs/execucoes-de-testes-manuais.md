@@ -177,10 +177,12 @@ restaurar o realtime pleno no futuro.
 | 5 | Toque na linha (não na lixeira) abre a edição | Regressão RF-002 | Aprovado |
 | 6 | Cadastro e busca seguem funcionando | Regressão | Aprovado |
 
-- **Ponto de atenção do passo 3:** ao contrário do UPDATE do RF-002, o reflexo
-  da exclusão funcionou imediatamente — o mecanismo é a renovação local da
-  stream após a ação (critério renegociado, `requisitos.md` 2.5), não o evento
-  DELETE do realtime (issue #57).
+- **Ponto de atenção do passo 3:** o reflexo da exclusão foi imediato,
+  garantido pela renovação local da stream após a ação (critério renegociado,
+  `requisitos.md` 2.5). Diferente do UPDATE do RF-002, o DELETE nativo do
+  realtime **não** foi testado isoladamente aqui — a renovação foi adotada por
+  consistência e robustez, sem presumir que o DELETE falhe (contexto na
+  issue #57).
 
 ### Veredicto
 

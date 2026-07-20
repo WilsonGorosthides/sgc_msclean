@@ -337,13 +337,14 @@
   2. A Home renova a stream após a exclusão.
 - **Resultado esperado:** o método de exclusão do service é chamado com o
   cliente correto; o item desaparece da lista sem ação manual.
-- **Nota:** o critério original pedia reflexo "em tempo real" (via evento
-  DELETE da stream); foi renegociado em `requisitos.md` 2.5 porque o projeto
-  Supabase atual não entrega os eventos do realtime — a Home renova a stream
-  logo após a exclusão (mesmo padrão do RF-002; issue #57). O
-  `SupabaseService.deleteClient` **não tem teste unitário**, pela mesma
-  decisão do `addClient`/`updateClient` (repasse de uma linha, coberto pelo
-  E2E da Fase 2).
+- **Nota:** o critério original pedia reflexo "em tempo real"; foi renegociado
+  em `requisitos.md` 2.5 para reflexo logo após a confirmação. Por consistência
+  com o RF-002 e por robustez, a Home renova a stream após a exclusão,
+  independentemente de o evento DELETE nativo do realtime ser entregue — sem
+  presumir que ele falhe (ao contrário do UPDATE, o DELETE não foi diagnosticado
+  como quebrado; ver contexto na issue #57). O `SupabaseService.deleteClient`
+  **não tem teste unitário**, pela mesma decisão do `addClient`/`updateClient`
+  (repasse de uma linha, coberto pelo E2E da Fase 2).
 
 ### CT-022 — Feedback visual após excluir
 - **Critério:** "Após a exclusão bem-sucedida, o sistema dá feedback visual
