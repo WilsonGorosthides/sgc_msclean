@@ -12,8 +12,9 @@
 
 ## Matriz RF ↔ Critério de aceitação ↔ Caso de teste
 
-Casos de RFs ainda não implementados (RF-008) ficam **a implementar**
-até o teste ser escrito, na ordem "teste antes da feature".
+Todos os RFs do MVP (RF-001 a RF-004 e RF-008) estão implementados e com os
+casos de teste escritos; a coluna "Caso de teste" aponta os nomes reais na
+suíte.
 
 | RF | Critério de aceitação (`requisitos.md` §2) | Caso de teste |
 |---|---|---|
@@ -36,10 +37,10 @@ até o teste ser escrito, na ordem "teste antes da feature".
 | RF-004 | A lista é filtrada em tempo real conforme o usuário digita, sem necessidade de botão "buscar". | CT-016 — `home_screen_test: filtragem ao digitar na busca` |
 | RF-004 | Quando nenhum cliente corresponde ao termo, a tela exibe a mensagem "Nenhum cliente encontrado.". | CT-017 — `home_screen_test: busca sem correspondência exibe mensagem` |
 | RF-004 | Com o campo de busca vazio, todos os clientes são exibidos. | CT-018 — `home_screen_test: busca vazia exibe todos` |
-| RF-008 | A exclusão exige confirmação explícita do usuário (diálogo "Confirmar exclusão?") antes de efetivar. | CT-019 — a implementar |
-| RF-008 | Ao cancelar a confirmação, o cliente **não** é removido e permanece na lista. | CT-020 — a implementar |
-| RF-008 | Ao confirmar, o cliente é removido do banco e desaparece da lista em tempo real. | CT-021 — a implementar |
-| RF-008 | Após a exclusão bem-sucedida, o sistema dá feedback visual (ex.: SnackBar "Cliente excluído"). | CT-022 — a implementar |
+| RF-008 | A exclusão exige confirmação explícita do usuário (diálogo "Confirmar exclusão?") antes de efetivar. | CT-019 — `home_screen_test: exclusão pede confirmação antes de remover` |
+| RF-008 | Ao cancelar a confirmação, o cliente **não** é removido e permanece na lista. | CT-020 — `home_screen_test: cancelar a confirmação não remove` |
+| RF-008 | Ao confirmar, o cliente é removido do banco e desaparece da lista imediatamente após a confirmação. | CT-021 — `home_screen_test: confirmar remove e a lista reflete ao renovar a stream` |
+| RF-008 | Após a exclusão bem-sucedida, o sistema dá feedback visual (ex.: SnackBar "Cliente excluído"). | CT-022 — `home_screen_test: exclusão bem-sucedida exibe feedback` |
 
 Os casos de teste de RF-003 e RF-004 estão **implementados e passando** — vivem em
 `test/unit/supabase_service_test.dart` e `test/widget/home_screen_test.dart`, com
@@ -59,3 +60,4 @@ descoberto.
 | 2026-07-18 | 1.5 | Wilson Gorosthides | Nova linha do RF-001: mínimo de 8 dígitos no telefone ↔ CT-024 (decisão de requisito da issue #48). |
 | 2026-07-18 | 1.6 | Wilson Gorosthides | CT-006 a CT-009 confirmados com os nomes reais dos testes da suíte (RF-002 implementado, issue #26); nota introdutória atualizada — só RF-008 segue pendente. |
 | 2026-07-19 | 1.7 | Wilson Gorosthides | Linha do CT-008 alinhada ao critério renegociado do RF-002 (`requisitos.md` 2.4, issue #57): reflexo da edição ao retornar do formulário. |
+| 2026-07-20 | 1.8 | Wilson Gorosthides | CT-019 a CT-022 confirmados com os nomes reais dos testes da suíte (RF-008 implementado, issue #27); CT-021 alinhado ao critério renegociado (`requisitos.md` 2.5); nota introdutória atualizada — todos os RFs do MVP implementados. |

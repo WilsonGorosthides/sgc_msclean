@@ -1,6 +1,6 @@
 # SGC para MSClean
 
-> **Status:** 🚧 Em desenvolvimento — MVP em construção (listagem e busca prontas).
+> **Status:** ✅ MVP completo — cadastro, edição, exclusão, listagem e busca de clientes.
 
 ## 📝 Descrição do Projeto
 O Sistema de Gestão de Clientes (SGC) para a MSClean é uma aplicação desenvolvida para resolver o desafio de gerenciamento manual de uma base de clientes em rápido crescimento. Centraliza as informações de contato dos clientes, permitindo que a proprietária da empresa tenha controle organizado e eficiente do seu negócio.
@@ -26,8 +26,8 @@ A documentação detalhada do projeto vive na pasta [`docs/`](./docs):
 - [x] Listagem de clientes
 - [x] Busca por palavra-chave
 - [x] Cadastro
-- [ ] Edição
-- [ ] Exclusão
+- [x] Edição
+- [x] Exclusão
 
 ## 📈 Roadmap
 - **Fase 1 (MVP):** listagem, busca, cadastro, edição e exclusão de clientes.
