@@ -33,10 +33,10 @@ O banco é relacional, organizado em tabelas.
 * **Colunas (baseado em `client_model.dart`):**
     -   `id` (uuid / chave primária, gerado pelo Supabase)
     -   `nome` (text)
-    -   `endereco` (text, opcional — issue #61)
+    -   `endereco` (**jsonb**, opcional — endereço estruturado, issue #65): objeto com as chaves `logradouro`, `numero`, `bairro`, `complemento` e `referencia` (todas text; ausência de qualquer chave é lida como vazio). Modela casa/apartamento/condomínio num só formato e alimenta o resumo da lista, a busca e a consulta ao mapa. Sem chaves de CEP/cidade: a área de atendimento é só Campo Grande - MS, âncora fixa (`Endereco.cidadeFixa`) na consulta ao Maps. Era `text` até a issue #61.
     -   `telefones` (text[] — um ou mais números por cliente, issue #62)
 
-A tabela é lida via stream ordenada por `nome`.
+A tabela é lida via stream ordenada por `nome`. O mapeamento jsonb ⇄ objeto vive no value object `Endereco` (`lib/models/endereco.dart`), aninhado em `ClientModel`.
 
 **Row Level Security.** A tabela `clientes` tem RLS habilitada, com uma única política verificada em produção: `mvp_acesso_total_anon` (`FOR ALL`, role `anon`, `USING (true)` e `WITH CHECK (true)`). Na prática, com o RLS ligado, a role `anon` — a mesma que a `anonKey` pública carregada pelo app assume — tem acesso total de leitura e escrita à tabela, sem nenhum filtro por linha. Essa permissividade é **deliberada** para o estágio atual (usuária única, app ainda não distribuído publicamente) e tem prazo de validade: deve ser substituída por políticas restritivas quando o RF-007 (autenticação) for implementado. Ver as dívidas técnicas (seção 9) e os riscos (seção 10).
 
@@ -46,7 +46,8 @@ A organização real do código:
 lib/
 ├── main.dart                       # inicializa o app e o Supabase via .env
 ├── models/
-│   └── client_model.dart           # ClientModel: id, nome, endereco, telefones
+│   ├── client_model.dart           # ClientModel: id, nome, endereco (Endereco), telefones
+│   └── endereco.dart               # Endereco: value object do endereço estruturado (jsonb)
 ├── screens/
 │   ├── home_screen.dart            # lista de clientes + barra de busca
 │   └── client_form_screen.dart     # formulário de cadastro (RF-001; reusável na edição)
@@ -132,6 +133,7 @@ A auditoria registrou cobertura real de 0% — o único teste era o template pad
 | 2026-07-08 | 2.2 | Wilson Gorosthides | Documentação da política de RLS `mvp_acesso_total_anon` (verificada em produção, deliberadamente permissiva até o RF-007) nas seções 4, 9 e 10 |
 | 2026-07-15 | 2.3 | Wilson Gorosthides | Atualiza a estrutura de diretórios (§5) com o RF-001: `client_form_screen.dart`, `utils/validators.dart` e o insert no service |
 | 2026-07-21 | 2.4 | Wilson Gorosthides | Schema da tabela `clientes` (§4): `endereco` passa a opcional (#61) e `telefone` (text) vira `telefones` (text[], um ou mais números por cliente, #62); árvore §5 atualizada. Requer migração no Supabase. |
+| 2026-07-21 | 2.5 | Wilson Gorosthides | Schema da tabela `clientes` (§4): `endereco` passa de text para **jsonb** com endereço estruturado (logradouro, número, bairro, complemento, referência; sem CEP/cidade — área de atendimento fixa em Campo Grande - MS); novo value object `Endereco` (`lib/models/endereco.dart`) na árvore §5. Requer migração no Supabase (text → jsonb, issue #65). |
 
 ## 12. Ambiente de Desenvolvimento
 Os seguintes softwares e configurações são necessários para iniciar o desenvolvimento:

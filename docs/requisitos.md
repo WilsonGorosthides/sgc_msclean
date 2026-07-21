@@ -20,11 +20,12 @@ como sub-issues nativas — ver `docs/gerencia-de-configuracao.md` §7.
 #### RF-001 - Cadastro de Cliente
 O sistema deve permitir o cadastro de novos clientes.
 
-* **Dados:** Nome, Endereço, Telefone(s).
+* **Dados:** Nome, Endereço (estruturado: logradouro, número, bairro, complemento, ponto de referência), Telefone(s).
 * **Critérios de aceitação:**
   - Nome e **ao menos um Telefone** são obrigatórios. Endereço é **opcional** (um cliente em potencial pode ser cadastrado antes de ter endereço).
   - Ao tentar salvar com Nome ou Telefone vazio (ou só com espaços em branco), o sistema bloqueia o salvamento e exibe mensagem indicando o(s) campo(s) pendente(s).
-  - Ao salvar **sem endereço**, o sistema pede confirmação ("Cliente sem endereço. Deseja salvar mesmo assim?"); ao confirmar, grava; ao cancelar, permanece no formulário.
+  - O **Endereço é estruturado** em campos: logradouro (rua/avenida), número, bairro, complemento (bloco, apto, torre) e ponto de referência. Todos os campos são opcionais. Não há campo de cidade: a área de atendimento é só Campo Grande - MS (a cidade entra como âncora fixa na consulta ao mapa; reavaliar se a área mudar).
+  - Ao salvar **sem endereço** (nenhum campo do endereço preenchido), o sistema pede confirmação ("Cliente sem endereço. Deseja salvar mesmo assim?"); ao confirmar, grava; ao cancelar, permanece no formulário.
   - O cliente pode ter **um ou mais telefones**: o formulário permite adicionar e remover campos de telefone (mínimo um), e cada número é validado individualmente.
   - Cada Telefone aceita apenas dígitos, espaços e os símbolos `+ ( ) -`; outros caracteres são rejeitados na validação.
   - Cada Telefone deve conter no mínimo **8 dígitos**; apenas dígitos contam na verificação (espaços e os símbolos `+ ( ) -` são ignorados na contagem).
@@ -45,7 +46,7 @@ O sistema deve exibir uma lista de todos os clientes cadastrados.
 
 * **Critérios de aceitação:**
   - A lista é ordenada por Nome em ordem alfabética crescente (ordenação padrão).
-  - Cada item exibe, no mínimo, Nome e Endereço.
+  - Cada item exibe, no mínimo, Nome e um resumo do endereço (logradouro, número — bairro); quando o cliente não tem endereço, um texto discreto "Sem endereço" ocupa o lugar.
   - A lista reflete inserções, edições e exclusões em tempo real (stream), sem ação manual de atualização.
   - Quando não há nenhum cliente cadastrado, a tela exibe a mensagem "Nenhum cliente encontrado." em vez de uma lista vazia silenciosa.
 
@@ -53,7 +54,7 @@ O sistema deve exibir uma lista de todos os clientes cadastrados.
 O sistema deve permitir a busca de clientes por palavra-chave.
 
 * **Critérios de aceitação:**
-  - A busca filtra por **Nome** ou **Endereço** (correspondência de substring).
+  - A busca filtra por **Nome** ou por **qualquer campo do Endereço** (logradouro, número, bairro, complemento, referência) — correspondência de substring.
   - A busca é **case-insensitive** (não diferencia maiúsculas de minúsculas).
   - A lista é filtrada em tempo real conforme o usuário digita, sem necessidade de botão "buscar".
   - Quando nenhum cliente corresponde ao termo, a tela exibe a mensagem "Nenhum cliente encontrado.".
@@ -137,3 +138,4 @@ O sistema deve ter um mecanismo de login para o único usuário (a proprietária
 | 2026-07-20 | 2.5 | Wilson Gorosthides | RF-008: critério de reflexo da exclusão renegociado de "em tempo real" para "imediatamente após a confirmação" — por consistência com o RF-002 e por robustez, a lista é renovada após a exclusão, independentemente de o evento DELETE nativo do realtime ser entregue (não presumido como quebrado; contexto na issue #57). |
 | 2026-07-21 | 2.6 | Wilson Gorosthides | RF-001: Endereço passa a ser **opcional** (com aviso de confirmação ao salvar vazio) — um cliente em potencial pode ser cadastrado sem endereço; preparação para a importação da agenda real (issue #61). |
 | 2026-07-21 | 2.7 | Wilson Gorosthides | RF-001: cliente passa a ter **um ou mais telefones** (mínimo um), com campos adicionáveis/removíveis no formulário e validação por número — realidade da agenda real (issue #62). |
+| 2026-07-21 | 2.8 | Wilson Gorosthides | Endereço passa a ser **estruturado** (logradouro, número, bairro, complemento, ponto de referência), todos opcionais — RF-001 (dados e aviso por endereço vazio), RF-003 (item exibe resumo) e RF-004 (busca por qualquer campo do endereço). Sem campos de CEP e cidade (decisão de simplicidade: na prática não seriam preenchidos; a área de atendimento é só Campo Grande - MS, âncora fixa na consulta ao mapa). Modela casa/apartamento/condomínio e prepara a abertura no mapa (issue #65). Requer migração no Supabase (`endereco` text → jsonb). |
