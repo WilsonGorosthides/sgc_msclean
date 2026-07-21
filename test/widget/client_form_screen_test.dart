@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:sgc_msclean/models/client_model.dart';
+import 'package:sgc_msclean/models/endereco.dart';
 import 'package:sgc_msclean/screens/client_form_screen.dart';
 
 import '../mocks/mock_supabase_client.dart';
@@ -9,19 +10,18 @@ import '../mocks/mock_supabase_client.dart';
 // Testes de widget do formulário de cadastro e edição (RF-001/RF-002), com
 // MockSupabaseService injetado — roteiros em docs/casos-de-teste.md
 // (CT-001, CT-002, CT-003, CT-005, CT-007, CT-009 e o caso extra de
-// robustez do erro).
+// robustez do erro). Endereço passa a ser estruturado (#65).
 void main() {
   late MockSupabaseService service;
 
   final cliente = ClientModel(
       id: '7',
       nome: 'Ana Souza',
-      endereco: 'Rua das Flores, 10',
+      endereco: const Endereco(logradouro: 'Rua das Flores', numero: '10'),
       telefones: ['11 91111-1111']);
 
   setUpAll(() {
-    registerFallbackValue(
-        ClientModel(nome: '', endereco: '', telefones: const []));
+    registerFallbackValue(ClientModel(nome: '', telefones: const []));
   });
 
   setUp(() {
@@ -29,18 +29,31 @@ void main() {
   });
 
   final campoNome = find.byKey(const Key('campo_nome'));
-  final campoEndereco = find.byKey(const Key('campo_endereco'));
+  final campoLogradouro = find.byKey(const Key('campo_logradouro'));
+  final campoNumero = find.byKey(const Key('campo_numero'));
   final campoTelefone = find.byKey(const Key('campo_telefone_0'));
   final botaoSalvar = find.byKey(const Key('botao_salvar'));
 
+  // Com o endereço estruturado (#65), o formulário ficou mais alto que o
+  // viewport padrão de teste (800x600) e o botão de salvar caía fora da
+  // ListView; um viewport mais alto mantém tudo montado (em tela real, rola).
+  void ajustarViewport(WidgetTester tester) {
+    tester.view.physicalSize = const Size(1200, 2400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+  }
+
   Future<void> bombearFormulario(WidgetTester tester) async {
+    ajustarViewport(tester);
     await tester
         .pumpWidget(MaterialApp(home: ClientFormScreen(service: service)));
   }
 
   Future<void> preencherValido(WidgetTester tester) async {
     await tester.enterText(campoNome, 'Débora Prado');
-    await tester.enterText(campoEndereco, 'Rua das Acácias, 45');
+    await tester.enterText(campoLogradouro, 'Rua das Acácias');
+    await tester.enterText(campoNumero, '45');
     await tester.enterText(campoTelefone, '11 94444-4444');
   }
 
@@ -81,7 +94,7 @@ void main() {
           .captured
           .single as ClientModel;
       expect(salvo.nome, 'Débora Prado');
-      expect(salvo.endereco, '');
+      expect(salvo.endereco.vazio, isTrue);
     });
 
     testWidgets('cancelar o aviso de sem endereço não grava', (tester) async {
@@ -104,7 +117,7 @@ void main() {
       await bombearFormulario(tester);
 
       await tester.enterText(campoNome, 'Débora Prado');
-      await tester.enterText(campoEndereco, 'Rua das Acácias, 45');
+      await tester.enterText(campoLogradouro, 'Rua das Acácias');
       await tester.enterText(campoTelefone, '   '); // só espaços
       await tester.tap(botaoSalvar);
       await tester.pump();
@@ -128,6 +141,7 @@ void main() {
 
     testWidgets('salvar fecha o formulário', (tester) async {
       when(() => service.addClient(any())).thenAnswer((_) async {});
+      ajustarViewport(tester);
 
       // formulário empilhado por navegação, como em produção
       await tester.pumpWidget(MaterialApp(
@@ -154,7 +168,8 @@ void main() {
           .captured
           .single as ClientModel;
       expect(salvo.nome, 'Débora Prado');
-      expect(salvo.endereco, 'Rua das Acácias, 45');
+      expect(salvo.endereco,
+          const Endereco(logradouro: 'Rua das Acácias', numero: '45'));
       expect(salvo.telefones, ['11 94444-4444']);
       expect(find.byType(ClientFormScreen), findsNothing);
     });
@@ -178,6 +193,7 @@ void main() {
 
     testWidgets('edição aplica as validações do cadastro', (tester) async {
       // CT-007: as regras do cadastro valem também no modo edição
+      ajustarViewport(tester);
       await tester.pumpWidget(MaterialApp(
           home: ClientFormScreen(service: service, cliente: cliente)));
 
@@ -215,7 +231,7 @@ void main() {
       await tester.tap(find.text('abrir'));
       await tester.pumpAndSettle();
 
-      await tester.enterText(campoEndereco, 'Rua Nova, 99');
+      await tester.enterText(campoLogradouro, 'Rua Nova');
       await tester.pageBack();
       await tester.pumpAndSettle();
 
@@ -246,7 +262,7 @@ void main() {
 
       await bombearFormulario(tester);
       await tester.enterText(campoNome, 'Débora Prado');
-      await tester.enterText(campoEndereco, 'Rua das Acácias, 45');
+      await tester.enterText(campoLogradouro, 'Rua das Acácias');
       await tester.enterText(
           find.byKey(const Key('campo_telefone_0')), '11 94444-4444');
       await tester.tap(find.byKey(const Key('adicionar_telefone')));

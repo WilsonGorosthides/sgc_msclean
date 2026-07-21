@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:sgc_msclean/models/client_model.dart';
+import 'package:sgc_msclean/models/endereco.dart';
 import 'package:sgc_msclean/services/supabase_service.dart';
 
 import '../mocks/mock_supabase_client.dart';
@@ -20,17 +21,20 @@ void main() {
     ClientModel(
         id: '1',
         nome: 'Ana Souza',
-        endereco: 'Rua das Flores, 10',
+        endereco: const Endereco(
+            logradouro: 'Rua das Flores', numero: '10', bairro: 'Jardim'),
         telefones: ['11 91111-1111']),
     ClientModel(
         id: '2',
         nome: 'Bruno Lima',
-        endereco: 'Avenida Central, 200',
+        endereco: const Endereco(
+            logradouro: 'Avenida Central', numero: '200', bairro: 'Centro'),
         telefones: ['11 92222-2222']),
     ClientModel(
         id: '3',
         nome: 'Carla Dias',
-        endereco: 'Rua das Flores, 30',
+        endereco: const Endereco(
+            logradouro: 'Rua das Flores', numero: '30', bairro: 'Vila Nova'),
         telefones: ['11 93333-3333']),
   ];
 
@@ -39,8 +43,13 @@ void main() {
       final porNome = SupabaseService.filtrarClientes(clientes, 'Bruno');
       expect(porNome.map((c) => c.nome), ['Bruno Lima']);
 
-      final porEndereco = SupabaseService.filtrarClientes(clientes, 'Flores');
-      expect(porEndereco.map((c) => c.nome), ['Ana Souza', 'Carla Dias']);
+      // qualquer campo do endereço entra na busca (logradouro)
+      final porLogradouro = SupabaseService.filtrarClientes(clientes, 'Flores');
+      expect(porLogradouro.map((c) => c.nome), ['Ana Souza', 'Carla Dias']);
+
+      // e também o bairro
+      final porBairro = SupabaseService.filtrarClientes(clientes, 'Centro');
+      expect(porBairro.map((c) => c.nome), ['Bruno Lima']);
 
       final semCorrespondencia =
           SupabaseService.filtrarClientes(clientes, 'inexistente');
