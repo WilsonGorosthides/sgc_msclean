@@ -129,13 +129,14 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: Text(cliente.nome[0].toUpperCase(), style: const TextStyle(color: Colors.white)),
                         ),
                         title: Text(cliente.nome, style: const TextStyle(fontWeight: FontWeight.bold)),
-                        // endereço é opcional (#61): placeholder discreto quando vazio
-                        subtitle: cliente.endereco.isEmpty
+                        // endereço é opcional (#61) e estruturado (#65):
+                        // resumo legível, ou placeholder discreto quando vazio
+                        subtitle: cliente.endereco.vazio
                             ? Text('Sem endereço',
                                 style: TextStyle(
                                     color: Colors.grey[500],
                                     fontStyle: FontStyle.italic))
-                            : Text(cliente.endereco),
+                            : Text(cliente.endereco.resumo),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [

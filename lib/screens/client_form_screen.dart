@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/client_model.dart';
+import '../models/endereco.dart';
 import '../services/supabase_service.dart';
 import '../utils/validators.dart';
 
@@ -22,8 +23,18 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
   final _formKey = GlobalKey<FormState>();
   late final _nomeController =
       TextEditingController(text: widget.cliente?.nome ?? '');
-  late final _enderecoController =
-      TextEditingController(text: widget.cliente?.endereco ?? '');
+  // Endereço estruturado (#65): um controller por campo, pré-preenchido na
+  // edição a partir do Endereco do cliente. Todos opcionais.
+  late final _logradouroController =
+      TextEditingController(text: widget.cliente?.endereco.logradouro ?? '');
+  late final _numeroController =
+      TextEditingController(text: widget.cliente?.endereco.numero ?? '');
+  late final _bairroController =
+      TextEditingController(text: widget.cliente?.endereco.bairro ?? '');
+  late final _complementoController =
+      TextEditingController(text: widget.cliente?.endereco.complemento ?? '');
+  late final _referenciaController =
+      TextEditingController(text: widget.cliente?.endereco.referencia ?? '');
   // Um ou mais telefones (#62): um controller por número, começando com o(s)
   // do cliente (edição) ou um campo vazio (cadastro).
   late final List<TextEditingController> _telefoneControllers =
@@ -39,12 +50,31 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
   @override
   void dispose() {
     _nomeController.dispose();
-    _enderecoController.dispose();
+    for (final c in _enderecoControllers) {
+      c.dispose();
+    }
     for (final c in _telefoneControllers) {
       c.dispose();
     }
     super.dispose();
   }
+
+  // Todos os controllers do endereço, para dispose e leitura em bloco.
+  List<TextEditingController> get _enderecoControllers => [
+        _logradouroController,
+        _numeroController,
+        _bairroController,
+        _complementoController,
+        _referenciaController,
+      ];
+
+  Endereco _lerEndereco() => Endereco(
+        logradouro: _logradouroController.text.trim(),
+        numero: _numeroController.text.trim(),
+        bairro: _bairroController.text.trim(),
+        complemento: _complementoController.text.trim(),
+        referencia: _referenciaController.text.trim(),
+      );
 
   void _adicionarTelefone() {
     setState(() => _telefoneControllers.add(TextEditingController()));
@@ -56,8 +86,10 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
 
   Future<void> _salvar() async {
     if (!_formKey.currentState!.validate()) return;
-    // endereço é opcional (#61): se vazio, confirma antes de gravar
-    if (_enderecoController.text.trim().isEmpty) {
+    final endereco = _lerEndereco();
+    // endereço é opcional (#61): se nenhum campo foi preenchido, confirma
+    // antes de gravar
+    if (endereco.vazio) {
       final confirmado = await _confirmarSemEndereco();
       if (confirmado != true || !mounted) return;
     }
@@ -65,7 +97,7 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
     final cliente = ClientModel(
       id: widget.cliente?.id,
       nome: _nomeController.text.trim(),
-      endereco: _enderecoController.text.trim(),
+      endereco: endereco,
       telefones: _telefoneControllers
           .map((c) => c.text.trim())
           .where((t) => t.isNotEmpty)
@@ -111,6 +143,60 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
         ],
       ),
     );
+  }
+
+  // Campos do endereço estruturado (#65), todos opcionais e otimizados para
+  // localizar via Google Maps: rua+número, bairro, complemento
+  // (bloco/apto/condomínio) e ponto de referência. Sem campo de cidade — a
+  // base é toda de Campo Grande - MS (âncora fixa em Endereco.consultaMaps).
+  List<Widget> _camposEndereco() {
+    Widget campo(
+      String chave,
+      TextEditingController controller,
+      String label, {
+      TextInputType? tipo,
+      TextCapitalization capitalizacao = TextCapitalization.words,
+    }) {
+      return TextFormField(
+        key: Key(chave),
+        controller: controller,
+        keyboardType: tipo,
+        textCapitalization: capitalizacao,
+        decoration: InputDecoration(labelText: label),
+      );
+    }
+
+    return [
+      const Align(
+        alignment: Alignment.centerLeft,
+        child: Text('Endereço (opcional)',
+            style: TextStyle(fontWeight: FontWeight.bold)),
+      ),
+      const SizedBox(height: 8),
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            flex: 3,
+            child:
+                campo('campo_logradouro', _logradouroController, 'Rua / Avenida'),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: campo('campo_numero', _numeroController, 'Número',
+                tipo: TextInputType.text,
+                capitalizacao: TextCapitalization.none),
+          ),
+        ],
+      ),
+      const SizedBox(height: 8),
+      campo('campo_bairro', _bairroController, 'Bairro'),
+      const SizedBox(height: 8),
+      campo('campo_complemento', _complementoController,
+          'Complemento (bloco, apto, torre)'),
+      const SizedBox(height: 8),
+      campo('campo_referencia', _referenciaController, 'Ponto de referência'),
+    ];
   }
 
   // Campos de telefone (#62): um por número, com botão de remover quando há
@@ -175,13 +261,7 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
               validator: (valor) => Validadores.obrigatorio(valor, 'nome'),
             ),
             const SizedBox(height: 16),
-            TextFormField(
-              key: const Key('campo_endereco'),
-              controller: _enderecoController,
-              textCapitalization: TextCapitalization.words,
-              decoration: const InputDecoration(
-                  labelText: 'Endereço', hintText: 'Opcional'),
-            ),
+            ..._camposEndereco(),
             const SizedBox(height: 16),
             ..._camposTelefone(),
             const SizedBox(height: 24),
