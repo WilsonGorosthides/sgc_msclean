@@ -44,6 +44,7 @@ suíte.
 | RF-008 | Ao cancelar a confirmação, o cliente **não** é removido e permanece na lista. | CT-020 — `home_screen_test: cancelar a confirmação não remove` |
 | RF-008 | Ao confirmar, o cliente é removido do banco e desaparece da lista imediatamente após a confirmação. | CT-021 — `home_screen_test: confirmar remove e a lista reflete ao renovar a stream` |
 | RF-008 | Após a exclusão bem-sucedida, o sistema dá feedback visual (ex.: SnackBar "Cliente excluído"). | CT-022 — `home_screen_test: exclusão bem-sucedida exibe feedback` |
+| RF-009 | A partir de um cliente com endereço, uma ação abre o endereço no Google Maps; sem endereço, a ação não é exibida. | CT-028 — `maps_launcher_test: urlMaps monta a busca do Google Maps a partir do endereço` · `maps_launcher_test: urlMaps de endereço vazio é nula` · `home_screen_test: item com endereço mostra o botão de abrir no mapa e dispara` · `home_screen_test: item sem endereço não mostra o botão de abrir no mapa` |
 
 Os casos de teste de RF-003 e RF-004 estão **implementados e passando** — vivem em
 `test/unit/supabase_service_test.dart` e `test/widget/home_screen_test.dart`, com
@@ -67,3 +68,4 @@ descoberto.
 | 2026-07-21 | 1.9 | Wilson Gorosthides | RF-001: linha de obrigatórios ajustada (Endereço opcional) e nova linha do aviso ↔ CT-025 (`requisitos.md` 2.6, issue #61). |
 | 2026-07-21 | 1.10 | Wilson Gorosthides | RF-001: linha de obrigatórios ajustada (ao menos um telefone) e nova linha de múltiplos telefones ↔ CT-026 (`requisitos.md` 2.7, issue #62). |
 | 2026-07-21 | 1.11 | Wilson Gorosthides | Endereço estruturado (`requisitos.md` 2.8, issue #65): nova linha do RF-001 ↔ CT-027; RF-003 (resumo + placeholder ↔ CT-011) e RF-004 (busca por qualquer campo do endereço) ajustados. |
+| 2026-07-21 | 1.12 | Wilson Gorosthides | Abrir no mapa (`requisitos.md` 2.9, issue #66): nova linha do RF-009 ↔ CT-028 (URL do Google Maps + botão de mapa que aparece/dispara só com endereço). |
