@@ -24,16 +24,34 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
       TextEditingController(text: widget.cliente?.nome ?? '');
   late final _enderecoController =
       TextEditingController(text: widget.cliente?.endereco ?? '');
-  late final _telefoneController =
-      TextEditingController(text: widget.cliente?.telefone ?? '');
+  // Um ou mais telefones (#62): um controller por número, começando com o(s)
+  // do cliente (edição) ou um campo vazio (cadastro).
+  late final List<TextEditingController> _telefoneControllers =
+      _controllersIniciais();
   var _salvando = false;
+
+  List<TextEditingController> _controllersIniciais() {
+    final tels = widget.cliente?.telefones ?? const <String>[];
+    if (tels.isEmpty) return [TextEditingController()];
+    return tels.map((t) => TextEditingController(text: t)).toList();
+  }
 
   @override
   void dispose() {
     _nomeController.dispose();
     _enderecoController.dispose();
-    _telefoneController.dispose();
+    for (final c in _telefoneControllers) {
+      c.dispose();
+    }
     super.dispose();
+  }
+
+  void _adicionarTelefone() {
+    setState(() => _telefoneControllers.add(TextEditingController()));
+  }
+
+  void _removerTelefone(int indice) {
+    setState(() => _telefoneControllers.removeAt(indice).dispose());
   }
 
   Future<void> _salvar() async {
@@ -48,7 +66,10 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
       id: widget.cliente?.id,
       nome: _nomeController.text.trim(),
       endereco: _enderecoController.text.trim(),
-      telefone: _telefoneController.text.trim(),
+      telefones: _telefoneControllers
+          .map((c) => c.text.trim())
+          .where((t) => t.isNotEmpty)
+          .toList(),
     );
     try {
       if (widget.cliente == null) {
@@ -92,6 +113,47 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
     );
   }
 
+  // Campos de telefone (#62): um por número, com botão de remover quando há
+  // mais de um, e um botão para adicionar outro.
+  List<Widget> _camposTelefone() {
+    final campos = <Widget>[];
+    for (var i = 0; i < _telefoneControllers.length; i++) {
+      campos.add(Row(
+        children: [
+          Expanded(
+            child: TextFormField(
+              key: Key('campo_telefone_$i'),
+              controller: _telefoneControllers[i],
+              keyboardType: TextInputType.phone,
+              decoration: InputDecoration(
+                  labelText: i == 0 ? 'Telefone' : 'Telefone ${i + 1}'),
+              validator: Validadores.telefone,
+            ),
+          ),
+          if (_telefoneControllers.length > 1)
+            IconButton(
+              key: Key('remover_telefone_$i'),
+              icon: const Icon(Icons.remove_circle_outline,
+                  color: Colors.redAccent),
+              tooltip: 'Remover telefone',
+              onPressed: () => _removerTelefone(i),
+            ),
+        ],
+      ));
+      campos.add(const SizedBox(height: 8));
+    }
+    campos.add(Align(
+      alignment: Alignment.centerLeft,
+      child: TextButton.icon(
+        key: const Key('adicionar_telefone'),
+        onPressed: _adicionarTelefone,
+        icon: const Icon(Icons.add),
+        label: const Text('Adicionar telefone'),
+      ),
+    ));
+    return campos;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -121,13 +183,7 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
                   labelText: 'Endereço', hintText: 'Opcional'),
             ),
             const SizedBox(height: 16),
-            TextFormField(
-              key: const Key('campo_telefone'),
-              controller: _telefoneController,
-              keyboardType: TextInputType.phone,
-              decoration: const InputDecoration(labelText: 'Telefone'),
-              validator: Validadores.telefone,
-            ),
+            ..._camposTelefone(),
             const SizedBox(height: 24),
             FilledButton.icon(
               key: const Key('botao_salvar'),

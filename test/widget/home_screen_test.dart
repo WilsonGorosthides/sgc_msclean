@@ -180,7 +180,7 @@ void main() {
       await tester.enterText(
           find.byKey(const Key('campo_endereco')), 'Rua das Acácias, 45');
       await tester.enterText(
-          find.byKey(const Key('campo_telefone')), '11 94444-4444');
+          find.byKey(const Key('campo_telefone_0')), '11 94444-4444');
       await tester.tap(find.byKey(const Key('botao_salvar')));
       await tester.pumpAndSettle();
 
