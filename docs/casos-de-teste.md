@@ -144,6 +144,24 @@
 - **Nota:** o número fora de ordem (após CT-024) segue a convenção de append —
   CT-025 nasce depois, junto do RF-001 a que pertence.
 
+### CT-026 — Múltiplos telefones por cliente
+- **Critério:** "O cliente pode ter um ou mais telefones; o formulário permite
+  adicionar e remover campos (mínimo um), e cada número é validado
+  individualmente."
+- **Tipo:** Widget · **Situação:** implementado
+- **Testes:** `client_form_screen_test: adiciona e remove campo de telefone`,
+  `client_form_screen_test: salva com dois telefones` e
+  `client_form_screen_test: segundo telefone inválido bloqueia o salvamento`
+- **Pré-condições:** formulário aberto.
+- **Passos:**
+  1. Adicionar um segundo campo de telefone e depois removê-lo.
+  2. Preencher dois telefones válidos e salvar.
+  3. Preencher um telefone válido e um inválido e salvar.
+- **Resultado esperado:** os campos adicionam/removem (mínimo um mantido); ao
+  salvar, o service recebe a lista com todos os números preenchidos; um número
+  inválido bloqueia o salvamento (issue #62).
+- **Nota:** número fora de ordem (após CT-025) segue a convenção de append.
+
 ## RF-002 — Edição de Cliente
 
 ### CT-006 — Formulário de edição pré-preenchido
@@ -407,3 +425,4 @@
 | 2026-07-19 | 1.4 | Wilson Gorosthides | CT-008 alinhado ao critério renegociado do RF-002 (`requisitos.md` 2.4): reflexo da edição ao retornar do formulário em vez de "em tempo real"; nome do teste e nota sobre a issue #57 (eventos UPDATE do realtime não entregues). |
 | 2026-07-20 | 1.5 | Wilson Gorosthides | CT-019 a CT-022 confirmados como implementados (RF-008, issue #27), com os nomes reais dos testes; CT-021 alinhado ao critério renegociado (`requisitos.md` 2.5, reflexo após a confirmação) e nota sobre a ausência deliberada de teste unitário do `deleteClient`. |
 | 2026-07-21 | 1.6 | Wilson Gorosthides | Endereço opcional (RF-001, `requisitos.md` 2.6, issue #61): CT-001 deixa de exigir endereço; novo CT-025 (aviso de confirmação ao salvar sem endereço). |
+| 2026-07-21 | 1.7 | Wilson Gorosthides | Múltiplos telefones (RF-001, `requisitos.md` 2.7, issue #62): novo CT-026 (adicionar/remover campos, salvar com dois números, validação por telefone). |
