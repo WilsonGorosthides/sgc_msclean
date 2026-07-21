@@ -22,8 +22,9 @@ O sistema deve permitir o cadastro de novos clientes.
 
 * **Dados:** Nome, Endereço, Telefone.
 * **Critérios de aceitação:**
-  - Nome, Endereço e Telefone são campos obrigatórios.
-  - Ao tentar salvar com qualquer campo obrigatório vazio (ou só com espaços em branco), o sistema bloqueia o salvamento e exibe mensagem indicando o(s) campo(s) pendente(s).
+  - Nome e Telefone são campos obrigatórios. Endereço é **opcional** (um cliente em potencial pode ser cadastrado antes de ter endereço).
+  - Ao tentar salvar com Nome ou Telefone vazio (ou só com espaços em branco), o sistema bloqueia o salvamento e exibe mensagem indicando o(s) campo(s) pendente(s).
+  - Ao salvar **sem endereço**, o sistema pede confirmação ("Cliente sem endereço. Deseja salvar mesmo assim?"); ao confirmar, grava; ao cancelar, permanece no formulário.
   - O Telefone aceita apenas dígitos, espaços e os símbolos `+ ( ) -`; outros caracteres são rejeitados na validação.
   - O Telefone deve conter no mínimo **8 dígitos**; apenas dígitos contam na verificação (espaços e os símbolos `+ ( ) -` são ignorados na contagem).
   - Após salvar com sucesso, o novo cliente aparece na lista sem necessidade de recarregar a tela (atualização em tempo real via stream).
@@ -133,3 +134,4 @@ O sistema deve ter um mecanismo de login para o único usuário (a proprietária
 | 2026-07-18 | 2.3 | Wilson Gorosthides | Novo critério de aceitação no RF-001: telefone com no mínimo 8 dígitos, contando apenas dígitos (decisão de requisito da issue #48; piso pode subir para 10 após a importação da agenda real, #23). |
 | 2026-07-19 | 2.4 | Wilson Gorosthides | RF-002: critério de reflexo da edição renegociado de "em tempo real" para "imediatamente ao retornar do formulário" — os eventos UPDATE do realtime não são entregues pelo projeto Supabase atual (diagnóstico e caminho de restauração na issue #57). |
 | 2026-07-20 | 2.5 | Wilson Gorosthides | RF-008: critério de reflexo da exclusão renegociado de "em tempo real" para "imediatamente após a confirmação" — por consistência com o RF-002 e por robustez, a lista é renovada após a exclusão, independentemente de o evento DELETE nativo do realtime ser entregue (não presumido como quebrado; contexto na issue #57). |
+| 2026-07-21 | 2.6 | Wilson Gorosthides | RF-001: Endereço passa a ser **opcional** (com aviso de confirmação ao salvar vazio) — um cliente em potencial pode ser cadastrado sem endereço; preparação para a importação da agenda real (issue #61). |

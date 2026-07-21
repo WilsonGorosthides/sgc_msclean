@@ -18,8 +18,9 @@ suíte.
 
 | RF | Critério de aceitação (`requisitos.md` §2) | Caso de teste |
 |---|---|---|
-| RF-001 | Nome, Endereço e Telefone são campos obrigatórios. | CT-001 — `client_form_screen_test: exige nome, endereço e telefone` |
-| RF-001 | Ao tentar salvar com qualquer campo obrigatório vazio (ou só com espaços em branco), o sistema bloqueia o salvamento e exibe mensagem indicando o(s) campo(s) pendente(s). | CT-002 — `client_form_screen_test: bloqueia salvar com campo vazio ou só espaços` |
+| RF-001 | Nome e Telefone são campos obrigatórios; Endereço é opcional. | CT-001 — `client_form_screen_test: exige nome e telefone; endereço é opcional` |
+| RF-001 | Ao tentar salvar com Nome ou Telefone vazio (ou só com espaços em branco), o sistema bloqueia o salvamento e exibe mensagem indicando o(s) campo(s) pendente(s). | CT-002 — `client_form_screen_test: bloqueia salvar com campo vazio ou só espaços` |
+| RF-001 | Ao salvar sem endereço, o sistema pede confirmação; ao confirmar grava, ao cancelar permanece no formulário. | CT-025 — `client_form_screen_test: salvar sem endereço pede confirmação e grava ao confirmar` · `client_form_screen_test: cancelar o aviso de sem endereço não grava` |
 | RF-001 | O Telefone aceita apenas dígitos, espaços e os símbolos `+ ( ) -`; outros caracteres são rejeitados na validação. | CT-003 — `validadores: telefone rejeita caracteres inválidos` · `client_form_screen_test: telefone rejeita caracteres inválidos` |
 | RF-001 | O Telefone deve conter no mínimo **8 dígitos**; apenas dígitos contam na verificação (espaços e os símbolos `+ ( ) -` são ignorados na contagem). | CT-024 — `validadores: telefone exige no mínimo 8 dígitos, contando só dígitos` |
 | RF-001 | Após salvar com sucesso, o novo cliente aparece na lista sem necessidade de recarregar a tela (atualização em tempo real via stream). | CT-004 — `home_screen_test: cliente salvo aparece na lista via stream` |
@@ -61,3 +62,4 @@ descoberto.
 | 2026-07-18 | 1.6 | Wilson Gorosthides | CT-006 a CT-009 confirmados com os nomes reais dos testes da suíte (RF-002 implementado, issue #26); nota introdutória atualizada — só RF-008 segue pendente. |
 | 2026-07-19 | 1.7 | Wilson Gorosthides | Linha do CT-008 alinhada ao critério renegociado do RF-002 (`requisitos.md` 2.4, issue #57): reflexo da edição ao retornar do formulário. |
 | 2026-07-20 | 1.8 | Wilson Gorosthides | CT-019 a CT-022 confirmados com os nomes reais dos testes da suíte (RF-008 implementado, issue #27); CT-021 alinhado ao critério renegociado (`requisitos.md` 2.5); nota introdutória atualizada — todos os RFs do MVP implementados. |
+| 2026-07-21 | 1.9 | Wilson Gorosthides | RF-001: linha de obrigatórios ajustada (Endereço opcional) e nova linha do aviso ↔ CT-025 (`requisitos.md` 2.6, issue #61). |
