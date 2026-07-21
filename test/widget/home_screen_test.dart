@@ -67,6 +67,19 @@ void main() {
       expect(find.text('Rua das Flores, 10'), findsOneWidget);
     });
 
+    testWidgets('item sem endereço exibe placeholder', (tester) async {
+      // #61: endereço é opcional; o item mostra um texto discreto no lugar
+      final semEndereco = ClientModel(
+          id: '9', nome: 'Zé Sem Rua', endereco: '', telefone: '11 90000-0000');
+      when(() => service.getClientsStream())
+          .thenAnswer((_) => Stream.value([semEndereco]));
+
+      await bombearTela(tester);
+
+      expect(find.text('Zé Sem Rua'), findsOneWidget);
+      expect(find.text('Sem endereço'), findsOneWidget);
+    });
+
     testWidgets('lista reage à emissão da stream', (tester) async {
       // sync: true entrega cada emissão no próprio add(), tornando o teste
       // determinístico (sem corrida entre microtask e frame do pump).
