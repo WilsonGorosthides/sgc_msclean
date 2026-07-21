@@ -420,6 +420,30 @@
 - **Resultado esperado:** feedback visual exibido (ex.: SnackBar "Cliente
   excluído").
 
+## RF-009 — Abrir Endereço no Mapa
+
+### CT-028 — Abrir endereço no Google Maps
+- **Critério:** "A partir de um cliente com endereço, uma ação abre o endereço no
+  Google Maps; quando o cliente não tem endereço, a ação não é exibida."
+- **Tipo:** Unitário + Widget · **Situação:** implementado
+- **Testes:** `maps_launcher_test: urlMaps monta a busca do Google Maps a partir
+  do endereço` e `maps_launcher_test: urlMaps de endereço vazio é nula` (função
+  pura); `home_screen_test: item com endereço mostra o botão de abrir no mapa e
+  dispara` e `home_screen_test: item sem endereço não mostra o botão de abrir no
+  mapa` (widget).
+- **Pré-condições:** value object `Endereco` disponível / lista renderizada.
+- **Passos:**
+  1. Montar a URL do Maps a partir de um endereço preenchido e de um vazio.
+  2. Renderizar a lista com um cliente com endereço e tocar no ícone de mapa.
+  3. Renderizar com um cliente sem endereço.
+- **Resultado esperado:** a URL usa os campos de chegar + a âncora Campo Grande -
+  MS (nula quando não há o que abrir); o ícone de mapa aparece e dispara a
+  abertura só quando o cliente tem endereço.
+- **Nota:** o disparo real via `url_launcher` é injetável na `HomeScreen`
+  (parâmetro `abrirMaps`); o teste de widget verifica a chamada sem mockar o
+  canal nativo do plugin. Número fora de ordem (após CT-027) segue a convenção
+  de append.
+
 ## RNF-001 — Verificação manual de usabilidade
 
 ### CT-023 — Fluxo geral no dispositivo da cliente
@@ -453,3 +477,4 @@
 | 2026-07-21 | 1.6 | Wilson Gorosthides | Endereço opcional (RF-001, `requisitos.md` 2.6, issue #61): CT-001 deixa de exigir endereço; novo CT-025 (aviso de confirmação ao salvar sem endereço). |
 | 2026-07-21 | 1.7 | Wilson Gorosthides | Múltiplos telefones (RF-001, `requisitos.md` 2.7, issue #62): novo CT-026 (adicionar/remover campos, salvar com dois números, validação por telefone). |
 | 2026-07-21 | 1.8 | Wilson Gorosthides | Endereço estruturado (RF-001/003/004, `requisitos.md` 2.8, issue #65): novo CT-027 (value object `Endereco`, jsonb, resumo, busca); CT-006 (campos estruturados no pré-preenchimento), CT-011 (resumo + placeholder) e CT-014 (busca por qualquer campo) ajustados. |
+| 2026-07-21 | 1.9 | Wilson Gorosthides | Abrir no mapa (RF-009, `requisitos.md` 2.9, issue #66): novo CT-028 (montagem da URL do Google Maps e o botão de mapa que aparece/dispara só com endereço). |
