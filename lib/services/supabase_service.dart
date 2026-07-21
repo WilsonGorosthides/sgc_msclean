@@ -39,15 +39,16 @@ class SupabaseService {
     await _supabase.from('clientes').delete().eq('id', client.id!);
   }
 
-  // Filtro da busca (RF-004): substring em nome ou endereço, sem
-  // diferenciar maiúsculas de minúsculas. Função pura: testável sem
-  // mockar a stream do Supabase.
+  // Filtro da busca (RF-004): substring em nome ou em qualquer campo do
+  // endereço (via Endereco.buscavel), sem diferenciar maiúsculas de
+  // minúsculas. Função pura: testável sem mockar a stream do Supabase.
   static List<ClientModel> filtrarClientes(
       List<ClientModel> clientes, String query) {
+    final termo = query.toLowerCase();
     return clientes
         .where((client) =>
-            client.nome.toLowerCase().contains(query.toLowerCase()) ||
-            client.endereco.toLowerCase().contains(query.toLowerCase()))
+            client.nome.toLowerCase().contains(termo) ||
+            client.endereco.buscavel.contains(termo))
         .toList();
   }
 }

@@ -1,13 +1,15 @@
+import 'endereco.dart';
+
 class ClientModel {
   final String? id;
   final String nome;
-  final String endereco;
+  final Endereco endereco;
   final List<String> telefones;
 
   ClientModel({
     this.id,
     required this.nome,
-    required this.endereco,
+    this.endereco = const Endereco(),
     required this.telefones,
   });
 
@@ -15,9 +17,22 @@ class ClientModel {
     return ClientModel(
       id: map['id'],
       nome: map['nome'] ?? '',
-      endereco: map['endereco'] ?? '',
+      endereco: _lerEndereco(map['endereco']),
       telefones: _lerTelefones(map),
     );
+  }
+
+  // Endereço estruturado (#65): a coluna 'endereco' é jsonb. Durante a
+  // migração, uma linha antiga com 'endereco' em texto vira o logradouro,
+  // preservando o dado até ser reorganizado nos campos.
+  static Endereco _lerEndereco(dynamic valor) {
+    if (valor is Map) {
+      return Endereco.fromMap(valor.cast<String, dynamic>());
+    }
+    if (valor is String && valor.trim().isNotEmpty) {
+      return Endereco(logradouro: valor);
+    }
+    return const Endereco();
   }
 
   // Lê a coluna 'telefones' (text[] no Supabase). Durante a migração (#62),
@@ -38,7 +53,7 @@ class ClientModel {
   Map<String, dynamic> toMap() {
     return {
       'nome': nome,
-      'endereco': endereco,
+      'endereco': endereco.toMap(),
       'telefones': telefones,
     };
   }

@@ -22,6 +22,7 @@ suíte.
 | RF-001 | Ao tentar salvar com Nome ou Telefone vazio (ou só com espaços em branco), o sistema bloqueia o salvamento e exibe mensagem indicando o(s) campo(s) pendente(s). | CT-002 — `client_form_screen_test: bloqueia salvar com campo vazio ou só espaços` |
 | RF-001 | Ao salvar sem endereço, o sistema pede confirmação; ao confirmar grava, ao cancelar permanece no formulário. | CT-025 — `client_form_screen_test: salvar sem endereço pede confirmação e grava ao confirmar` · `client_form_screen_test: cancelar o aviso de sem endereço não grava` |
 | RF-001 | O cliente pode ter um ou mais telefones; o formulário permite adicionar/remover campos (mínimo um) e valida cada número. | CT-026 — `client_form_screen_test: adiciona e remove campo de telefone` · `client_form_screen_test: salva com dois telefones` · `client_form_screen_test: segundo telefone inválido bloqueia o salvamento` |
+| RF-001 | O Endereço é estruturado em campos (logradouro, número, bairro, complemento, ponto de referência), todos opcionais. | CT-027 — grupo `endereco_test:` (jsonb, `vazio`, `resumo`, `buscavel`, `consultaMaps`) · `client_form_screen_test: salvar fecha o formulário` · `home_screen_test: item exibe nome e endereço` |
 | RF-001 | O Telefone aceita apenas dígitos, espaços e os símbolos `+ ( ) -`; outros caracteres são rejeitados na validação. | CT-003 — `validadores: telefone rejeita caracteres inválidos` · `client_form_screen_test: telefone rejeita caracteres inválidos` |
 | RF-001 | O Telefone deve conter no mínimo **8 dígitos**; apenas dígitos contam na verificação (espaços e os símbolos `+ ( ) -` são ignorados na contagem). | CT-024 — `validadores: telefone exige no mínimo 8 dígitos, contando só dígitos` |
 | RF-001 | Após salvar com sucesso, o novo cliente aparece na lista sem necessidade de recarregar a tela (atualização em tempo real via stream). | CT-004 — `home_screen_test: cliente salvo aparece na lista via stream` |
@@ -31,10 +32,10 @@ suíte.
 | RF-002 | Uma edição só é considerada salva após o usuário confirmar; nesse momento os dados são persistidos no banco e refletidos na lista imediatamente ao retornar do formulário. | CT-008 — `home_screen_test: edição confirmada persiste e reflete na lista ao voltar` |
 | RF-002 | Ao cancelar, nenhuma alteração é gravada e os dados originais do cliente permanecem intactos. | CT-009 — `client_form_screen_test: cancelar edição não grava nada` |
 | RF-003 | A lista é ordenada por Nome em ordem alfabética crescente (ordenação padrão). | CT-010 — `home_screen_test: lista populada em ordem alfabética` · `supabase_service_test: ordena por nome em ordem alfabética crescente` |
-| RF-003 | Cada item exibe, no mínimo, Nome e Endereço. | CT-011 — `home_screen_test: item exibe nome e endereço` |
+| RF-003 | Cada item exibe, no mínimo, Nome e um resumo do endereço; sem endereço, um texto "Sem endereço" ocupa o lugar. | CT-011 — `home_screen_test: item exibe nome e endereço` · `home_screen_test: item sem endereço exibe placeholder` |
 | RF-003 | A lista reflete inserções, edições e exclusões em tempo real (stream), sem ação manual de atualização. | CT-012 — `home_screen_test: lista reage à emissão da stream` |
 | RF-003 | Quando não há nenhum cliente cadastrado, a tela exibe a mensagem "Nenhum cliente encontrado." em vez de uma lista vazia silenciosa. | CT-013 — `home_screen_test: estado vazio exibe mensagem` |
-| RF-004 | A busca filtra por **Nome** ou **Endereço** (correspondência de substring). | CT-014 — `supabase_service_test: filtro por nome ou endereço` |
+| RF-004 | A busca filtra por **Nome** ou por **qualquer campo do Endereço** (correspondência de substring). | CT-014 — `supabase_service_test: filtro por nome ou endereço` |
 | RF-004 | A busca é **case-insensitive** (não diferencia maiúsculas de minúsculas). | CT-015 — `supabase_service_test: filtro case-insensitive` |
 | RF-004 | A lista é filtrada em tempo real conforme o usuário digita, sem necessidade de botão "buscar". | CT-016 — `home_screen_test: filtragem ao digitar na busca` |
 | RF-004 | Quando nenhum cliente corresponde ao termo, a tela exibe a mensagem "Nenhum cliente encontrado.". | CT-017 — `home_screen_test: busca sem correspondência exibe mensagem` |
@@ -65,3 +66,4 @@ descoberto.
 | 2026-07-20 | 1.8 | Wilson Gorosthides | CT-019 a CT-022 confirmados com os nomes reais dos testes da suíte (RF-008 implementado, issue #27); CT-021 alinhado ao critério renegociado (`requisitos.md` 2.5); nota introdutória atualizada — todos os RFs do MVP implementados. |
 | 2026-07-21 | 1.9 | Wilson Gorosthides | RF-001: linha de obrigatórios ajustada (Endereço opcional) e nova linha do aviso ↔ CT-025 (`requisitos.md` 2.6, issue #61). |
 | 2026-07-21 | 1.10 | Wilson Gorosthides | RF-001: linha de obrigatórios ajustada (ao menos um telefone) e nova linha de múltiplos telefones ↔ CT-026 (`requisitos.md` 2.7, issue #62). |
+| 2026-07-21 | 1.11 | Wilson Gorosthides | Endereço estruturado (`requisitos.md` 2.8, issue #65): nova linha do RF-001 ↔ CT-027; RF-003 (resumo + placeholder ↔ CT-011) e RF-004 (busca por qualquer campo do endereço) ajustados. |

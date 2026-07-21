@@ -249,6 +249,45 @@ app passa a aceitar um ou mais telefones por cliente. Com esta entrega, as duas
 mudanças de requisito de preparação para os dados reais (#61 e #62) estão
 concluídas.
 
+## Execução 006 — Verificação manual do endereço estruturado (pré-merge, #65)
+
+- **Data:** 2026-07-21.
+- **Objeto:** branch `feat/endereco-estruturado` — endereço estruturado
+  (RF-001/003/004, `requisitos.md` 2.8), antes do merge. Inclui a **migração do
+  Supabase** (`endereco` text → jsonb).
+- **Ambiente:** web desktop (`fvm flutter run -d chrome`), contra o Supabase
+  real do MVP (após a migração aplicada no SQL Editor).
+- **Executor:** o desenvolvedor.
+
+### Migração (pré-teste)
+
+`ALTER TABLE` aplicado no SQL Editor: cria `endereco_novo jsonb`, copia o texto
+antigo para a chave `logradouro`, zera nulos como `{}`, remove a coluna `text`
+e renomeia. Concluída com sucesso. Uma tentativa acidental de reexecutar a
+migração acusou `invalid input syntax for type json` no `endereco <> ''` — o
+próprio erro confirmou que a coluna já era jsonb (migração já aplicada); a
+coluna `endereco_novo` recriada pela reexecução foi removida com
+`drop column if exists`. Sem campos de CEP/cidade: a área de atendimento é só
+Campo Grande - MS (âncora fixa na consulta ao mapa).
+
+### Resultados
+
+| Passo | O que verificou | CT(s) | Resultado |
+|---|---|---|---|
+| 1 | Cadastro com os campos estruturados grava o objeto jsonb no banco | CT-027 | Aprovado |
+| 2 | A lista mostra o resumo (logradouro, número - bairro) | CT-011 | Aprovado |
+| 3 | Salvar sem nenhum campo: aviso, confirmar grava, "Sem endereço" na lista | CT-025, CT-011 | Aprovado |
+| 4 | Edição vem com os campos pré-preenchidos e reflete ao voltar | CT-006, CT-008 | Aprovado |
+| 5 | Busca encontra por bairro/rua, além do nome | CT-014 | Aprovado |
+| 6 | Múltiplos telefones e exclusão sem regressão | Regressão | Aprovado |
+
+### Veredicto
+
+**#65 validado**, suíte automatizada verde e migração do Supabase aplicada
+(text → jsonb). O endereço passa a ser estruturado (logradouro, número, bairro,
+complemento, referência), preparando o resumo na lista, a busca por qualquer
+campo e a abertura no mapa (#66).
+
 ## Histórico de Versões
 
 | Data | Versão | Autor | Descrição da mudança |
@@ -258,3 +297,4 @@ concluídas.
 | 2026-07-20 | 1.2 | Wilson Gorosthides | Execução 003 (RF-008, pré-merge do PR de exclusão): rodada única, quatro CTs aprovados, sem regressão; reflexo da exclusão imediato via renovação da stream (`requisitos.md` 2.5). MVP completo. |
 | 2026-07-21 | 1.3 | Wilson Gorosthides | Execução 004 (endereço opcional, pré-merge #61): rodada única, CT-001/CT-025 aprovados, sem regressão. |
 | 2026-07-21 | 1.4 | Wilson Gorosthides | Execução 005 (múltiplos telefones, pré-merge #62): rodada única com a migração do Supabase (`telefone`→`telefones` text[]); CT-006/CT-026 aprovados, sem regressão. |
+| 2026-07-21 | 1.5 | Wilson Gorosthides | Execução 006 (endereço estruturado, pré-merge #65): rodada única com a migração do Supabase (`endereco` text → jsonb); CT-027/CT-011/CT-025/CT-006/CT-008/CT-014 aprovados, sem regressão. |

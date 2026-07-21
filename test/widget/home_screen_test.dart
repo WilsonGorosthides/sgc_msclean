@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:sgc_msclean/models/client_model.dart';
+import 'package:sgc_msclean/models/endereco.dart';
 import 'package:sgc_msclean/screens/client_form_screen.dart';
 import 'package:sgc_msclean/screens/home_screen.dart';
 
@@ -11,35 +12,45 @@ import '../mocks/mock_supabase_client.dart';
 
 // Testes de widget da HomeScreen (RF-003 e RF-004), com MockSupabaseService
 // injetado — os nomes dos casos seguem docs/matriz-rastreabilidade.md.
+// Endereço passa a ser estruturado (#65): a lista exibe o resumo.
 void main() {
   late MockSupabaseService service;
 
   final ana = ClientModel(
       id: '1',
       nome: 'Ana Souza',
-      endereco: 'Rua das Flores, 10',
+      endereco: const Endereco(logradouro: 'Rua das Flores', numero: '10'),
       telefones: ['11 91111-1111']);
   final bruno = ClientModel(
       id: '2',
       nome: 'Bruno Lima',
-      endereco: 'Avenida Central, 200',
+      endereco: const Endereco(logradouro: 'Avenida Central', numero: '200'),
       telefones: ['11 92222-2222']);
   final carla = ClientModel(
       id: '3',
       nome: 'Carla Dias',
-      endereco: 'Rua das Flores, 30',
+      endereco: const Endereco(logradouro: 'Rua das Flores', numero: '30'),
       telefones: ['11 93333-3333']);
 
   setUpAll(() {
-    registerFallbackValue(
-        ClientModel(nome: '', endereco: '', telefones: const []));
+    registerFallbackValue(ClientModel(nome: '', telefones: const []));
   });
 
   setUp(() {
     service = MockSupabaseService();
   });
 
+  // Viewport mais alto: os testes que abrem o formulário (endereço
+  // estruturado, #65) precisam do botão de salvar montado dentro da ListView.
+  void ajustarViewport(WidgetTester tester) {
+    tester.view.physicalSize = const Size(1200, 2400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+  }
+
   Future<void> bombearTela(WidgetTester tester) async {
+    ajustarViewport(tester);
     await tester.pumpWidget(MaterialApp(home: HomeScreen(service: service)));
     await tester.pump(); // processa a primeira emissão da stream
   }
@@ -65,6 +76,7 @@ void main() {
       await bombearTela(tester);
 
       expect(find.text('Ana Souza'), findsOneWidget);
+      // o item mostra o resumo do endereço estruturado
       expect(find.text('Rua das Flores, 10'), findsOneWidget);
     });
 
@@ -73,7 +85,7 @@ void main() {
       final semEndereco = ClientModel(
           id: '9',
           nome: 'Zé Sem Rua',
-          endereco: '',
+          endereco: const Endereco(),
           telefones: ['11 90000-0000']);
       when(() => service.getClientsStream())
           .thenAnswer((_) => Stream.value([semEndereco]));
@@ -159,7 +171,8 @@ void main() {
       final debora = ClientModel(
           id: '4',
           nome: 'Débora Prado',
-          endereco: 'Rua das Acácias, 45',
+          endereco:
+              const Endereco(logradouro: 'Rua das Acácias', numero: '45'),
           telefones: ['11 94444-4444']);
       final respostas = [
         Stream.value([ana]),
@@ -178,7 +191,8 @@ void main() {
       await tester.enterText(
           find.byKey(const Key('campo_nome')), 'Débora Prado');
       await tester.enterText(
-          find.byKey(const Key('campo_endereco')), 'Rua das Acácias, 45');
+          find.byKey(const Key('campo_logradouro')), 'Rua das Acácias');
+      await tester.enterText(find.byKey(const Key('campo_numero')), '45');
       await tester.enterText(
           find.byKey(const Key('campo_telefone_0')), '11 94444-4444');
       await tester.tap(find.byKey(const Key('botao_salvar')));
@@ -207,7 +221,9 @@ void main() {
 
       expect(find.byType(ClientFormScreen), findsOneWidget);
       expect(find.text('Ana Souza'), findsOneWidget);
-      expect(find.text('Rua das Flores, 10'), findsOneWidget);
+      // os campos estruturados vêm pré-preenchidos
+      expect(find.text('Rua das Flores'), findsOneWidget);
+      expect(find.text('10'), findsOneWidget);
       expect(find.text('11 91111-1111'), findsOneWidget);
     });
 
@@ -220,7 +236,7 @@ void main() {
       final anaEditada = ClientModel(
           id: '1',
           nome: 'Ana Souza',
-          endereco: 'Rua Nova, 99',
+          endereco: const Endereco(logradouro: 'Rua Nova', numero: '99'),
           telefones: ['11 91111-1111']);
       final respostas = [
         Stream.value([ana]),
@@ -236,7 +252,8 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.enterText(
-          find.byKey(const Key('campo_endereco')), 'Rua Nova, 99');
+          find.byKey(const Key('campo_logradouro')), 'Rua Nova');
+      await tester.enterText(find.byKey(const Key('campo_numero')), '99');
       verifyNever(() => service.updateClient(any()));
 
       await tester.tap(find.byKey(const Key('botao_salvar')));
@@ -249,7 +266,8 @@ void main() {
           .single as ClientModel;
       expect(salvo.id, '1');
       expect(salvo.nome, 'Ana Souza');
-      expect(salvo.endereco, 'Rua Nova, 99');
+      expect(salvo.endereco.logradouro, 'Rua Nova');
+      expect(salvo.endereco.numero, '99');
 
       // a Home renovou a stream no retorno e a lista mostra a alteração
       verify(() => service.getClientsStream()).called(2);

@@ -162,6 +162,26 @@
   inválido bloqueia o salvamento (issue #62).
 - **Nota:** número fora de ordem (após CT-025) segue a convenção de append.
 
+### CT-027 — Endereço estruturado
+- **Critério:** "O Endereço é estruturado em campos (logradouro, número, bairro,
+  complemento, ponto de referência), todos opcionais."
+- **Tipo:** Unitário + Widget · **Situação:** implementado
+- **Testes:** o grupo `endereco_test:` (ida e volta jsonb, `vazio`, `resumo`,
+  `buscavel`, `consultaMaps`); `client_form_screen_test: salvar fecha o
+  formulário` (os campos estruturados chegam ao service como `Endereco`);
+  `home_screen_test: item exibe nome e endereço` (resumo na lista).
+- **Pré-condições:** value object `Endereco` disponível / formulário aberto.
+- **Passos:**
+  1. Serializar e reconstruir um `Endereco` completo (toMap/fromMap) e conferir
+     os getters derivados (`vazio`, `resumo`, `buscavel`, `consultaMaps`).
+  2. Preencher os campos estruturados no formulário e salvar.
+- **Resultado esperado:** o `Endereco` é persistido como jsonb (round-trip
+  preserva os campos); `resumo` monta a linha da lista; `buscavel` alimenta a
+  busca; `consultaMaps` usa só os campos de chegar (sem complemento/referência).
+- **Nota:** número fora de ordem (após CT-026) segue a convenção de append.
+  A abertura no Google Maps a partir de `consultaMaps` é coberta à parte pelo
+  RF-009 (issue #66).
+
 ## RF-002 — Edição de Cliente
 
 ### CT-006 — Formulário de edição pré-preenchido
@@ -172,8 +192,8 @@
 - **Pré-condições:** cliente existente na lista.
 - **Passos:**
   1. Abrir a edição de um cliente da lista (toque no item).
-- **Resultado esperado:** os campos Nome, Endereço e Telefone exibem os
-  valores atuais do cliente.
+- **Resultado esperado:** os campos Nome, Telefone e os campos estruturados do
+  Endereço (logradouro, número etc.) exibem os valores atuais do cliente.
 
 ### CT-007 — Edição aplica as validações do cadastro
 - **Critério:** "As mesmas validações do cadastro (RF-001) se aplicam: campos
@@ -248,13 +268,17 @@
   Z→A. Exemplo de CT criado a partir de defeito encontrado.
 
 ### CT-011 — Item exibe nome e endereço
-- **Critério:** "Cada item exibe, no mínimo, Nome e Endereço."
+- **Critério:** "Cada item exibe, no mínimo, Nome e um resumo do endereço; quando
+  o cliente não tem endereço, um texto discreto \"Sem endereço\" ocupa o lugar."
 - **Tipo:** Widget · **Situação:** implementado
-- **Teste:** `home_screen_test: item exibe nome e endereço`.
+- **Testes:** `home_screen_test: item exibe nome e endereço` e
+  `home_screen_test: item sem endereço exibe placeholder`.
 - **Pré-condições:** stream mockada com um cliente.
 - **Passos:**
-  1. Renderizar a lista com um cliente.
-- **Resultado esperado:** o nome e o endereço do cliente aparecem no item.
+  1. Renderizar a lista com um cliente com endereço e conferir o resumo.
+  2. Renderizar com um cliente sem endereço e conferir o placeholder.
+- **Resultado esperado:** o nome e o resumo do endereço (logradouro, número —
+  bairro) aparecem no item; sem endereço, aparece "Sem endereço".
 
 ### CT-012 — Lista reage à stream em tempo real
 - **Critério:** "A lista reflete inserções, edições e exclusões em tempo real
@@ -283,17 +307,19 @@
 ## RF-004 — Busca
 
 ### CT-014 — Filtro por nome ou endereço
-- **Critério:** "A busca filtra por **Nome** ou **Endereço** (correspondência
-  de substring)."
+- **Critério:** "A busca filtra por **Nome** ou por **qualquer campo do
+  Endereço** (correspondência de substring)."
 - **Tipo:** Unitário · **Situação:** implementado
 - **Teste:** `supabase_service_test: filtro por nome ou endereço`.
 - **Pré-condições:** função pura `filtrarClientes` com três linhas de dados.
 - **Passos:**
   1. Filtrar por substring presente só em um nome.
-  2. Filtrar por substring presente em dois endereços.
-  3. Filtrar por termo sem correspondência.
+  2. Filtrar por substring presente no logradouro de dois clientes.
+  3. Filtrar por substring presente no bairro de um cliente.
+  4. Filtrar por termo sem correspondência.
 - **Resultado esperado:** cada filtro retorna exatamente os clientes cujo nome
-  **ou** endereço contém o termo; sem correspondência retorna lista vazia.
+  **ou** qualquer campo do endereço (via `Endereco.buscavel`) contém o termo;
+  sem correspondência retorna lista vazia.
 
 ### CT-015 — Filtro case-insensitive
 - **Critério:** "A busca é **case-insensitive** (não diferencia maiúsculas de
@@ -426,3 +452,4 @@
 | 2026-07-20 | 1.5 | Wilson Gorosthides | CT-019 a CT-022 confirmados como implementados (RF-008, issue #27), com os nomes reais dos testes; CT-021 alinhado ao critério renegociado (`requisitos.md` 2.5, reflexo após a confirmação) e nota sobre a ausência deliberada de teste unitário do `deleteClient`. |
 | 2026-07-21 | 1.6 | Wilson Gorosthides | Endereço opcional (RF-001, `requisitos.md` 2.6, issue #61): CT-001 deixa de exigir endereço; novo CT-025 (aviso de confirmação ao salvar sem endereço). |
 | 2026-07-21 | 1.7 | Wilson Gorosthides | Múltiplos telefones (RF-001, `requisitos.md` 2.7, issue #62): novo CT-026 (adicionar/remover campos, salvar com dois números, validação por telefone). |
+| 2026-07-21 | 1.8 | Wilson Gorosthides | Endereço estruturado (RF-001/003/004, `requisitos.md` 2.8, issue #65): novo CT-027 (value object `Endereco`, jsonb, resumo, busca); CT-006 (campos estruturados no pré-preenchimento), CT-011 (resumo + placeholder) e CT-014 (busca por qualquer campo) ajustados. |
