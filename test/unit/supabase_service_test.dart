@@ -21,17 +21,17 @@ void main() {
         id: '1',
         nome: 'Ana Souza',
         endereco: 'Rua das Flores, 10',
-        telefone: '11 91111-1111'),
+        telefones: ['11 91111-1111']),
     ClientModel(
         id: '2',
         nome: 'Bruno Lima',
         endereco: 'Avenida Central, 200',
-        telefone: '11 92222-2222'),
+        telefones: ['11 92222-2222']),
     ClientModel(
         id: '3',
         nome: 'Carla Dias',
         endereco: 'Rua das Flores, 30',
-        telefone: '11 93333-3333'),
+        telefones: ['11 93333-3333']),
   ];
 
   group('supabase_service_test:', () {

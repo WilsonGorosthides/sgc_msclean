@@ -33,8 +33,8 @@ O banco é relacional, organizado em tabelas.
 * **Colunas (baseado em `client_model.dart`):**
     -   `id` (uuid / chave primária, gerado pelo Supabase)
     -   `nome` (text)
-    -   `endereco` (text)
-    -   `telefone` (text)
+    -   `endereco` (text, opcional — issue #61)
+    -   `telefones` (text[] — um ou mais números por cliente, issue #62)
 
 A tabela é lida via stream ordenada por `nome`.
 
@@ -46,7 +46,7 @@ A organização real do código:
 lib/
 ├── main.dart                       # inicializa o app e o Supabase via .env
 ├── models/
-│   └── client_model.dart           # ClientModel: id, nome, endereco, telefone
+│   └── client_model.dart           # ClientModel: id, nome, endereco, telefones
 ├── screens/
 │   ├── home_screen.dart            # lista de clientes + barra de busca
 │   └── client_form_screen.dart     # formulário de cadastro (RF-001; reusável na edição)
@@ -131,6 +131,7 @@ A auditoria registrou cobertura real de 0% — o único teste era o template pad
 | 2026-06-27 | 2.1 | Wilson Gorosthides | Adição das seções de dívidas técnicas, riscos e histórico de versões |
 | 2026-07-08 | 2.2 | Wilson Gorosthides | Documentação da política de RLS `mvp_acesso_total_anon` (verificada em produção, deliberadamente permissiva até o RF-007) nas seções 4, 9 e 10 |
 | 2026-07-15 | 2.3 | Wilson Gorosthides | Atualiza a estrutura de diretórios (§5) com o RF-001: `client_form_screen.dart`, `utils/validators.dart` e o insert no service |
+| 2026-07-21 | 2.4 | Wilson Gorosthides | Schema da tabela `clientes` (§4): `endereco` passa a opcional (#61) e `telefone` (text) vira `telefones` (text[], um ou mais números por cliente, #62); árvore §5 atualizada. Requer migração no Supabase. |
 
 ## 12. Ambiente de Desenvolvimento
 Os seguintes softwares e configurações são necessários para iniciar o desenvolvimento:

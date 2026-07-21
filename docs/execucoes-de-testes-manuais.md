@@ -214,6 +214,41 @@ regressão no cadastro, edição e busca. Com esta feature, o MVP fica completo
 **#61 validado** em rodada única, suíte automatizada verde. Endereço passa a
 opcional com confirmação, sem regressão no cadastro completo.
 
+## Execução 005 — Verificação manual dos múltiplos telefones (pré-merge, #62)
+
+- **Data:** 2026-07-21.
+- **Objeto:** branch `feat/multiplos-telefones` — um ou mais telefones por
+  cliente (RF-001, `requisitos.md` 2.7), antes do merge. Inclui a **migração
+  do Supabase** (`telefone` text → `telefones` text[]).
+- **Ambiente:** web desktop (`fvm flutter run -d chrome`), contra o Supabase
+  real do MVP (após a migração aplicada no SQL Editor).
+- **Executor:** o desenvolvedor.
+
+### Migração (pré-teste)
+
+`ALTER TABLE` aplicado no SQL Editor: adiciona `telefones text[]`, copia os
+valores de `telefone` para a lista, zera nulos e remove a coluna antiga. O
+aviso de operação destrutiva (do `drop column`) foi confirmado após verificar
+que os números tinham sido copiados. Migração concluída com sucesso.
+
+### Resultados
+
+| Passo | O que verificou | CT(s) | Resultado |
+|---|---|---|---|
+| 1 | Cadastro com um telefone | RF-001 | Aprovado |
+| 2 | Cadastro com dois telefones grava o array no banco | CT-026 | Aprovado |
+| 3 | Edição vem com os telefones pré-preenchidos | CT-006 | Aprovado |
+| 4 | Remover um telefone na edição persiste o restante | CT-026 | Aprovado |
+| 5 | Segundo telefone inválido bloqueia o salvamento | CT-026 | Aprovado |
+| 6 | Endereço opcional, busca e exclusão sem regressão | Regressão | Aprovado |
+
+### Veredicto
+
+**#62 validado**, suíte automatizada verde e migração do Supabase aplicada. O
+app passa a aceitar um ou mais telefones por cliente. Com esta entrega, as duas
+mudanças de requisito de preparação para os dados reais (#61 e #62) estão
+concluídas.
+
 ## Histórico de Versões
 
 | Data | Versão | Autor | Descrição da mudança |
@@ -222,3 +257,4 @@ opcional com confirmação, sem regressão no cadastro completo.
 | 2026-07-19 | 1.1 | Wilson Gorosthides | Execução 002 (RF-002, pré-merge do PR #55): duas rodadas, com o diagnóstico do CT-008 (realtime UPDATE não entregue, issue #57), a renegociação do critério (`requisitos.md` 2.4) e a aprovação final. |
 | 2026-07-20 | 1.2 | Wilson Gorosthides | Execução 003 (RF-008, pré-merge do PR de exclusão): rodada única, quatro CTs aprovados, sem regressão; reflexo da exclusão imediato via renovação da stream (`requisitos.md` 2.5). MVP completo. |
 | 2026-07-21 | 1.3 | Wilson Gorosthides | Execução 004 (endereço opcional, pré-merge #61): rodada única, CT-001/CT-025 aprovados, sem regressão. |
+| 2026-07-21 | 1.4 | Wilson Gorosthides | Execução 005 (múltiplos telefones, pré-merge #62): rodada única com a migração do Supabase (`telefone`→`telefones` text[]); CT-006/CT-026 aprovados, sem regressão. |
