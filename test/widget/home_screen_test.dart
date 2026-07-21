@@ -18,20 +18,21 @@ void main() {
       id: '1',
       nome: 'Ana Souza',
       endereco: 'Rua das Flores, 10',
-      telefone: '11 91111-1111');
+      telefones: ['11 91111-1111']);
   final bruno = ClientModel(
       id: '2',
       nome: 'Bruno Lima',
       endereco: 'Avenida Central, 200',
-      telefone: '11 92222-2222');
+      telefones: ['11 92222-2222']);
   final carla = ClientModel(
       id: '3',
       nome: 'Carla Dias',
       endereco: 'Rua das Flores, 30',
-      telefone: '11 93333-3333');
+      telefones: ['11 93333-3333']);
 
   setUpAll(() {
-    registerFallbackValue(ClientModel(nome: '', endereco: '', telefone: ''));
+    registerFallbackValue(
+        ClientModel(nome: '', endereco: '', telefones: const []));
   });
 
   setUp(() {
@@ -70,7 +71,10 @@ void main() {
     testWidgets('item sem endereço exibe placeholder', (tester) async {
       // #61: endereço é opcional; o item mostra um texto discreto no lugar
       final semEndereco = ClientModel(
-          id: '9', nome: 'Zé Sem Rua', endereco: '', telefone: '11 90000-0000');
+          id: '9',
+          nome: 'Zé Sem Rua',
+          endereco: '',
+          telefones: ['11 90000-0000']);
       when(() => service.getClientsStream())
           .thenAnswer((_) => Stream.value([semEndereco]));
 
@@ -156,7 +160,7 @@ void main() {
           id: '4',
           nome: 'Débora Prado',
           endereco: 'Rua das Acácias, 45',
-          telefone: '11 94444-4444');
+          telefones: ['11 94444-4444']);
       final respostas = [
         Stream.value([ana]),
         Stream.value([ana, debora]),
@@ -217,7 +221,7 @@ void main() {
           id: '1',
           nome: 'Ana Souza',
           endereco: 'Rua Nova, 99',
-          telefone: '11 91111-1111');
+          telefones: ['11 91111-1111']);
       final respostas = [
         Stream.value([ana]),
         Stream.value([anaEditada]),

@@ -17,10 +17,11 @@ void main() {
       id: '7',
       nome: 'Ana Souza',
       endereco: 'Rua das Flores, 10',
-      telefone: '11 91111-1111');
+      telefones: ['11 91111-1111']);
 
   setUpAll(() {
-    registerFallbackValue(ClientModel(nome: '', endereco: '', telefone: ''));
+    registerFallbackValue(
+        ClientModel(nome: '', endereco: '', telefones: const []));
   });
 
   setUp(() {
@@ -29,7 +30,7 @@ void main() {
 
   final campoNome = find.byKey(const Key('campo_nome'));
   final campoEndereco = find.byKey(const Key('campo_endereco'));
-  final campoTelefone = find.byKey(const Key('campo_telefone'));
+  final campoTelefone = find.byKey(const Key('campo_telefone_0'));
   final botaoSalvar = find.byKey(const Key('botao_salvar'));
 
   Future<void> bombearFormulario(WidgetTester tester) async {
@@ -154,7 +155,7 @@ void main() {
           .single as ClientModel;
       expect(salvo.nome, 'Débora Prado');
       expect(salvo.endereco, 'Rua das Acácias, 45');
-      expect(salvo.telefone, '11 94444-4444');
+      expect(salvo.telefones, ['11 94444-4444']);
       expect(find.byType(ClientFormScreen), findsNothing);
     });
 
@@ -220,6 +221,60 @@ void main() {
 
       expect(find.byType(ClientFormScreen), findsNothing);
       verifyNever(() => service.updateClient(any()));
+      verifyNever(() => service.addClient(any()));
+    });
+
+    testWidgets('adiciona e remove campo de telefone', (tester) async {
+      // #62: começa com um telefone; permite adicionar e remover campos
+      await bombearFormulario(tester);
+
+      expect(find.byKey(const Key('campo_telefone_0')), findsOneWidget);
+      expect(find.byKey(const Key('campo_telefone_1')), findsNothing);
+
+      await tester.tap(find.byKey(const Key('adicionar_telefone')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('campo_telefone_1')), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('remover_telefone_1')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('campo_telefone_1')), findsNothing);
+    });
+
+    testWidgets('salva com dois telefones', (tester) async {
+      // #62: os dois números preenchidos chegam ao service como lista
+      when(() => service.addClient(any())).thenAnswer((_) async {});
+
+      await bombearFormulario(tester);
+      await tester.enterText(campoNome, 'Débora Prado');
+      await tester.enterText(campoEndereco, 'Rua das Acácias, 45');
+      await tester.enterText(
+          find.byKey(const Key('campo_telefone_0')), '11 94444-4444');
+      await tester.tap(find.byKey(const Key('adicionar_telefone')));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+          find.byKey(const Key('campo_telefone_1')), '11 95555-5555');
+      await tester.tap(botaoSalvar);
+      await tester.pumpAndSettle();
+
+      final salvo = verify(() => service.addClient(captureAny()))
+          .captured
+          .single as ClientModel;
+      expect(salvo.telefones, ['11 94444-4444', '11 95555-5555']);
+    });
+
+    testWidgets('segundo telefone inválido bloqueia o salvamento',
+        (tester) async {
+      await bombearFormulario(tester);
+      await preencherValido(tester);
+      await tester.tap(find.byKey(const Key('adicionar_telefone')));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+          find.byKey(const Key('campo_telefone_1')), '12#34');
+      await tester.tap(botaoSalvar);
+      await tester.pump();
+
+      expect(
+          find.text('Use apenas dígitos, espaços e + ( ) -'), findsOneWidget);
       verifyNever(() => service.addClient(any()));
     });
   });
