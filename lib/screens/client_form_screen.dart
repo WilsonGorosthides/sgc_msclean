@@ -38,6 +38,11 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
 
   Future<void> _salvar() async {
     if (!_formKey.currentState!.validate()) return;
+    // endereço é opcional (#61): se vazio, confirma antes de gravar
+    if (_enderecoController.text.trim().isEmpty) {
+      final confirmado = await _confirmarSemEndereco();
+      if (confirmado != true || !mounted) return;
+    }
     setState(() => _salvando = true);
     final cliente = ClientModel(
       id: widget.cliente?.id,
@@ -62,6 +67,29 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
         const SnackBar(content: Text('Erro ao salvar. Tente novamente.')),
       );
     }
+  }
+
+  // Aviso ao salvar sem endereço (#61): endereço é opcional, mas confirma
+  // para evitar esquecimento acidental.
+  Future<bool?> _confirmarSemEndereco() {
+    return showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        content: const Text('Cliente sem endereço. Deseja salvar mesmo assim?'),
+        actions: [
+          TextButton(
+            key: const Key('cancelar_sem_endereco'),
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            key: const Key('confirmar_sem_endereco'),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Salvar mesmo assim'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -89,8 +117,8 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
               key: const Key('campo_endereco'),
               controller: _enderecoController,
               textCapitalization: TextCapitalization.words,
-              decoration: const InputDecoration(labelText: 'Endereço'),
-              validator: (valor) => Validadores.obrigatorio(valor, 'endereço'),
+              decoration: const InputDecoration(
+                  labelText: 'Endereço', hintText: 'Opcional'),
             ),
             const SizedBox(height: 16),
             TextFormField(

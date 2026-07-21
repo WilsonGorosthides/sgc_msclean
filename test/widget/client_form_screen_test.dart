@@ -44,16 +44,58 @@ void main() {
   }
 
   group('client_form_screen_test:', () {
-    testWidgets('exige nome, endereço e telefone', (tester) async {
+    testWidgets('exige nome e telefone; endereço é opcional', (tester) async {
+      // CT-001: nome e telefone continuam obrigatórios; endereço, não (#61)
       await bombearFormulario(tester);
 
       await tester.tap(botaoSalvar);
       await tester.pump();
 
       expect(find.text('Informe o nome'), findsOneWidget);
-      expect(find.text('Informe o endereço'), findsOneWidget);
       expect(find.text('Informe o telefone'), findsOneWidget);
+      expect(find.text('Informe o endereço'), findsNothing);
       verifyNever(() => service.addClient(any()));
+    });
+
+    testWidgets('salvar sem endereço pede confirmação e grava ao confirmar',
+        (tester) async {
+      // CT-025: endereço vazio não bloqueia — pede confirmação e, ao
+      // confirmar, grava com endereço em branco (#61).
+      when(() => service.addClient(any())).thenAnswer((_) async {});
+
+      await bombearFormulario(tester);
+      await tester.enterText(campoNome, 'Débora Prado');
+      await tester.enterText(campoTelefone, '11 94444-4444');
+      await tester.tap(botaoSalvar);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Cliente sem endereço. Deseja salvar mesmo assim?'),
+          findsOneWidget);
+      verifyNever(() => service.addClient(any()));
+
+      await tester.tap(find.byKey(const Key('confirmar_sem_endereco')));
+      await tester.pumpAndSettle();
+
+      final salvo = verify(() => service.addClient(captureAny()))
+          .captured
+          .single as ClientModel;
+      expect(salvo.nome, 'Débora Prado');
+      expect(salvo.endereco, '');
+    });
+
+    testWidgets('cancelar o aviso de sem endereço não grava', (tester) async {
+      // CT-025 (contraparte): cancelar o aviso mantém o formulário sem gravar.
+      await bombearFormulario(tester);
+      await tester.enterText(campoNome, 'Débora Prado');
+      await tester.enterText(campoTelefone, '11 94444-4444');
+      await tester.tap(botaoSalvar);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('cancelar_sem_endereco')));
+      await tester.pumpAndSettle();
+
+      verifyNever(() => service.addClient(any()));
+      expect(find.byType(ClientFormScreen), findsOneWidget);
     });
 
     testWidgets('bloqueia salvar com campo vazio ou só espaços',

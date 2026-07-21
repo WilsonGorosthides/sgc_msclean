@@ -27,14 +27,15 @@
 ## RF-001 — Cadastro de Cliente
 
 ### CT-001 — Campos obrigatórios do cadastro
-- **Critério:** "Nome, Endereço e Telefone são campos obrigatórios."
+- **Critério:** "Nome e Telefone são campos obrigatórios. Endereço é opcional."
 - **Tipo:** Widget · **Situação:** implementado
-- **Teste:** `client_form_screen_test: exige nome, endereço e telefone`
+- **Teste:** `client_form_screen_test: exige nome e telefone; endereço é
+  opcional`
 - **Pré-condições:** formulário de cadastro aberto.
 - **Passos:**
   1. Acionar o salvar sem preencher nenhum campo.
-- **Resultado esperado:** nenhum dado é enviado ao banco; os três campos são
-  apontados como pendentes.
+- **Resultado esperado:** nenhum dado é enviado ao banco; Nome e Telefone são
+  apontados como pendentes; Endereço **não** é apontado (issue #61).
 
 ### CT-002 — Bloqueio de salvamento com campo vazio ou só espaços
 - **Critério:** "Ao tentar salvar com qualquer campo obrigatório vazio (ou só
@@ -124,6 +125,24 @@
   SnackBar "Erro ao salvar. Tente novamente." e o formulário permanece aberto
   com os dados digitados — teste `client_form_screen_test: falha ao salvar
   exibe erro e mantém o formulário aberto`.
+
+### CT-025 — Aviso ao salvar sem endereço
+- **Critério:** "Ao salvar sem endereço, o sistema pede confirmação; ao
+  confirmar, grava; ao cancelar, permanece no formulário."
+- **Tipo:** Widget · **Situação:** implementado
+- **Testes:** `client_form_screen_test: salvar sem endereço pede confirmação e
+  grava ao confirmar` e `client_form_screen_test: cancelar o aviso de sem
+  endereço não grava`
+- **Pré-condições:** formulário aberto com Nome e Telefone válidos e Endereço
+  vazio.
+- **Passos:**
+  1. Acionar o salvar.
+  2. No diálogo, confirmar ("Salvar mesmo assim") ou cancelar.
+- **Resultado esperado:** o diálogo "Cliente sem endereço. Deseja salvar mesmo
+  assim?" aparece; ao confirmar, o service é chamado (endereço vazio); ao
+  cancelar, nada é gravado e o formulário permanece aberto (issue #61).
+- **Nota:** o número fora de ordem (após CT-024) segue a convenção de append —
+  CT-025 nasce depois, junto do RF-001 a que pertence.
 
 ## RF-002 — Edição de Cliente
 
@@ -387,3 +406,4 @@
 | 2026-07-18 | 1.3 | Wilson Gorosthides | CT-006 a CT-009 confirmados como implementados (RF-002, issue #26), com os nomes reais dos testes; nota no CT-008 sobre a ausência deliberada de teste unitário do `updateClient` (mesma decisão do `addClient`, coberto pelo E2E da Fase 2). |
 | 2026-07-19 | 1.4 | Wilson Gorosthides | CT-008 alinhado ao critério renegociado do RF-002 (`requisitos.md` 2.4): reflexo da edição ao retornar do formulário em vez de "em tempo real"; nome do teste e nota sobre a issue #57 (eventos UPDATE do realtime não entregues). |
 | 2026-07-20 | 1.5 | Wilson Gorosthides | CT-019 a CT-022 confirmados como implementados (RF-008, issue #27), com os nomes reais dos testes; CT-021 alinhado ao critério renegociado (`requisitos.md` 2.5, reflexo após a confirmação) e nota sobre a ausência deliberada de teste unitário do `deleteClient`. |
+| 2026-07-21 | 1.6 | Wilson Gorosthides | Endereço opcional (RF-001, `requisitos.md` 2.6, issue #61): CT-001 deixa de exigir endereço; novo CT-025 (aviso de confirmação ao salvar sem endereço). |

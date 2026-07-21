@@ -190,6 +190,30 @@ restaurar o realtime pleno no futuro.
 regressão no cadastro, edição e busca. Com esta feature, o MVP fica completo
 (5/5).
 
+## Execução 004 — Verificação manual do endereço opcional (pré-merge, #61)
+
+- **Data:** 2026-07-21.
+- **Objeto:** branch `feat/endereco-opcional` — endereço opcional com aviso
+  (RF-001, `requisitos.md` 2.6), antes do merge.
+- **Ambiente:** web desktop (`fvm flutter run -d chrome`).
+- **Executor:** o desenvolvedor.
+
+### Resultados
+
+| Passo | O que verificou | CT(s) | Resultado |
+|---|---|---|---|
+| 1 | Salvar vazio aponta Nome e Telefone, não Endereço | CT-001 | Aprovado |
+| 2 | Salvar sem endereço abre o aviso de confirmação | CT-025 | Aprovado |
+| 3 | Confirmar ("Salvar mesmo assim") grava e fecha | CT-025 | Aprovado |
+| 4 | Cliente sem endereço mostra "Sem endereço" na lista | #61 | Aprovado |
+| 5 | Cancelar o aviso não grava e mantém o formulário | CT-025 | Aprovado |
+| 6 | Cadastro completo (com endereço) salva sem diálogo | Regressão | Aprovado |
+
+### Veredicto
+
+**#61 validado** em rodada única, suíte automatizada verde. Endereço passa a
+opcional com confirmação, sem regressão no cadastro completo.
+
 ## Histórico de Versões
 
 | Data | Versão | Autor | Descrição da mudança |
@@ -197,3 +221,4 @@ regressão no cadastro, edição e busca. Com esta feature, o MVP fica completo
 | 2026-07-17 | 1.0 | Wilson Gorosthides | Criação do registro de execuções de testes manuais, com as convenções de registro e a Execução 001 (RF-001, pré-merge do PR #44) — issue #49. |
 | 2026-07-19 | 1.1 | Wilson Gorosthides | Execução 002 (RF-002, pré-merge do PR #55): duas rodadas, com o diagnóstico do CT-008 (realtime UPDATE não entregue, issue #57), a renegociação do critério (`requisitos.md` 2.4) e a aprovação final. |
 | 2026-07-20 | 1.2 | Wilson Gorosthides | Execução 003 (RF-008, pré-merge do PR de exclusão): rodada única, quatro CTs aprovados, sem regressão; reflexo da exclusão imediato via renovação da stream (`requisitos.md` 2.5). MVP completo. |
+| 2026-07-21 | 1.3 | Wilson Gorosthides | Execução 004 (endereço opcional, pré-merge #61): rodada única, CT-001/CT-025 aprovados, sem regressão. |
