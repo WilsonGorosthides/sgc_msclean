@@ -96,6 +96,46 @@ void main() {
       expect(find.text('Sem endereço'), findsOneWidget);
     });
 
+    testWidgets('item com endereço mostra o botão de abrir no mapa e dispara',
+        (tester) async {
+      // RF-009 (#66): a lixeira ganha um vizinho — o botão de mapa, que
+      // dispara a abertura do endereço no Google Maps (aqui, injeção falsa).
+      Endereco? capturado;
+      when(() => service.getClientsStream())
+          .thenAnswer((_) => Stream.value([ana]));
+
+      ajustarViewport(tester);
+      await tester.pumpWidget(MaterialApp(
+        home: HomeScreen(
+          service: service,
+          abrirMaps: (endereco) async => capturado = endereco,
+        ),
+      ));
+      await tester.pump();
+
+      final botao = find.byKey(const Key('abrir_maps_1'));
+      expect(botao, findsOneWidget);
+
+      await tester.tap(botao);
+      await tester.pump();
+      expect(capturado, ana.endereco);
+    });
+
+    testWidgets('item sem endereço não mostra o botão de abrir no mapa',
+        (tester) async {
+      final semEndereco = ClientModel(
+          id: '9',
+          nome: 'Zé Sem Rua',
+          endereco: const Endereco(),
+          telefones: ['11 90000-0000']);
+      when(() => service.getClientsStream())
+          .thenAnswer((_) => Stream.value([semEndereco]));
+
+      await bombearTela(tester);
+
+      expect(find.byKey(const Key('abrir_maps_9')), findsNothing);
+    });
+
     testWidgets('lista reage à emissão da stream', (tester) async {
       // sync: true entrega cada emissão no próprio add(), tornando o teste
       // determinístico (sem corrida entre microtask e frame do pump).
