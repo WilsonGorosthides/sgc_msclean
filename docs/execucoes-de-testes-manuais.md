@@ -288,6 +288,31 @@ Campo Grande - MS (âncora fixa na consulta ao mapa).
 complemento, referência), preparando o resumo na lista, a busca por qualquer
 campo e a abertura no mapa (#66).
 
+## Execução 007 — Verificação manual do abrir no Google Maps (pré-merge, #66)
+
+- **Data:** 2026-07-21.
+- **Objeto:** branch `feat/abrir-endereco-no-maps` — RF-009 abrir o endereço no
+  Google Maps (`requisitos.md` 2.9), antes do merge. Sem mudança de schema
+  (nenhuma migração).
+- **Ambiente:** web desktop (`fvm flutter run -d chrome`), contra o Supabase
+  real do MVP.
+- **Executor:** o desenvolvedor.
+
+### Resultados
+
+| Passo | O que verificou | CT(s) | Resultado |
+|---|---|---|---|
+| 1 | Cliente com endereço mostra o ícone de mapa; tocar abre o Google Maps na localização | CT-028 | Aprovado |
+| 2 | Cliente sem endereço não mostra o ícone de mapa | CT-028 | Aprovado |
+| 3 | Regressão: toque na linha abre a edição; a lixeira exclui — o ícone de mapa convive com eles | Regressão | Aprovado |
+
+### Veredicto
+
+**#66 validado** em rodada única, suíte automatizada verde. A partir de um
+cliente com endereço, um toque abre o Google Maps na localização; sem endereço,
+o ícone não aparece. Fecha o par de entregas do endereço estruturado (#65) + o
+mapa (#66).
+
 ## Histórico de Versões
 
 | Data | Versão | Autor | Descrição da mudança |
@@ -298,3 +323,4 @@ campo e a abertura no mapa (#66).
 | 2026-07-21 | 1.3 | Wilson Gorosthides | Execução 004 (endereço opcional, pré-merge #61): rodada única, CT-001/CT-025 aprovados, sem regressão. |
 | 2026-07-21 | 1.4 | Wilson Gorosthides | Execução 005 (múltiplos telefones, pré-merge #62): rodada única com a migração do Supabase (`telefone`→`telefones` text[]); CT-006/CT-026 aprovados, sem regressão. |
 | 2026-07-21 | 1.5 | Wilson Gorosthides | Execução 006 (endereço estruturado, pré-merge #65): rodada única com a migração do Supabase (`endereco` text → jsonb); CT-027/CT-011/CT-025/CT-006/CT-008/CT-014 aprovados, sem regressão. |
+| 2026-07-21 | 1.6 | Wilson Gorosthides | Execução 007 (abrir no Google Maps, pré-merge #66): rodada única, sem migração; CT-028 aprovado, sem regressão em edição e exclusão. |

@@ -52,7 +52,8 @@ lib/
 │   ├── home_screen.dart            # lista de clientes + barra de busca
 │   └── client_form_screen.dart     # formulário de cadastro (RF-001; reusável na edição)
 ├── services/
-│   └── supabase_service.dart       # acesso ao Supabase (stream de leitura + insert)
+│   ├── supabase_service.dart       # acesso ao Supabase (stream de leitura + insert)
+│   └── maps_launcher.dart          # abre o endereco no Google Maps (RF-009, url_launcher)
 └── utils/
     └── validators.dart             # validações puras do formulário (obrigatório, telefone)
 ```
@@ -87,6 +88,14 @@ Em texto: a **screen** consome o **service**, que conversa com o **Supabase clie
 * **Por que `setState` e não Provider/Riverpod neste estágio.** O escopo é pequeno (uma tela, estado local de busca e a stream de clientes). `setState` cobre essa necessidade sem introduzir uma camada de gerência de estado — evitar overengineering. Quando o app crescer (múltiplas telas compartilhando estado, navegação com dependências), a decisão será reavaliada em favor de uma solução como Provider/Riverpod.
 
 * **Por que busca client-side.** O volume de dados é pequeno (uma prestadora, base na casa das dezenas/centenas de clientes) e a stream já traz a lista completa em memória; filtrar no cliente dá UX em tempo real, sem ida e volta ao servidor a cada tecla. Isso muda quando a base crescer a ponto de não ser razoável manter tudo em memória ou quando a latência incomodar — aí a busca passa a ser feita no servidor (query/filtro no Postgres, ex.: `ilike`/full-text search).
+
+* **Por que a URL do mapa é separada do disparo.** Em `maps_launcher.dart`, a
+  montagem da URL do Google Maps (`urlMaps`) é uma função pura, testável sem o
+  plugin; só o `abrirEnderecoNoMaps` toca o `url_launcher`. A abertura é
+  injetável na `HomeScreen` (parâmetro `abrirMaps`), então o teste de widget
+  verifica o disparo sem mockar o canal nativo do plugin. Usa uma URL de busca
+  universal (`google.com/maps/search/?api=1&query=`), que funciona em Android e
+  web sem código específico de plataforma.
 
 * **Por que sem camada de repository.** Com uma única fonte de dados (Supabase) e operações CRUD diretas, uma camada de `repositories/` adicionaria indireção sem benefício no escopo do MVP. O `SupabaseService` já isola o acesso ao backend. A camada pode ser introduzida se surgirem múltiplas fontes de dados, cache local ou necessidade de trocar o backend sem tocar nas telas.
 
@@ -133,6 +142,7 @@ A auditoria registrou cobertura real de 0% — o único teste era o template pad
 | 2026-07-08 | 2.2 | Wilson Gorosthides | Documentação da política de RLS `mvp_acesso_total_anon` (verificada em produção, deliberadamente permissiva até o RF-007) nas seções 4, 9 e 10 |
 | 2026-07-15 | 2.3 | Wilson Gorosthides | Atualiza a estrutura de diretórios (§5) com o RF-001: `client_form_screen.dart`, `utils/validators.dart` e o insert no service |
 | 2026-07-21 | 2.4 | Wilson Gorosthides | Schema da tabela `clientes` (§4): `endereco` passa a opcional (#61) e `telefone` (text) vira `telefones` (text[], um ou mais números por cliente, #62); árvore §5 atualizada. Requer migração no Supabase. |
+| 2026-07-21 | 2.6 | Wilson Gorosthides | Novo `lib/services/maps_launcher.dart` na árvore §5 e decisão técnica (§7): URL do Google Maps montada por função pura, disparo via `url_launcher` injetável na `HomeScreen` (RF-009, issue #66). |
 | 2026-07-21 | 2.5 | Wilson Gorosthides | Schema da tabela `clientes` (§4): `endereco` passa de text para **jsonb** com endereço estruturado (logradouro, número, bairro, complemento, referência; sem CEP/cidade — área de atendimento fixa em Campo Grande - MS); novo value object `Endereco` (`lib/models/endereco.dart`) na árvore §5. Requer migração no Supabase (text → jsonb, issue #65). |
 
 ## 12. Ambiente de Desenvolvimento

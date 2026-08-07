@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
 import '../services/supabase_service.dart';
+import '../services/maps_launcher.dart';
 import '../models/client_model.dart';
+import '../models/endereco.dart';
 import 'client_form_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key, this.service});
+  const HomeScreen({super.key, this.service, this.abrirMaps});
 
   // Nos testes injeta-se um service falso; em produção usa o real.
   final SupabaseService? service;
+
+  // Abertura do endereço no mapa (RF-009); injetável nos testes, em produção
+  // usa `abrirEnderecoNoMaps` (url_launcher).
+  final Future<void> Function(Endereco)? abrirMaps;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -20,6 +26,7 @@ class _HomeScreenState extends State<HomeScreen> {
   // apenas renovada no retorno do formulário (issue #57: o projeto Supabase
   // não entrega eventos UPDATE; a renovação garante o reflexo da edição).
   late Stream<List<ClientModel>> _clientesStream = _service.getClientsStream();
+  late final _abrirMaps = widget.abrirMaps ?? abrirEnderecoNoMaps;
   String _searchQuery = ''; // Guarda o que o usuário digita
 
   // Abre o formulário (cadastro ou edição) e renova a stream ao voltar.
@@ -140,6 +147,16 @@ class _HomeScreenState extends State<HomeScreen> {
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
+                            // ABRIR NO MAPA (RF-009, #66): só quando há
+                            // endereço; abre o Google Maps na localização.
+                            if (!cliente.endereco.vazio)
+                              IconButton(
+                                key: Key('abrir_maps_${cliente.id}'),
+                                icon: const Icon(Icons.map_outlined,
+                                    color: Colors.blueAccent),
+                                tooltip: 'Abrir no mapa',
+                                onPressed: () => _abrirMaps(cliente.endereco),
+                              ),
                             // EXCLUSÃO (RF-008): lixeira por item; a linha
                             // continua abrindo a edição no toque.
                             IconButton(

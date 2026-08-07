@@ -69,6 +69,14 @@ O sistema deve permitir excluir um cliente existente.
   - Ao confirmar, o cliente é removido do banco e desaparece da lista imediatamente após a confirmação.
   - Após a exclusão bem-sucedida, o sistema dá feedback visual (ex.: SnackBar "Cliente excluído").
 
+#### RF-009 - Abrir Endereço no Mapa
+O sistema deve permitir abrir o endereço de um cliente no Google Maps.
+
+* **Critérios de aceitação:**
+  - A partir de um cliente **com endereço**, uma ação (ícone de mapa no item da lista) abre o endereço no Google Maps.
+  - A consulta ao mapa usa os campos de "chegar" (logradouro, número, bairro) com **Campo Grande - MS** como âncora fixa; complemento e ponto de referência não entram (atrapalham a geolocalização).
+  - Quando o cliente **não tem endereço**, a ação não é exibida.
+
 #### RF-005 - Adicionar Histórico de Serviço
 Para cada cliente, o usuário deve poder adicionar um registro de serviço.
 
@@ -124,6 +132,7 @@ O sistema deve ter um mecanismo de login para o único usuário (a proprietária
     4.  **Cenário B - Buscar:** O usuário digita na barra de busca. A lista é filtrada em tempo real por nome ou endereço.
     5.  **Cenário C - Editar:** O usuário toca em um cliente da lista; o sistema abre o formulário pré-preenchido com os dados atuais. O usuário ajusta os campos necessários e confirma. A alteração aparece na lista em tempo real.
     6.  **Cenário D - Excluir:** O usuário aciona a opção de excluir um cliente; o sistema solicita confirmação explícita. Ao confirmar, o cliente é removido do banco e desaparece da lista em tempo real, com feedback visual ao usuário.
+    7.  **Cenário E - Abrir no mapa:** A partir de um cliente com endereço, o usuário toca no ícone de mapa; o sistema abre o endereço no Google Maps na localização.
 
 ## 6. Histórico de Versões
 
@@ -138,4 +147,5 @@ O sistema deve ter um mecanismo de login para o único usuário (a proprietária
 | 2026-07-20 | 2.5 | Wilson Gorosthides | RF-008: critério de reflexo da exclusão renegociado de "em tempo real" para "imediatamente após a confirmação" — por consistência com o RF-002 e por robustez, a lista é renovada após a exclusão, independentemente de o evento DELETE nativo do realtime ser entregue (não presumido como quebrado; contexto na issue #57). |
 | 2026-07-21 | 2.6 | Wilson Gorosthides | RF-001: Endereço passa a ser **opcional** (com aviso de confirmação ao salvar vazio) — um cliente em potencial pode ser cadastrado sem endereço; preparação para a importação da agenda real (issue #61). |
 | 2026-07-21 | 2.7 | Wilson Gorosthides | RF-001: cliente passa a ter **um ou mais telefones** (mínimo um), com campos adicionáveis/removíveis no formulário e validação por número — realidade da agenda real (issue #62). |
+| 2026-07-21 | 2.9 | Wilson Gorosthides | Novo **RF-009** — abrir o endereço do cliente no Google Maps (ícone de mapa no item, só quando há endereço; consulta pelos campos de chegar com Campo Grande - MS como âncora); Cenário E no UC-001 (issue #66). |
 | 2026-07-21 | 2.8 | Wilson Gorosthides | Endereço passa a ser **estruturado** (logradouro, número, bairro, complemento, ponto de referência), todos opcionais — RF-001 (dados e aviso por endereço vazio), RF-003 (item exibe resumo) e RF-004 (busca por qualquer campo do endereço). Sem campos de CEP e cidade (decisão de simplicidade: na prática não seriam preenchidos; a área de atendimento é só Campo Grande - MS, âncora fixa na consulta ao mapa). Modela casa/apartamento/condomínio e prepara a abertura no mapa (issue #65). Requer migração no Supabase (`endereco` text → jsonb). |
