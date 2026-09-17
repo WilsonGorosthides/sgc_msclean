@@ -1,6 +1,7 @@
 # SGC para MSClean
 
 > **Status:** ✅ MVP completo — cadastro, edição, exclusão, listagem e busca de clientes.
+> **Em especificação:** agenda por data (RF-005 e RF-010 a RF-012).
 
 ## 📝 Descrição do Projeto
 O Sistema de Gestão de Clientes (SGC) para a MSClean é uma aplicação desenvolvida para resolver o desafio de gerenciamento manual de uma base de clientes em rápido crescimento. Centraliza as informações de contato dos clientes, permitindo que a proprietária da empresa tenha controle organizado e eficiente do seu negócio.
@@ -30,12 +31,13 @@ A documentação detalhada do projeto vive na pasta [`docs/`](./docs):
 - [x] Exclusão
 
 ## 📈 Roadmap
-- **Fase 1 (MVP):** listagem, busca, cadastro, edição e exclusão de clientes.
-- **Fase 2 (Pós-MVP):** histórico de serviços, histórico de pagamentos e autenticação de usuário (ver RF-005 a RF-007 em [`docs/requisitos.md`](./docs/requisitos.md)).
-- **Fase 3:** melhorias futuras — busca server-side, filtros avançados e refinamentos da versão desktop.
+- **Fase 1 (MVP):** listagem, busca, cadastro, edição e exclusão de clientes. ✅
+- **Fase 2 — Agenda:** registrar atendimento por data, agenda como tela inicial, consultar o valor cobrado de um cliente e aviso de conflito de horário (RF-005 e RF-010 a RF-012). Prioridade definida pelo levantamento de campo com a proprietária em 2026-09-10 — ver "Origem" em [`docs/requisitos.md`](./docs/requisitos.md) §2.2.
+- **Fase 3:** autenticação de usuário (RF-007) — passa a ser necessária quando a agenda concentrar dados de atendimento, e não apenas contatos.
+- **Fase 4:** histórico de pagamentos (RF-006, não priorizado) e melhorias — busca server-side, filtros avançados, refinamentos da versão desktop.
 
 ## 📌 Requisitos do Sistema
-O escopo cobre cadastro, edição, listagem, busca e exclusão de clientes (MVP), com históricos e autenticação previstos para o Pós-MVP. A especificação completa — requisitos funcionais, não funcionais e critérios de aceitação — está em [`docs/requisitos.md`](./docs/requisitos.md), que é a fonte da verdade.
+O escopo cobre cadastro, edição, listagem, busca e exclusão de clientes (MVP entregue) e a agenda de atendimentos por data (em especificação), com pagamentos e autenticação previstos adiante. A especificação completa — requisitos funcionais, não funcionais e critérios de aceitação — está em [`docs/requisitos.md`](./docs/requisitos.md), que é a fonte da verdade.
 
 ## ⚙️ Arquitetura e Tecnologia
 Arquitetura Cliente-Servidor com um BaaS (Backend as a Service):
