@@ -1,0 +1,897 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="Prototipo clicavel do fluxo de agenda por data do sgc_msclean. Dados ficticios.">
+<title>Agenda MS Clean</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Caveat:wght@500;600&display=swap">
+<style>
+:root{
+  --papel:#F2F4F4; --superficie:#FFFFFF; --superficie-2:#FAFBFB;
+  --tinta:#12242A; --tinta-fraca:#5C7178; --tinta-tenue:#8699A0;
+  --linha:#DCE3E4; --linha-forte:#C3CFD1;
+  --petrol:#0B6E7F; --petrol-fundo:#E2F0F2;
+  --ambar:#B4691A; --ambar-fundo:#F7EDDF;
+  --verde:#2E7D5B; --verde-fundo:#E3F1EA;
+  --alerta:#B3452F; --alerta-fundo:#F8E7E3;
+  --sombra:0 1px 2px rgba(18,36,42,.06), 0 8px 24px rgba(18,36,42,.06);
+  --raio:14px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --papel:#0E181B; --superficie:#16242A; --superficie-2:#1B2E35;
+    --tinta:#E6EFF0; --tinta-fraca:#93A9B0; --tinta-tenue:#6E858D;
+    --linha:#24373E; --linha-forte:#334B53;
+    --petrol:#5AC6D6; --petrol-fundo:#10333A;
+    --ambar:#E0A461; --ambar-fundo:#33281A;
+    --verde:#63C79B; --verde-fundo:#133024;
+    --alerta:#F09079; --alerta-fundo:#38201B;
+    --sombra:0 1px 2px rgba(0,0,0,.35), 0 8px 24px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  --papel:#0E181B; --superficie:#16242A; --superficie-2:#1B2E35;
+  --tinta:#E6EFF0; --tinta-fraca:#93A9B0; --tinta-tenue:#6E858D;
+  --linha:#24373E; --linha-forte:#334B53;
+  --petrol:#5AC6D6; --petrol-fundo:#10333A;
+  --ambar:#E0A461; --ambar-fundo:#33281A;
+  --verde:#63C79B; --verde-fundo:#133024;
+  --alerta:#F09079; --alerta-fundo:#38201B;
+  --sombra:0 1px 2px rgba(0,0,0,.35), 0 8px 24px rgba(0,0,0,.35);
+}
+
+*{box-sizing:border-box}
+body{
+  background:var(--papel); color:var(--tinta);
+  font-family:Archivo,"Segoe UI",system-ui,sans-serif;
+  font-size:15px; line-height:1.5; margin:0;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{text-wrap:balance;margin:0}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+:focus-visible{outline:2px solid var(--petrol);outline-offset:2px;border-radius:6px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+.rotulo{
+  font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--tinta-tenue);
+}
+.num{font-variant-numeric:tabular-nums}
+
+/* ---------- moldura da pagina ---------- */
+.pagina{max-width:1180px;margin:0 auto;padding:28px 20px 72px}
+.cabecalho{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 16px;margin-bottom:6px}
+.cabecalho h1{font-size:26px;font-weight:700;letter-spacing:-.02em}
+.tarja{
+  display:inline-flex;align-items:center;gap:6px;padding:3px 9px;border-radius:999px;
+  background:var(--ambar-fundo);color:var(--ambar);
+  font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+}
+.linha-caderno{
+  font-family:Caveat,"Segoe Script",cursive;font-size:21px;color:var(--tinta-fraca);
+  margin:4px 0 26px;line-height:1.35;
+}
+
+.grade{display:grid;gap:28px;grid-template-columns:1fr}
+@media (min-width:920px){.grade{grid-template-columns:440px 1fr;align-items:start}}
+
+/* ---------- tela do celular ---------- */
+.tela{
+  background:var(--superficie);border:1px solid var(--linha);border-radius:26px;
+  box-shadow:var(--sombra);overflow:hidden;
+  display:flex;flex-direction:column;min-height:668px;
+}
+@media (min-width:920px){.tela{position:sticky;top:24px}}
+
+.topo{padding:16px 18px 12px;border-bottom:1px solid var(--linha);background:var(--superficie-2)}
+.topo-linha{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.topo h2{font-size:20px;font-weight:700;letter-spacing:-.015em}
+.topo .hoje{font-size:12.5px;color:var(--tinta-fraca);margin-top:1px}
+.icone-btn{
+  width:34px;height:34px;border-radius:10px;border:1px solid var(--linha);
+  display:grid;place-items:center;color:var(--tinta-fraca);background:var(--superficie);
+}
+.icone-btn:hover{color:var(--petrol);border-color:var(--petrol)}
+
+/* faixa de dias */
+.semana{display:flex;gap:6px;margin-top:14px;overflow-x:auto;padding-bottom:2px}
+.dia{
+  flex:1 0 46px;border:1px solid var(--linha);border-radius:12px;background:var(--superficie);
+  padding:7px 4px 6px;text-align:center;transition:.12s;
+}
+.dia .sem{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--tinta-tenue)}
+.dia .n{font-size:17px;font-weight:600;margin-top:1px}
+.dia .ponto{width:5px;height:5px;border-radius:50%;background:var(--petrol);margin:3px auto 0}
+.dia .ponto.vazio{background:transparent}
+.dia[aria-pressed="true"]{background:var(--tinta);border-color:var(--tinta);color:var(--superficie)}
+.dia[aria-pressed="true"] .sem{color:var(--superficie);opacity:.65}
+.dia[aria-pressed="true"] .ponto{background:var(--superficie)}
+
+/* corpo rolavel */
+.corpo{flex:1;overflow-y:auto;padding:14px 18px 96px;position:relative}
+
+.periodo + .periodo{margin-top:20px}
+.periodo-cab{display:flex;align-items:center;gap:9px;margin-bottom:9px}
+.periodo-cab .traco{flex:1;height:1px;background:var(--linha)}
+.periodo-cab .nome{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.periodo-cab .cont{
+  font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:999px;
+  font-variant-numeric:tabular-nums;
+}
+.manha .nome{color:var(--petrol)} .manha .cont{background:var(--petrol-fundo);color:var(--petrol)}
+.tarde .nome{color:var(--ambar)}  .tarde .cont{background:var(--ambar-fundo);color:var(--ambar)}
+
+/* cartao de atendimento */
+.at{
+  display:flex;gap:11px;padding:11px 12px 11px 11px;border-radius:var(--raio);
+  border:1px solid var(--linha);background:var(--superficie);width:100%;text-align:left;
+  transition:.12s;
+}
+.at + .at{margin-top:8px}
+.at:hover{border-color:var(--linha-forte);background:var(--superficie-2)}
+.at .faixa{width:3px;border-radius:3px;flex:0 0 3px;background:var(--linha-forte)}
+.manha .at .faixa{background:var(--petrol)}
+.tarde .at .faixa{background:var(--ambar)}
+.at.concluido .faixa{background:var(--verde)}
+.at-meio{flex:1;min-width:0;cursor:pointer}
+.at-topo{display:flex;align-items:baseline;gap:8px}
+.at .hora{font-size:12.5px;font-weight:700;color:var(--tinta-fraca);font-variant-numeric:tabular-nums}
+.at .hora.sem{color:var(--tinta-tenue);font-weight:500;font-style:italic}
+.at .nome{font-weight:600;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.at .local{font-size:12.5px;color:var(--tinta-fraca);margin-top:1px}
+.at .pecas{font-size:12.5px;color:var(--tinta-fraca);margin-top:3px}
+.at .valor{font-size:13px;font-weight:700;margin-top:5px;font-variant-numeric:tabular-nums}
+.at-marcas{display:flex;flex-direction:column;gap:5px;flex:0 0 auto;padding-top:1px}
+
+.marca{
+  display:inline-flex;align-items:center;gap:4px;padding:3px 7px;border-radius:8px;
+  border:1px solid var(--linha);font-size:10.5px;font-weight:600;
+  letter-spacing:.04em;text-transform:uppercase;color:var(--tinta-tenue);
+  background:var(--superficie);white-space:nowrap;
+}
+.marca.on{background:var(--verde-fundo);border-color:transparent;color:var(--verde)}
+.marca svg{width:11px;height:11px}
+
+.vazio-dia{
+  text-align:center;color:var(--tinta-fraca);font-size:14px;
+  padding:44px 20px;border:1px dashed var(--linha-forte);border-radius:var(--raio);margin-top:10px;
+}
+
+/* botao flutuante */
+.fab{
+  position:absolute;left:18px;right:18px;bottom:16px;
+  background:var(--tinta);color:var(--papel);border-radius:13px;
+  padding:13px;font-weight:600;font-size:15px;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  box-shadow:var(--sombra);
+}
+.fab:hover{opacity:.9}
+
+/* ---------- folha de passos ---------- */
+.folha{position:absolute;inset:0;background:var(--superficie);display:flex;flex-direction:column}
+.folha-topo{
+  padding:14px 18px;border-bottom:1px solid var(--linha);
+  display:flex;align-items:center;gap:12px;background:var(--superficie-2);
+}
+.folha-topo .voltar{font-size:13px;color:var(--tinta-fraca);font-weight:600}
+.folha-topo h3{font-size:16px;font-weight:700;flex:1}
+.passos{display:flex;gap:4px;padding:0 18px;margin-top:12px}
+.passo-pt{height:3px;flex:1;border-radius:2px;background:var(--linha)}
+.passo-pt.ativo{background:var(--petrol)}
+.folha-corpo{flex:1;overflow-y:auto;padding:16px 18px 18px}
+.folha-corpo > .rotulo{display:block;margin-bottom:9px}
+
+.opcao{
+  width:100%;text-align:left;border:1px solid var(--linha);background:var(--superficie);
+  border-radius:var(--raio);padding:12px 13px;display:flex;align-items:center;gap:11px;transition:.12s;
+}
+.opcao + .opcao{margin-top:8px}
+.opcao:hover{border-color:var(--petrol);background:var(--petrol-fundo)}
+.opcao .ini{
+  width:34px;height:34px;border-radius:10px;flex:0 0 34px;display:grid;place-items:center;
+  background:var(--petrol-fundo);color:var(--petrol);font-weight:700;font-size:13px;
+}
+.opcao .txt{flex:1;min-width:0}
+.opcao .t1{font-weight:600;display:block}
+.opcao .t2{font-size:12.5px;color:var(--tinta-fraca);margin-top:1px;display:block}
+.opcao .seta{color:var(--tinta-tenue);font-size:18px}
+.tag-prov{
+  font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+  background:var(--ambar-fundo);color:var(--ambar);padding:2px 6px;border-radius:6px;margin-left:6px;
+}
+
+.periodo-escolha{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cartao-periodo{
+  border:1px solid var(--linha);border-radius:var(--raio);padding:15px 13px;text-align:left;
+  transition:.12s;background:var(--superficie);
+}
+.cartao-periodo:hover{border-color:currentColor}
+.cartao-periodo.p-manha{color:var(--petrol)} .cartao-periodo.p-manha:hover{background:var(--petrol-fundo)}
+.cartao-periodo.p-tarde{color:var(--ambar)}  .cartao-periodo.p-tarde:hover{background:var(--ambar-fundo)}
+.cartao-periodo .tt{font-size:17px;font-weight:700}
+.cartao-periodo .ss{font-size:12px;color:var(--tinta-fraca);margin-top:3px}
+.cartao-periodo .ja{font-size:12px;color:var(--tinta-fraca);margin-top:8px;font-variant-numeric:tabular-nums}
+
+.opcional{margin-top:18px;padding-top:14px;border-top:1px dashed var(--linha-forte)}
+.chip-linha{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}
+.chip{
+  border:1px solid var(--linha);border-radius:9px;padding:6px 10px;font-size:13px;
+  color:var(--tinta-fraca);font-variant-numeric:tabular-nums;background:var(--superficie);
+}
+.chip:hover{border-color:var(--petrol);color:var(--petrol)}
+.chip.on{background:var(--tinta);color:var(--papel);border-color:var(--tinta)}
+
+/* resumo / confirmar */
+.resumo{border:1px solid var(--linha);border-radius:var(--raio);overflow:hidden}
+.resumo-linha{display:flex;gap:12px;padding:10px 13px;font-size:14px;align-items:baseline}
+.resumo-linha + .resumo-linha{border-top:1px solid var(--linha)}
+.resumo-linha .k{flex:0 0 74px;color:var(--tinta-fraca);font-size:12.5px}
+.resumo-linha .v{flex:1;font-weight:500;min-width:0}
+.resumo-linha .ed{font-size:12px;color:var(--petrol);font-weight:600;flex:0 0 auto}
+.resumo-total{background:var(--superficie-2);font-weight:700}
+.resumo-total .v{font-size:18px;font-variant-numeric:tabular-nums}
+.nota-calc{font-size:12px;color:var(--tinta-fraca);margin-top:9px;line-height:1.45}
+.confirmar{
+  width:100%;margin-top:16px;background:var(--tinta);color:var(--papel);
+  border-radius:13px;padding:14px;font-weight:700;font-size:15.5px;
+}
+.confirmar:hover{opacity:.9}
+
+.aviso{
+  border:1px solid var(--alerta);background:var(--alerta-fundo);color:var(--alerta);
+  border-radius:var(--raio);padding:12px 13px;margin-top:14px;font-size:13.5px;line-height:1.45;
+}
+.aviso b{display:block;margin-bottom:3px;font-size:13px}
+.aviso-acoes{display:flex;gap:8px;margin-top:10px}
+.aviso-acoes button{flex:1;border:1px solid currentColor;border-radius:9px;padding:8px;font-size:13px;font-weight:600}
+.aviso-acoes .forte{background:var(--alerta);color:var(--alerta-fundo);border-color:var(--alerta)}
+
+/* historico do cliente */
+.bloco-destaque{border:1px solid var(--linha);border-radius:var(--raio);padding:14px;background:var(--superficie-2)}
+.bloco-destaque .g{font-size:24px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.bloco-destaque .p{font-size:12.5px;color:var(--tinta-fraca);margin-top:2px}
+.dupla{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.hist-item{padding:11px 0;border-top:1px solid var(--linha);display:flex;gap:10px;align-items:baseline}
+.hist-item .d{font-size:12.5px;color:var(--tinta-fraca);flex:0 0 66px;font-variant-numeric:tabular-nums}
+.hist-item .p{flex:1;font-size:13.5px;min-width:0}
+.hist-item .v{font-weight:600;font-variant-numeric:tabular-nums;font-size:13.5px}
+
+/* tabela de precos */
+.preco-linha{display:flex;align-items:center;gap:10px;padding:11px 0;border-top:1px solid var(--linha)}
+.preco-linha .t{flex:1;font-weight:500;text-transform:capitalize}
+.preco-linha .u{
+  font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;
+  color:var(--tinta-tenue);background:var(--superficie-2);padding:3px 7px;border-radius:7px;
+}
+.preco-linha input{
+  width:94px;text-align:right;font:inherit;font-weight:600;color:var(--tinta);
+  background:var(--superficie);border:1px solid var(--linha);border-radius:9px;
+  padding:7px 9px;font-variant-numeric:tabular-nums;
+}
+.preco-linha input:focus{border-color:var(--petrol);outline:none}
+
+/* ---------- painel lateral ---------- */
+.painel{display:flex;flex-direction:column;gap:18px}
+.medidor{
+  border:1px solid var(--linha);border-radius:18px;background:var(--superficie);
+  padding:18px;box-shadow:var(--sombra);
+}
+.medidor h3{font-size:16px;font-weight:700;margin-bottom:3px}
+.medidor .sub{font-size:13px;color:var(--tinta-fraca);line-height:1.5;margin:0}
+.contador{display:flex;align-items:flex-end;gap:12px;margin:16px 0 10px}
+.contador .n{font-size:50px;font-weight:700;line-height:.88;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+.contador .de{font-size:15px;color:var(--tinta-fraca);padding-bottom:5px}
+.barra{display:flex;gap:5px;margin-bottom:12px}
+.barra span{height:8px;flex:1;border-radius:4px;background:var(--linha);transition:.15s}
+.barra span.on{background:var(--petrol)}
+.barra span.estouro{background:var(--alerta)}
+.veredito{
+  font-size:13.5px;font-weight:600;padding:9px 12px;border-radius:10px;line-height:1.45;
+  background:var(--superficie-2);color:var(--tinta-fraca);
+}
+.veredito.bom{background:var(--verde-fundo);color:var(--verde)}
+.veredito.ruim{background:var(--alerta-fundo);color:var(--alerta)}
+.registro{margin-top:12px;font-size:12.5px;color:var(--tinta-fraca);line-height:1.7}
+.registro div{display:flex;gap:8px}
+.registro .i{font-variant-numeric:tabular-nums;color:var(--tinta-tenue);flex:0 0 18px}
+.registro .op{color:var(--tinta-tenue);font-style:italic}
+
+.notas{border:1px solid var(--linha);border-radius:18px;background:var(--superficie);padding:18px}
+.notas h3{font-size:16px;font-weight:700;margin-bottom:12px}
+.notas ol{margin:0;padding-left:0;list-style:none}
+.notas li{
+  padding:11px 0 11px 40px;border-top:1px solid var(--linha);
+  position:relative;font-size:13.5px;line-height:1.5;
+}
+.notas li:first-child{border-top:none;padding-top:0}
+.notas li .rf{
+  position:absolute;left:0;top:12px;font-size:9.5px;font-weight:700;
+  letter-spacing:.04em;color:var(--petrol);background:var(--petrol-fundo);
+  padding:3px 5px;border-radius:5px;font-variant-numeric:tabular-nums;
+}
+.notas li:first-child .rf{top:1px}
+.notas li b{font-weight:600}
+.notas li .q{display:block;color:var(--tinta-fraca);margin-top:3px}
+
+.rodape{
+  margin-top:26px;font-size:12.5px;color:var(--tinta-tenue);line-height:1.6;
+  border-top:1px solid var(--linha);padding-top:14px;
+}
+</style>
+
+</head>
+<body>
+<div class="pagina">
+  <div class="cabecalho">
+    <h1>Agenda MS Clean</h1>
+    <span class="tarja">Protótipo · dados fictícios</span>
+  </div>
+  <p class="linha-caderno">o caderno vira tela — e o teste é se cabe em quatro toques</p>
+
+  <div class="grade">
+    <div class="tela">
+      <div class="topo">
+        <div class="topo-linha">
+          <div>
+            <h2 id="tituloDia">Hoje</h2>
+            <div class="hoje" id="subDia"></div>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="icone-btn" id="btnClientes" title="Clientes" aria-label="Clientes">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="17" height="17"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>
+            </button>
+            <button class="icone-btn" id="btnPrecos" title="Tabela de preços" aria-label="Tabela de preços">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="17" height="17"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="semana" id="semana"></div>
+      </div>
+      <div class="corpo" id="corpo"></div>
+    </div>
+
+    <div class="painel">
+      <div class="medidor">
+        <h3>Contador de toques</h3>
+        <p class="sub">O RNF-006 promete registrar um atendimento em <b>4 toques, sem digitar</b>. Este contador mede cada toque do fluxo — se estourar, quem está errado é o requisito, não ela.</p>
+        <div class="contador">
+          <span class="n num" id="contaN">0</span>
+          <span class="de">de 4 toques</span>
+        </div>
+        <div class="barra" id="barra"><span></span><span></span><span></span><span></span></div>
+        <div class="veredito" id="veredito">Toque em <b>Novo atendimento</b> para começar a medir.</div>
+        <div class="registro" id="registro"></div>
+      </div>
+
+      <div class="notas">
+        <h3>O que conferir aqui</h3>
+        <ol>
+          <li><span class="rf">010</span><b>Abre no dia de hoje</b>, agrupado por período, com a contagem de cada um à vista.<span class="q">A carga do dia aparece antes de aceitar mais um serviço?</span></li>
+          <li><span class="rf">005</span><b>Período obrigatório, hora opcional.</b> Marcar a hora é um toque extra, contado como tal.<span class="q">É assim que ela marca de verdade?</span></li>
+          <li><span class="rf">005</span><b>Cliente novo entra só com o nome</b> e fica sinalizado como provisório.<span class="q">Vale abrir mão do telefone para a anotação caber na hora?</span></li>
+          <li><span class="rf">013</span><b>O valor vem calculado pela metragem</b> e pode ser sobrescrito no "alterar".<span class="q">Os preços aqui são de exemplo — os reais ela ainda não passou.</span></li>
+          <li><span class="rf">014</span><b>Feito e Pago são dois selos independentes</b>, marcáveis direto na agenda.<span class="q">Toque nos selos à direita de um atendimento.</span></li>
+          <li><span class="rf">011</span><b>Histórico do cliente</b> abre com quanto foi cobrado e há quanto tempo foi a última visita.<span class="q">Toque no nome de um cliente.</span></li>
+          <li><span class="rf">012</span><b>Conflito só avisa quando as duas têm hora.</b> Marque 09:00 num atendimento de hoje.<span class="q">O aviso deixa confirmar assim mesmo?</span></li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <p class="rodape">
+    Protótipo de validação — não tem banco, não guarda nada, e todo nome, endereço e valor é inventado.
+    Feito para ser tocado antes de qualquer linha de Dart, contra o <b>docs/requisitos.md</b> do PR&nbsp;#69.
+  </p>
+</div>
+
+<script>
+/* ============ dados de exemplo (ficticios) ============ */
+var hoje = new Date(); hoje.setHours(0,0,0,0);
+function dISO(d){
+  return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+}
+function maisDias(n){ var d = new Date(hoje); d.setDate(d.getDate()+n); return d; }
+
+var TABELA = [
+  {tipo:"tapete",   unidade:"m2",   valor:25},
+  {tipo:"sofá",     unidade:"peca", valor:180},
+  {tipo:"poltrona", unidade:"peca", valor:90},
+  {tipo:"cortina",  unidade:"peca", valor:45},
+  {tipo:"colchão",  unidade:"peca", valor:120}
+];
+
+var clientes = [
+  {id:1, nome:"Marlene Prado",   endereco:"Rua das Garças, 570 — Jd. dos Estados"},
+  {id:2, nome:"Ana Fontes",      endereco:"Cond. Villa Real, Torre B, apto 302"},
+  {id:3, nome:"Escritório Vega", endereco:"Av. Mato Grosso, 1240 — Centro"},
+  {id:4, nome:"Sr. Nogueira",    endereco:"Rua Bahia, 88 — Vila Célia"},
+  {id:5, nome:"Camila Rezende",  endereco:"Rua Ipê Roxo, 15 — Chácara Cachoeira"},
+  {id:6, nome:"Clínica Serena",  endereco:null, provisorio:true}
+];
+
+var proxId = 100;
+var atendimentos = [
+  {id:1, clienteId:1, data:dISO(hoje), periodo:"manha", hora:"09:00",
+   pecas:[{tipo:"tapete",qtd:1,larg:8,comp:4.5},{tipo:"poltrona",qtd:1}], valor:990, feito:true, pago:true},
+  {id:2, clienteId:2, data:dISO(hoje), periodo:"manha", hora:null,
+   pecas:[{tipo:"cortina",qtd:6}], valor:270, feito:true, pago:false},
+  {id:3, clienteId:3, data:dISO(hoje), periodo:"tarde", hora:"14:30",
+   pecas:[{tipo:"sofá",qtd:2}], valor:360, feito:false, pago:false},
+  {id:4, clienteId:4, data:dISO(maisDias(1)), periodo:"manha", hora:null,
+   pecas:[{tipo:"tapete",qtd:1,larg:3,comp:2}], valor:150, feito:false, pago:false},
+  {id:5, clienteId:5, data:dISO(maisDias(2)), periodo:"tarde", hora:null,
+   pecas:[{tipo:"colchão",qtd:2}], valor:240, feito:false, pago:false},
+  {id:6, clienteId:1, data:dISO(maisDias(-96)), periodo:"manha", hora:null,
+   pecas:[{tipo:"tapete",qtd:1,larg:8,comp:4.5}], valor:900, feito:true, pago:true},
+  {id:7, clienteId:1, data:dISO(maisDias(-201)), periodo:"tarde", hora:null,
+   pecas:[{tipo:"sofá",qtd:1},{tipo:"poltrona",qtd:2}], valor:360, feito:true, pago:true},
+  {id:8, clienteId:2, data:dISO(maisDias(-142)), periodo:"manha", hora:null,
+   pecas:[{tipo:"cortina",qtd:4},{tipo:"colchão",qtd:1}], valor:300, feito:true, pago:true}
+];
+
+/* ============ formatacao ============ */
+function brl(v){ return v.toLocaleString("pt-BR",{style:"currency",currency:"BRL",minimumFractionDigits:0,maximumFractionDigits:2}); }
+function nBR(v){ return v.toLocaleString("pt-BR",{maximumFractionDigits:2}); }
+
+function rotuloPeca(p){
+  if(p.larg && p.comp) return (p.qtd>1 ? p.qtd+"× " : "") + p.tipo + " " + nBR(p.larg) + " × " + nBR(p.comp);
+  if(p.tipo === "cortina") return p.qtd + (p.qtd>1 ? " folhas" : " folha") + " de cortina";
+  if(p.qtd > 1) return p.qtd + "× " + p.tipo;
+  return p.tipo;
+}
+function listaPecas(ps){ return ps.map(rotuloPeca).join(" · "); }
+
+function precoDe(tipo){
+  for(var i=0;i<TABELA.length;i++){ if(TABELA[i].tipo === tipo) return TABELA[i]; }
+  return null;
+}
+function calcular(pecas){
+  return pecas.reduce(function(s,p){
+    var t = precoDe(p.tipo);
+    if(!t) return s;
+    if(t.unidade === "m2" && p.larg && p.comp) return s + (p.larg*p.comp) * t.valor * (p.qtd||1);
+    return s + t.valor * (p.qtd||1);
+  },0);
+}
+function explicar(pecas){
+  return pecas.map(function(p){
+    var t = precoDe(p.tipo);
+    if(!t) return rotuloPeca(p);
+    if(t.unidade === "m2" && p.larg && p.comp)
+      return nBR(p.larg)+" × "+nBR(p.comp)+" = "+nBR(p.larg*p.comp)+" m² × "+brl(t.valor);
+    return rotuloPeca(p)+" × "+brl(t.valor);
+  }).join("  +  ");
+}
+
+function dataLonga(d){ return d.toLocaleDateString("pt-BR",{weekday:"long",day:"numeric",month:"long"}); }
+function dataCurta(iso){ var p = iso.split("-"); return p[2]+"/"+p[1]+"/"+p[0].slice(2); }
+function haQuantoTempo(iso){
+  var dias = Math.round((hoje - new Date(iso+"T00:00:00")) / 86400000);
+  if(dias <= 0) return "hoje";
+  if(dias === 1) return "ontem";
+  if(dias < 30) return "há " + dias + " dias";
+  var meses = Math.round(dias/30);
+  if(meses < 12) return "há " + meses + (meses>1 ? " meses" : " mês");
+  var anos = Math.floor(meses/12);
+  return "há " + anos + (anos>1 ? " anos" : " ano");
+}
+function cliente(id){
+  for(var i=0;i<clientes.length;i++){ if(clientes[i].id === id) return clientes[i]; }
+  return null;
+}
+function ultimoDe(id){
+  return atendimentos.filter(function(a){ return a.clienteId===id; })
+                     .sort(function(a,b){ return b.data.localeCompare(a.data); })[0];
+}
+
+/* ============ estado ============ */
+var diaSel = dISO(hoje);
+var vista = "agenda";
+var clienteAberto = null;
+var rascunho = null;
+
+/* contador de toques */
+var toques = 0, medindo = false, trilha = [];
+function toque(nome, opcional){
+  if(!medindo) return;
+  toques++;
+  trilha.push({i:toques, nome:nome, op:!!opcional});
+  pintarMedidor();
+}
+function iniciarMedicao(){
+  medindo = true; toques = 0; trilha = [];
+  if(diaSel !== dISO(hoje)){ toques++; trilha.push({i:1, nome:"escolher outro dia"}); }
+  toque("abrir Novo atendimento");
+}
+function pintarMedidor(){
+  document.getElementById("contaN").textContent = toques;
+  var obrig = trilha.filter(function(t){ return !t.op; }).length;
+  var barras = document.querySelectorAll("#barra span");
+  for(var i=0;i<barras.length;i++){
+    barras[i].className = i < obrig ? (obrig > 4 ? "on estouro" : "on") : "";
+  }
+  var v = document.getElementById("veredito");
+  if(!medindo && trilha.length === 0){
+    v.className = "veredito";
+    v.innerHTML = "Toque em <b>Novo atendimento</b> para começar a medir.";
+  } else if(obrig <= 4){
+    v.className = "veredito bom";
+    v.innerHTML = obrig + " de 4 toques obrigatórios. Dentro do RNF-006.";
+  } else {
+    v.className = "veredito ruim";
+    v.innerHTML = obrig + " toques obrigatórios — <b>estourou o teto de 4</b>. O requisito precisa mudar.";
+  }
+  document.getElementById("registro").innerHTML = trilha.map(function(t){
+    return '<div><span class="i num">'+t.i+'</span><span'+(t.op?' class="op"':'')+'>'+t.nome+(t.op?" (opcional)":"")+'</span></div>';
+  }).join("");
+}
+
+/* ============ faixa de dias ============ */
+function pintarSemana(){
+  var el = document.getElementById("semana");
+  el.innerHTML = "";
+  for(var i=-2;i<=4;i++){
+    (function(i){
+      var d = maisDias(i), iso = dISO(d);
+      var tem = atendimentos.some(function(a){ return a.data===iso; });
+      var b = document.createElement("button");
+      b.className = "dia";
+      b.setAttribute("aria-pressed", iso===diaSel ? "true" : "false");
+      b.innerHTML = '<div class="sem">'+d.toLocaleDateString("pt-BR",{weekday:"short"}).replace(".","")+'</div>'+
+                    '<div class="n num">'+d.getDate()+'</div>'+
+                    '<div class="ponto'+(tem?"":" vazio")+'"></div>';
+      b.onclick = function(){ diaSel = iso; vista = "agenda"; pintar(); };
+      el.appendChild(b);
+    })(i);
+  }
+  var d = new Date(diaSel+"T00:00:00");
+  document.getElementById("tituloDia").textContent = diaSel === dISO(hoje)
+    ? "Hoje"
+    : d.toLocaleDateString("pt-BR",{weekday:"long"}).replace(/^./,function(c){ return c.toUpperCase(); });
+  document.getElementById("subDia").textContent = dataLonga(d);
+}
+
+/* ============ agenda ============ */
+function ordenar(lista){
+  return lista.slice().sort(function(a,b){
+    if(a.hora && b.hora) return a.hora.localeCompare(b.hora);
+    if(a.hora) return -1;
+    if(b.hora) return 1;
+    return a.id - b.id;
+  });
+}
+function selo(texto, ligado){
+  var check = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+  return '<button class="marca'+(ligado?" on":"")+'">'+(ligado?check:"")+texto+'</button>';
+}
+function cartaoAtendimento(a){
+  var c = cliente(a.clienteId);
+  var el = document.createElement("div");
+  el.className = "at" + (a.feito && a.pago ? " concluido" : "");
+  el.innerHTML =
+    '<div class="faixa"></div>'+
+    '<div class="at-meio">'+
+      '<div class="at-topo">'+
+        '<span class="hora'+(a.hora?"":" sem")+'">'+(a.hora || "s/ hora")+'</span>'+
+        '<span class="nome">'+c.nome+'</span>'+
+      '</div>'+
+      (c.endereco ? '<div class="local">'+c.endereco+'</div>'
+                  : '<div class="local" style="opacity:.65">sem endereço</div>')+
+      '<div class="pecas">'+listaPecas(a.pecas)+'</div>'+
+      '<div class="valor num">'+brl(a.valor)+'</div>'+
+    '</div>'+
+    '<div class="at-marcas">'+ selo("feito", a.feito) + selo("pago", a.pago) +'</div>';
+  el.querySelector(".at-meio").onclick = function(){ clienteAberto = c.id; vista = "cliente"; pintar(); };
+  var selos = el.querySelectorAll(".marca");
+  selos[0].onclick = function(e){ e.stopPropagation(); a.feito = !a.feito; pintar(); };
+  selos[1].onclick = function(e){ e.stopPropagation(); a.pago  = !a.pago;  pintar(); };
+  return el;
+}
+function pintarAgenda(){
+  var corpo = document.getElementById("corpo");
+  corpo.innerHTML = "";
+  var doDia = atendimentos.filter(function(a){ return a.data===diaSel; });
+
+  if(doDia.length === 0){
+    var v = document.createElement("div");
+    v.className = "vazio-dia";
+    v.textContent = "Nenhum atendimento neste dia.";
+    corpo.appendChild(v);
+  } else {
+    [["manha","Manhã"],["tarde","Tarde"]].forEach(function(par){
+      var lista = ordenar(doDia.filter(function(a){ return a.periodo===par[0]; }));
+      if(!lista.length) return;
+      var sec = document.createElement("section");
+      sec.className = "periodo " + par[0];
+      sec.innerHTML = '<div class="periodo-cab"><span class="nome">'+par[1]+'</span>'+
+                      '<span class="cont num">'+lista.length+'</span><span class="traco"></span></div>';
+      lista.forEach(function(a){ sec.appendChild(cartaoAtendimento(a)); });
+      corpo.appendChild(sec);
+    });
+  }
+
+  var fab = document.createElement("button");
+  fab.className = "fab";
+  fab.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" width="18" height="18"><path d="M12 5v14M5 12h14"/></svg> Novo atendimento';
+  fab.onclick = abrirNovo;
+  corpo.appendChild(fab);
+}
+
+/* ============ novo atendimento ============ */
+function abrirNovo(){
+  iniciarMedicao();
+  rascunho = {data:diaSel, clienteId:null, periodo:null, hora:null, pecas:[], valor:null, passo:1, conflito:false};
+  vista = "novo"; pintar();
+}
+function folha(titulo, passoAtivo, conteudoHTML){
+  var f = document.createElement("div");
+  f.className = "folha";
+  var pts = [1,2,3].map(function(i){ return '<span class="passo-pt'+(i<=passoAtivo?" ativo":"")+'"></span>'; }).join("");
+  f.innerHTML =
+    '<div class="folha-topo"><button class="voltar">‹ Voltar</button><h3>'+titulo+'</h3></div>'+
+    '<div class="passos">'+pts+'</div>'+
+    '<div class="folha-corpo">'+conteudoHTML+'</div>';
+  f.querySelector(".voltar").onclick = function(){
+    if(rascunho.passo > 1){ rascunho.passo--; pintar(); }
+    else { medindo = false; trilha = []; toques = 0; pintarMedidor(); vista = "agenda"; pintar(); }
+  };
+  return f;
+}
+function iniciais(nome){ return nome.split(" ").map(function(p){ return p.charAt(0); }).slice(0,2).join(""); }
+
+function cartaoPeriodo(chave, titulo, sub, ja){
+  return '<button class="cartao-periodo p-'+chave+'" data-p="'+chave+'">'+
+    '<div class="tt">'+titulo+'</div><div class="ss">'+sub+'</div>'+
+    '<div class="ja num">'+(ja===0 ? "livre" : ja+(ja>1?" já marcados":" já marcado"))+'</div></button>';
+}
+function minutos(h){ return (+h.slice(0,2))*60 + (+h.slice(3)); }
+function conflitoCom(r){
+  return atendimentos.filter(function(a){
+    return a.data===r.data && a.hora && Math.abs(minutos(a.hora)-minutos(r.hora)) < 60;
+  })[0];
+}
+function avisoConflito(){
+  var outro = conflitoCom(rascunho);
+  if(!outro) return "";
+  var c = cliente(outro.clienteId);
+  return '<div class="aviso"><b>Já tem gente marcada perto desse horário</b>'+
+    c.nome+' às '+outro.hora+', a menos de 1 hora daqui. Dá para confirmar assim mesmo.'+
+    '<div class="aviso-acoes"><button class="fraca">Tirar a hora</button>'+
+    '<button class="forte">Confirmar assim mesmo</button></div></div>';
+}
+function escolherCliente(id){
+  rascunho.clienteId = id;
+  var ult = ultimoDe(id);
+  rascunho.pecas = ult ? ult.pecas.map(function(p){ return Object.assign({},p); }) : [];
+  toque("escolher " + cliente(id).nome);
+  rascunho.passo = 2; pintar();
+}
+function salvar(total){
+  toque("confirmar");
+  atendimentos.push({id:++proxId, clienteId:rascunho.clienteId, data:rascunho.data,
+    periodo:rascunho.periodo, hora:rascunho.hora, pecas:rascunho.pecas,
+    valor:total, feito:false, pago:false});
+  medindo = false; pintarMedidor();
+  diaSel = rascunho.data; rascunho = null; vista = "agenda"; pintar();
+}
+
+function pintarNovo(){
+  var corpo = document.getElementById("corpo");
+  corpo.innerHTML = "";
+  var d = new Date(rascunho.data+"T00:00:00");
+
+  if(rascunho.passo === 1){
+    var linhas = clientes.map(function(c){
+      var ult = ultimoDe(c.id);
+      return '<button class="opcao" data-c="'+c.id+'">'+
+        '<span class="ini">'+iniciais(c.nome)+'</span>'+
+        '<span class="txt"><span class="t1">'+c.nome+(c.provisorio?'<span class="tag-prov">provisório</span>':'')+'</span>'+
+        '<span class="t2">'+(ult ? listaPecas(ult.pecas)+" · "+haQuantoTempo(ult.data) : "sem atendimento registrado")+'</span></span>'+
+        '<span class="seta">›</span></button>';
+    }).join("");
+    var f1 = folha("Para quem?", 1,
+      '<span class="rotulo">'+dataLonga(d)+'</span>'+ linhas +
+      '<div class="opcional"><span class="rotulo">Não está na lista</span>'+
+      '<button class="opcao" data-novo="1" style="margin-top:8px">'+
+      '<span class="ini" style="background:var(--ambar-fundo);color:var(--ambar)">+</span>'+
+      '<span class="txt"><span class="t1">Anotar só o nome</span>'+
+      '<span class="t2">Cria cliente provisório — telefone e endereço depois</span></span>'+
+      '<span class="seta">›</span></button></div>');
+    corpo.appendChild(f1);
+    f1.querySelectorAll("[data-c]").forEach(function(b){
+      b.onclick = function(){ escolherCliente(+b.getAttribute("data-c")); };
+    });
+    f1.querySelector("[data-novo]").onclick = function(){
+      var nome = prompt("Nome do cliente novo:", "Dona Ivete");
+      if(!nome || !nome.trim()) return;
+      var c = {id:++proxId, nome:nome.trim(), endereco:null, provisorio:true};
+      clientes.push(c);
+      escolherCliente(c.id);
+    };
+    return;
+  }
+
+  if(rascunho.passo === 2){
+    var cl = cliente(rascunho.clienteId);
+    var cont = function(p){
+      return atendimentos.filter(function(a){ return a.data===rascunho.data && a.periodo===p; }).length;
+    };
+    var f2 = folha("Em que período?", 2,
+      '<span class="rotulo">'+cl.nome+' · '+dataLonga(d)+'</span>'+
+      '<div class="periodo-escolha">'+
+        cartaoPeriodo("manha","Manhã","até o meio-dia",cont("manha"))+
+        cartaoPeriodo("tarde","Tarde","depois do almoço",cont("tarde"))+
+      '</div>'+
+      '<p class="nota-calc">Ela divide o dia em períodos e acerta o horário exato na conversa, conforme a rota. A hora é um toque opcional no fim.</p>');
+    corpo.appendChild(f2);
+    f2.querySelectorAll("[data-p]").forEach(function(b){
+      b.onclick = function(){
+        var p = b.getAttribute("data-p");
+        rascunho.periodo = p;
+        toque("período: " + (p==="manha" ? "manhã" : "tarde"));
+        rascunho.passo = 3; pintar();
+      };
+    });
+    return;
+  }
+
+  var c3 = cliente(rascunho.clienteId);
+  var total = rascunho.valor !== null ? rascunho.valor : calcular(rascunho.pecas);
+  var horas = ["07:00","09:00","11:00","14:00","16:00"];
+  var f3 = folha("Confirmar", 3,
+    '<div class="resumo">'+
+      '<div class="resumo-linha"><span class="k">Dia</span><span class="v">'+dataLonga(d)+'</span></div>'+
+      '<div class="resumo-linha"><span class="k">Período</span><span class="v">'+(rascunho.periodo==="manha"?"Manhã":"Tarde")+(rascunho.hora?' · '+rascunho.hora:"")+'</span></div>'+
+      '<div class="resumo-linha"><span class="k">Cliente</span><span class="v">'+c3.nome+'</span></div>'+
+      '<div class="resumo-linha"><span class="k">Local</span><span class="v">'+(c3.endereco || '<span style="color:var(--tinta-tenue)">a combinar</span>')+'</span></div>'+
+      '<div class="resumo-linha"><span class="k">Peças</span><span class="v">'+(rascunho.pecas.length?listaPecas(rascunho.pecas):'<span style="color:var(--tinta-tenue)">nenhuma</span>')+'</span><button class="ed" data-ed="pecas">editar</button></div>'+
+      '<div class="resumo-linha resumo-total"><span class="k">Total</span><span class="v num">'+brl(total)+'</span><button class="ed" data-ed="valor">alterar</button></div>'+
+    '</div>'+
+    (rascunho.pecas.length ? '<p class="nota-calc">Calculado pela tabela: '+explicar(rascunho.pecas)+'. As peças vieram do último atendimento deste cliente. Os preços da tabela são de exemplo — os reais ainda não foram levantados.</p>' : '')+
+    '<div class="opcional"><span class="rotulo">Opcional · marcar a hora</span>'+
+      '<div class="chip-linha">'+horas.map(function(h){
+        return '<button class="chip'+(rascunho.hora===h?" on":"")+'" data-h="'+h+'">'+h+'</button>';
+      }).join("")+'</div>'+
+    '</div>'+
+    (rascunho.conflito ? avisoConflito() : "")+
+    '<button class="confirmar">Confirmar atendimento</button>');
+  corpo.appendChild(f3);
+
+  f3.querySelectorAll("[data-h]").forEach(function(b){
+    b.onclick = function(){
+      var h = b.getAttribute("data-h");
+      rascunho.hora = (rascunho.hora === h) ? null : h;
+      if(rascunho.hora) toque("marcar hora " + rascunho.hora, true);
+      rascunho.conflito = !!(rascunho.hora && conflitoCom(rascunho));
+      pintar();
+    };
+  });
+  f3.querySelectorAll("[data-ed]").forEach(function(b){
+    b.onclick = function(){
+      if(b.getAttribute("data-ed") === "valor"){
+        var v = prompt("Valor combinado (sobrescreve o calculado):", String(total));
+        if(v !== null && v.trim() !== ""){
+          rascunho.valor = parseFloat(v.replace(",",".")) || 0;
+          toque("alterar o valor", true);
+          pintar();
+        }
+      } else {
+        alert("Nesta versão do protótipo as peças vêm do último atendimento do cliente. A tela de editar peças é a próxima a desenhar — se o fluxo até aqui estiver certo.");
+      }
+    };
+  });
+  f3.querySelector(".confirmar").onclick = function(){
+    if(rascunho.conflito) return;
+    salvar(total);
+  };
+  var acoes = f3.querySelector(".aviso-acoes");
+  if(acoes){
+    acoes.querySelector(".forte").onclick = function(){ toque("confirmar mesmo assim", true); salvar(total); };
+    acoes.querySelector(".fraca").onclick  = function(){ rascunho.hora = null; rascunho.conflito = false; pintar(); };
+  }
+}
+
+/* ============ historico do cliente (RF-011) ============ */
+function pintarCliente(){
+  var corpo = document.getElementById("corpo");
+  var c = cliente(clienteAberto);
+  var hist = atendimentos.filter(function(a){ return a.clienteId===c.id; })
+                         .sort(function(a,b){ return b.data.localeCompare(a.data); });
+  var ult = hist[0];
+  var comValor = hist.filter(function(a){ return a.valor; })[0];
+  corpo.innerHTML = "";
+  var f = document.createElement("div");
+  f.className = "folha";
+  var miolo;
+  if(hist.length === 0){
+    miolo = '<div class="vazio-dia">Nenhum atendimento registrado</div>';
+  } else {
+    miolo =
+      '<div class="dupla">'+
+        '<div class="bloco-destaque"><div class="g num">'+brl(comValor.valor)+'</div><div class="p">último valor cobrado</div></div>'+
+        '<div class="bloco-destaque"><div class="g">'+haQuantoTempo(ult.data).replace("há ","")+'</div><div class="p">desde a última visita</div></div>'+
+      '</div>'+
+      '<p class="nota-calc">Último serviço em '+dataCurta(ult.data)+': '+listaPecas(ult.pecas)+'.</p>'+
+      '<div style="margin-top:18px"><span class="rotulo">Atendimentos anteriores</span>'+
+      hist.map(function(a){
+        return '<div class="hist-item"><span class="d">'+dataCurta(a.data)+'</span>'+
+               '<span class="p">'+listaPecas(a.pecas)+'</span>'+
+               '<span class="v num">'+brl(a.valor)+'</span></div>';
+      }).join("")+'</div>';
+  }
+  f.innerHTML =
+    '<div class="folha-topo"><button class="voltar">‹ Agenda</button><h3>'+c.nome+'</h3></div>'+
+    '<div class="folha-corpo">'+
+      (c.endereco ? '<p class="nota-calc" style="margin:0 0 14px">'+c.endereco+'</p>'
+                  : '<p class="nota-calc" style="margin:0 0 14px">Cliente provisório — falta telefone e endereço.</p>')+
+      miolo +
+    '</div>';
+  corpo.appendChild(f);
+  f.querySelector(".voltar").onclick = function(){ vista = "agenda"; pintar(); };
+}
+
+/* ============ lista de clientes ============ */
+function pintarClientes(){
+  var corpo = document.getElementById("corpo");
+  corpo.innerHTML = "";
+  var f = document.createElement("div");
+  f.className = "folha";
+  f.innerHTML = '<div class="folha-topo"><button class="voltar">‹ Agenda</button><h3>Clientes</h3></div>'+
+    '<div class="folha-corpo">'+ clientes.map(function(c){
+      var ult = ultimoDe(c.id);
+      return '<button class="opcao" data-c="'+c.id+'"><span class="ini">'+iniciais(c.nome)+'</span>'+
+        '<span class="txt"><span class="t1">'+c.nome+(c.provisorio?'<span class="tag-prov">provisório</span>':'')+'</span>'+
+        '<span class="t2">'+(ult ? "última visita "+haQuantoTempo(ult.data) : "sem atendimento registrado")+'</span></span>'+
+        '<span class="seta">›</span></button>';
+    }).join("") + '</div>';
+  corpo.appendChild(f);
+  f.querySelector(".voltar").onclick = function(){ vista = "agenda"; pintar(); };
+  f.querySelectorAll("[data-c]").forEach(function(b){
+    b.onclick = function(){ clienteAberto = +b.getAttribute("data-c"); vista = "cliente"; pintar(); };
+  });
+}
+
+/* ============ tabela de precos (RF-013) ============ */
+function pintarPrecos(){
+  var corpo = document.getElementById("corpo");
+  corpo.innerHTML = "";
+  var f = document.createElement("div");
+  f.className = "folha";
+  f.innerHTML = '<div class="folha-topo"><button class="voltar">‹ Agenda</button><h3>Tabela de preços</h3></div>'+
+    '<div class="folha-corpo">'+
+      '<p class="nota-calc" style="margin:0 0 6px">Ela mantém esta tabela. Mudar um valor aqui <b>não mexe</b> em atendimento já registrado — só no cálculo do próximo.</p>'+
+      TABELA.map(function(t,i){
+        return '<div class="preco-linha"><span class="t">'+t.tipo+'</span>'+
+          '<span class="u">'+(t.unidade==="m2"?"por m²":"por peça")+'</span>'+
+          '<input type="number" step="1" min="0" value="'+t.valor+'" data-i="'+i+'" aria-label="valor de '+t.tipo+'"></div>';
+      }).join("")+
+      '<div class="aviso" style="border-color:var(--ambar);background:var(--ambar-fundo);color:var(--ambar)">'+
+      '<b>Estes números são de exemplo</b>Quanto ela cobra por m² não foi levantado. É a pergunta que falta para o cálculo virar real.</div>'+
+    '</div>';
+  corpo.appendChild(f);
+  f.querySelector(".voltar").onclick = function(){ vista = "agenda"; pintar(); };
+  f.querySelectorAll("input").forEach(function(inp){
+    inp.oninput = function(){ TABELA[+inp.getAttribute("data-i")].valor = parseFloat(inp.value) || 0; };
+  });
+}
+
+/* ============ despacho ============ */
+function pintar(){
+  pintarSemana();
+  if(vista === "agenda")        pintarAgenda();
+  else if(vista === "novo")     pintarNovo();
+  else if(vista === "cliente")  pintarCliente();
+  else if(vista === "clientes") pintarClientes();
+  else if(vista === "precos")   pintarPrecos();
+}
+document.getElementById("btnClientes").onclick = function(){ vista = "clientes"; pintar(); };
+document.getElementById("btnPrecos").onclick   = function(){ vista = "precos";   pintar(); };
+pintar();
+pintarMedidor();
+</script>
+</body>
+</html>
