@@ -1,10 +1,13 @@
 # SGC para MSClean
 
-> **Status:** ✅ MVP completo — cadastro, edição, exclusão, listagem e busca de clientes.
-> **Em especificação:** agenda por data (RF-005 e RF-010 a RF-012).
+> **Status:** MVP em andamento. A gestão de clientes está entregue; a **agenda de atendimentos** está especificada e em validação com a proprietária. As duas fazem parte do MVP.
+>
+> **Protótipo navegável:** **[wilsongorosthides.github.io/sgc_msclean](https://wilsongorosthides.github.io/sgc_msclean/)** — o fluxo da agenda, clicável, com dados fictícios. Não é o aplicativo: existe para validar as decisões de requisito com a usuária real antes de escrever código.
 
 ## 📝 Descrição do Projeto
-O Sistema de Gestão de Clientes (SGC) para a MSClean é uma aplicação desenvolvida para resolver o desafio de gerenciamento manual de uma base de clientes em rápido crescimento. Centraliza as informações de contato dos clientes, permitindo que a proprietária da empresa tenha controle organizado e eficiente do seu negócio.
+O SGC para a MSClean é o aplicativo que substitui a **agenda de papel** de uma empresa de higienização de estofados e tapetes. A proprietária anota cada atendimento num caderno — dia, cliente, endereço e as peças do serviço — enquanto o valor combinado fica espalhado em conversas de WhatsApp e Instagram.
+
+O projeto nasceu como um cadastro de clientes. Um levantamento de campo em 2026-09-10 — entrevista somada à fotografia das páginas reais do caderno — mostrou que organizar contatos não era a dor: a dor é a **lacuna de transcrição** entre onde o preço é combinado e onde a data é anotada, e foi dessa lacuna que veio o agendamento duplicado relatado pela proprietária. O centro do produto passou a ser a **agenda por data**, com o cadastro de clientes servindo de apoio a ela. O registro completo está em [`docs/requisitos.md`](./docs/requisitos.md) §2.2.
 
 ## 🎯 Objetivo de Negócio
 Substituir o gerenciamento manual (WhatsApp, planilhas, etc.) por uma ferramenta digital simples e intuitiva, garantindo organização, agilidade e profissionalismo no dia a dia da MSClean.
@@ -24,20 +27,32 @@ A documentação detalhada do projeto vive na pasta [`docs/`](./docs):
 - [`execucoes-de-testes-manuais.md`](./docs/execucoes-de-testes-manuais.md) — registro das rodadas de testes manuais (data, ambiente, resultados por CT e issues abertas).
 
 ## ✅ Status do MVP
+
+**Gestão de clientes** — entregue
+
 - [x] Listagem de clientes
 - [x] Busca por palavra-chave
 - [x] Cadastro
 - [x] Edição
 - [x] Exclusão
 
+**Agenda de atendimentos** — especificada, ainda não implementada
+
+- [ ] Agenda por data, abrindo no dia de hoje (RF-010)
+- [ ] Registrar atendimento com período, cliente e peças do serviço (RF-005)
+- [ ] Histórico do cliente: quanto foi cobrado e quando foi a última visita (RF-011)
+- [ ] Aviso de conflito de horário (RF-012)
+- [ ] Tabela de preços e cálculo por metragem (RF-013)
+- [ ] Serviço feito e cliente pagou, como estados independentes (RF-014)
+
 ## 📈 Roadmap
-- **Fase 1 (MVP):** listagem, busca, cadastro, edição e exclusão de clientes. ✅
-- **Fase 2 — Agenda:** registrar atendimento por data, agenda como tela inicial, consultar o valor cobrado de um cliente e aviso de conflito de horário (RF-005 e RF-010 a RF-012). Prioridade definida pelo levantamento de campo com a proprietária em 2026-09-10 — ver "Origem" em [`docs/requisitos.md`](./docs/requisitos.md) §2.2.
+- **Fase 1 — Clientes:** listagem, busca, cadastro, edição e exclusão. ✅
+- **Fase 2 — Agenda:** os seis requisitos acima (RF-005 e RF-010 a RF-014). Prioridade definida pelo levantamento de campo com a proprietária em 2026-09-10 — ver "Origem" em [`docs/requisitos.md`](./docs/requisitos.md) §2.2. **As Fases 1 e 2 juntas formam o MVP.**
 - **Fase 3:** autenticação de usuário (RF-007) — passa a ser necessária quando a agenda concentrar dados de atendimento, e não apenas contatos.
 - **Fase 4:** histórico de pagamentos (RF-006, não priorizado) e melhorias — busca server-side, filtros avançados, refinamentos da versão desktop.
 
 ## 📌 Requisitos do Sistema
-O escopo cobre cadastro, edição, listagem, busca e exclusão de clientes (MVP entregue) e a agenda de atendimentos por data (em especificação), com pagamentos e autenticação previstos adiante. A especificação completa — requisitos funcionais, não funcionais e critérios de aceitação — está em [`docs/requisitos.md`](./docs/requisitos.md), que é a fonte da verdade.
+O MVP cobre duas frentes: a gestão de clientes (cadastro, edição, listagem, busca e exclusão — entregue) e a agenda de atendimentos por data (RF-005 e RF-010 a RF-014 — especificada). Histórico de pagamentos e autenticação ficam para depois do MVP. A especificação completa — requisitos funcionais, não funcionais e critérios de aceitação — está em [`docs/requisitos.md`](./docs/requisitos.md), que é a fonte da verdade.
 
 ## ⚙️ Arquitetura e Tecnologia
 Arquitetura Cliente-Servidor com um BaaS (Backend as a Service):
@@ -71,7 +86,7 @@ O Flutter é fixado via **[FVM](https://fvm.app/)** (`.fvmrc`: Flutter 3.35.0 / 
 
 ```bash
 dart pub global activate fvm            # instala o FVM
-git clone https://github.com/seu-usuario/sgc_msclean.git
+git clone https://github.com/WilsonGorosthides/sgc_msclean.git
 cd sgc_msclean
 fvm use                                 # baixa a versão do .fvmrc
 cp .env.example .env                    # preencha SUPABASE_URL e SUPABASE_ANON_KEY
@@ -82,4 +97,4 @@ fvm flutter run -d chrome
 > **Pré-requisito:** um projeto **Supabase** com a tabela `clientes` e RLS configurados — schema em [`docs/arquitetura.md`](./docs/arquitetura.md).
 
 ## 📜 Licença
-Este projeto está licenciado sob a licença [MIT](https://opensource.org/licenses/MIT).
+Este projeto está licenciado sob a licença MIT — ver [`LICENSE`](./LICENSE).
