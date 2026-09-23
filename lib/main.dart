@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart'; 
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-
-import 'screens/home_screen.dart'; 
+import 'screens/home_screen.dart';
+import 'theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,15 +26,10 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'MSClean SGC',
-      theme: ThemeData(
-        brightness: Brightness.dark,
-        primaryColor: const Color(0xFF2196F3),
-        scaffoldBackgroundColor: const Color(0xFF0D1117),
-        // Google Fonts para dar o ar profissional
-        textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme),
-      ),
-      // AQUI MUDOU: Apenas chame a tela, sem passar 'body'
-      home: const HomeScreen(), 
+      // O tema vem inteiro do design system (docs/design-system.md); nenhuma
+      // cor ou fonte e declarada aqui.
+      theme: AppTheme.claro,
+      home: const HomeScreen(),
     );
   }
 }
