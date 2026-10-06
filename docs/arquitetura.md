@@ -54,6 +54,11 @@ lib/
 ├── services/
 │   ├── supabase_service.dart       # acesso ao Supabase (stream de leitura + insert)
 │   └── maps_launcher.dart          # abre o endereco no Google Maps (RF-009, url_launcher)
+├── theme/
+│   ├── app_colors.dart             # paleta (contrastes WCAG medidos em comentário)
+│   ├── app_spacing.dart            # AppSpacing (escala de 4) e AppRadius
+│   ├── app_typography.dart         # TextTheme em Archivo, os seis tokens de texto
+│   └── app_theme.dart              # ColorScheme explícito + ThemeData (AppTheme.claro)
 └── utils/
     └── validators.dart             # validações puras do formulário (obrigatório, telefone)
 ```
@@ -97,6 +102,14 @@ Em texto: a **screen** consome o **service**, que conversa com o **Supabase clie
   universal (`google.com/maps/search/?api=1&query=`), que funciona em Android e
   web sem código específico de plataforma.
 
+* **Por que um design system em `lib/theme/` antes das telas da agenda.** O estilo vinha sendo decidido tela a tela, com hex literal dentro do widget — o `main.dart` declarava um `ThemeData` escuro que não vinha de lugar nenhum, e as duas telas existentes acumulam nove cores hardcoded. Escrever as seis telas da agenda por cima disso multiplicaria a dívida. Os tokens estão especificados em `docs/design-system.md`, mas a **fonte da verdade é o Dart**: o documento é vista dele. Manter duas definições independentes da mesma coisa termina sempre com as duas divergindo, e a divergência só aparece tarde. A alternativa descartada foi seguir direto para o código da agenda e padronizar depois: economizaria este PR e cobraria o retrofit de seis telas em vez de duas.
+
+* **Por que `ColorScheme` explícito e não `ColorScheme.fromSeed`.** O `fromSeed` deriva as trinta e tantas cores do esquema de uma única semente, pelo algoritmo tonal do Material 3. A paleta do projeto foi escolhida à mão e **medida** par a par contra a WCAG 2.1 AA — três cores do protótipo foram corrigidas justamente por reprovarem. Uma semente descartaria essas medições e devolveria tons derivados que ninguém verificou. O custo assumido é manutenção manual: acrescentar uma cor exige decidir em que slot ela entra, ou se fica fora do esquema. Duas cores de papel — `tarde` e `sucesso` — ficam de fora por decisão: significam período do dia e serviço concluído, e não nível de hierarquia Material; vivem em `AppColors` e `secondary`/`tertiary` espelham a primária, para que um widget que peça `tertiary` por acidente receba a paleta principal em vez de um verde que mentiria sobre o estado do atendimento.
+
+* **Por que só tema claro.** O app é claro, derivado do protótipo navegável da agenda. Um tema escuro exigiria medir a paleta inteira de novo contra fundos escuros — todos os contrastes registrados valem para superfícies claras — e não há demanda da usuária. A alternativa (`ThemeMode.system` com dois esquemas) dobraria a superfície a manter e a verificar em troca de nada que tenha sido pedido.
+
+* **Por que Figma fica fora do projeto.** A especificação visual vive no repositório, em `docs/design-system.md` e em `lib/theme/`, versionada junto do código e revisada no mesmo PR. Uma ferramenta de design externa acrescentaria uma terceira definição dos mesmos tokens, fora do controle de versão do projeto e sem ninguém para mantê-la sincronizada — o projeto tem desenvolvedor solo e usuária única.
+
 * **Por que sem camada de repository.** Com uma única fonte de dados (Supabase) e operações CRUD diretas, uma camada de `repositories/` adicionaria indireção sem benefício no escopo do MVP. O `SupabaseService` já isola o acesso ao backend. A camada pode ser introduzida se surgirem múltiplas fontes de dados, cache local ou necessidade de trocar o backend sem tocar nas telas.
 
 ## 8. Estratégia de Testes
@@ -107,6 +120,7 @@ A auditoria registrou cobertura real de 0% — o único teste era o template pad
 * **Testes unitários (models/services):** validar `ClientModel.fromMap` (incl. campos ausentes/nulos) e a lógica de filtro do `SupabaseService` (case-insensitive, busca por nome ou endereço, resultado vazio), com o cliente Supabase mockado.
 * **Testes de widget (telas):** verificar os estados da `HomeScreen` — carregando, lista vazia ("Nenhum cliente encontrado."), lista populada e filtragem ao digitar na busca.
 * **Critérios de aceitação como base:** cada teste rastreia um critério verificável da seção 2 de `requisitos.md` (ex.: campos obrigatórios no cadastro, confirmação antes de excluir).
+* **Guardas de consistência:** além dos testes que rastreiam critérios de aceitação, a suíte tem testes que verificam regras do próprio projeto lendo o código-fonte. O primeiro é `design_system_test`, que falha se alguma tela em `lib/screens/` declarar `Color(0x...)` ou `Colors.*` em vez de usar o tema ou `AppColors` (`design-system.md` §6). O motivo é que regra de estilo sem automação não sobrevive: a revisão humana não pega uma cor literal a mais no meio de um diff grande, e o custo de descobrir tarde é o retrofit de todas as telas de novo.
 * **Meta:** nenhuma feature do MVP é considerada pronta sem teste correspondente; o objetivo é manter a suíte verde no CI (sem testes que falham por estarem desatualizados).
 
 ## 9. Dívidas Técnicas Conhecidas
@@ -144,6 +158,8 @@ A auditoria registrou cobertura real de 0% — o único teste era o template pad
 | 2026-07-21 | 2.4 | Wilson Gorosthides | Schema da tabela `clientes` (§4): `endereco` passa a opcional (#61) e `telefone` (text) vira `telefones` (text[], um ou mais números por cliente, #62); árvore §5 atualizada. Requer migração no Supabase. |
 | 2026-07-21 | 2.6 | Wilson Gorosthides | Novo `lib/services/maps_launcher.dart` na árvore §5 e decisão técnica (§7): URL do Google Maps montada por função pura, disparo via `url_launcher` injetável na `HomeScreen` (RF-009, issue #66). |
 | 2026-07-21 | 2.5 | Wilson Gorosthides | Schema da tabela `clientes` (§4): `endereco` passa de text para **jsonb** com endereço estruturado (logradouro, número, bairro, complemento, referência; sem CEP/cidade — área de atendimento fixa em Campo Grande - MS); novo value object `Endereco` (`lib/models/endereco.dart`) na árvore §5. Requer migração no Supabase (text → jsonb, issue #65). |
+| 2026-09-23 | 2.7 | Wilson Gorosthides | Novo `lib/theme/` na árvore §5 (`app_colors`, `app_spacing`, `app_typography`, `app_theme`) e quatro decisões técnicas em §7: design system antes das telas da agenda, `ColorScheme` explícito em vez de `fromSeed`, só tema claro e Figma fora do projeto. Tokens especificados em `docs/design-system.md` (issue #60). |
+| 2026-10-06 | 2.8 | Wilson Gorosthides | §8 registra a categoria de "guardas de consistência" na estratégia de testes, com o `design_system_test` (nenhuma cor literal em `lib/screens/`) como primeiro caso. Issue #60. |
 
 ## 12. Ambiente de Desenvolvimento
 Os seguintes softwares e configurações são necessários para iniciar o desenvolvimento:
