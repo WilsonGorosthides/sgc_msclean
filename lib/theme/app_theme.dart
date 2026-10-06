@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'app_colors.dart';
+import 'app_spacing.dart';
 import 'app_typography.dart';
 
 /// Tema do aplicativo, montado a partir dos tokens de
@@ -15,7 +16,134 @@ abstract final class AppTheme {
     colorScheme: _esquemaClaro,
     textTheme: AppTypography.textTheme,
     scaffoldBackgroundColor: AppColors.fundo,
+
+    // Os temas de componente abaixo existem para que a tela nao precise
+    // estilizar nada: um `Card` sem parametro de cor, raio ou elevacao ja sai
+    // com a forma do sistema. O item 2 da issue #60 pede exatamente isso —
+    // estilo centralizado em vez de solto pelas telas.
+    appBarTheme: const AppBarTheme(
+      backgroundColor: AppColors.superficie,
+      foregroundColor: AppColors.tinta,
+      centerTitle: true,
+      // Sem sombra: a separacao do conteudo e feita pela borda inferior, ja
+      // que o `surfaceTint` esta desligado e a elevacao do Material 3 nao
+      // teria como se manifestar em cor.
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      shape: Border(bottom: BorderSide(color: AppColors.borda)),
+    ),
+
+    cardTheme: CardThemeData(
+      color: AppColors.superficie,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      margin: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.medio),
+        side: const BorderSide(color: AppColors.borda),
+      ),
+    ),
+
+    listTileTheme: const ListTileThemeData(
+      iconColor: AppColors.tintaFraca,
+      textColor: AppColors.tinta,
+      subtitleTextStyle: TextStyle(color: AppColors.tintaFraca),
+    ),
+
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: AppColors.superficie,
+      // Campo usa o raio pequeno (design-system.md secao 5).
+      border: _bordaCampo(AppColors.borda),
+      enabledBorder: _bordaCampo(AppColors.borda),
+      focusedBorder: _bordaCampo(AppColors.primaria, espessura: 2),
+      errorBorder: _bordaCampo(AppColors.alerta),
+      focusedErrorBorder: _bordaCampo(AppColors.alerta, espessura: 2),
+      disabledBorder: _bordaCampo(AppColors.tintaDesabilitada),
+      labelStyle: const TextStyle(color: AppColors.tintaFraca),
+      hintStyle: const TextStyle(color: AppColors.tintaFraca),
+      errorStyle: const TextStyle(color: AppColors.alerta),
+    ),
+
+    floatingActionButtonTheme: const FloatingActionButtonThemeData(
+      backgroundColor: AppColors.primaria,
+      foregroundColor: AppColors.superficie,
+    ),
+
+    filledButtonTheme: FilledButtonThemeData(
+      style: FilledButton.styleFrom(
+        backgroundColor: AppColors.primaria,
+        foregroundColor: AppColors.superficie,
+        disabledBackgroundColor: AppColors.borda,
+        disabledForegroundColor: AppColors.tintaDesabilitada,
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.xl,
+          vertical: AppSpacing.lg,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.medio),
+        ),
+      ),
+    ),
+
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(
+        foregroundColor: AppColors.primaria,
+        disabledForegroundColor: AppColors.tintaDesabilitada,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.pequeno),
+        ),
+      ),
+    ),
+
+    iconButtonTheme: IconButtonThemeData(
+      style: IconButton.styleFrom(
+        foregroundColor: AppColors.tintaFraca,
+        disabledForegroundColor: AppColors.tintaDesabilitada,
+      ),
+    ),
+
+    // O `SnackBar` inverte o contraste: tinta no fundo, fundo na tinta. E o
+    // par mais forte que existe no sistema (14.50), e aviso que aparece por
+    // tres segundos precisa ser lido de relance.
+    snackBarTheme: SnackBarThemeData(
+      backgroundColor: AppColors.tinta,
+      contentTextStyle: const TextStyle(color: AppColors.fundo, fontSize: 15),
+      actionTextColor: AppColors.primariaFundo,
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.pequeno),
+      ),
+    ),
+
+    dialogTheme: DialogThemeData(
+      backgroundColor: AppColors.superficie,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.grande),
+      ),
+    ),
+
+    dividerTheme: const DividerThemeData(
+      color: AppColors.bordaForte,
+      thickness: 1,
+      space: 1,
+    ),
+
+    progressIndicatorTheme: const ProgressIndicatorThemeData(
+      color: AppColors.primaria,
+    ),
   );
+
+  /// Borda de campo, no raio pequeno do sistema. Existe para os seis estados
+  /// de `InputDecorationTheme` nao repetirem a mesma construcao.
+  static OutlineInputBorder _bordaCampo(Color cor, {double espessura = 1}) {
+    return OutlineInputBorder(
+      borderRadius: BorderRadius.circular(AppRadius.pequeno),
+      borderSide: BorderSide(color: cor, width: espessura),
+    );
+  }
 
   /// `ColorScheme` escrito a mao, e nao `ColorScheme.fromSeed`.
   ///
