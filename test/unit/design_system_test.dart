@@ -12,10 +12,19 @@ import 'package:flutter_test/flutter_test.dart';
 ///
 /// A excecao e `lib/theme/`, que e onde o sistema e **definido**: ali as cores
 /// literais e um `Colors.black` para sombra sao o proprio ponto.
+///
+/// O padrao exige que `Colors.` nao venha precedido de letra, digito ou `_`,
+/// senao `AppColors.primaria` — que e justamente o jeito certo — seria
+/// acusado, porque contem `Colors.` como pedaco do nome. O segundo teste
+/// deste arquivo existe para travar essa distincao.
+/// `Color(0x...)` literal, ou um `Colors.*` do Material que nao seja parte de
+/// um identificador maior como `AppColors`.
+final _corProibida = RegExp(r'Color\(0x|(?<![A-Za-z0-9_])Colors\.');
+
 void main() {
   group('design_system_test:', () {
     test('nenhuma tela declara cor fora do design system', () {
-      final proibido = RegExp(r'Color\(0x|Colors\.');
+      final proibido = _corProibida;
       final infracoes = <String>[];
 
       for (final arquivo in Directory('lib/screens')
