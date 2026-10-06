@@ -101,6 +101,15 @@ faz aqui é teste **dirigido à usuária real**: um único aparelho, o dela.
   - **Filtrando** — ao digitar na busca, a lista reduz ao correspondente e volta ao
     completo quando o campo é limpo.
 
+- **Guarda de consistência** — verifica uma regra do projeto, não um critério de
+  requisito, lendo o próprio código-fonte:
+  - `design_system_test`: nenhuma tela em `lib/screens/` declara `Color(0x...)` nem
+    `Colors.*`; cor vem do tema ou de `AppColors` (`design-system.md` §6). Falha
+    listando arquivo e linha.
+  - Não tem CT correspondente de propósito: não existe critério de aceitação em
+    `requisitos.md` que ela verifique. É teste de disciplina interna, e criar um CT
+    para ela seria rastrear requisito inexistente.
+
 ### 2.3 Modelo de teste (pirâmide de 3 camadas)
 
 O projeto adota uma pirâmide enxuta, dimensionada ao porte do app:
@@ -290,3 +299,4 @@ manual.
 | 2026-07-17 | 1.3 | Wilson Gorosthides | §3.2: verificações manuais passam a ser registradas em `docs/execucoes-de-testes-manuais.md` (registro de execuções de testes manuais, issue #49). |
 | 2026-07-20 | 1.4 | Wilson Gorosthides | Gate híbrido (issue #56): §5.2 e §9 atribuem a suíte completa + `analyze` ao desenvolvedor, com o agente rodando testes direcionados nos passos 2–3; nova §1.4 registra a fundamentação ATDD (casos derivados dos critérios de aceitação, escritos antes da implementação) com referências. |
 | 2026-07-20 | 1.5 | Wilson Gorosthides | §1.2: tabela de escopo atualizada — RF-001, RF-002 e RF-008 passam a "Implementado" (MVP completo, issue #27). |
+| 2026-10-06 | 1.6 | Wilson Gorosthides | §2.2: novo tipo "guarda de consistência", para testes que verificam regra do projeto lendo o código-fonte em vez de critério de requisito; primeiro caso é o `design_system_test` (nenhuma cor literal nas telas, `design-system.md` §6), deliberadamente sem CT por não haver critério de aceitação que ele rastreie. Issue #60. |

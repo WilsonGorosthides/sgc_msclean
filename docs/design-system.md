@@ -140,6 +140,12 @@ BorderRadius.circular(AppRadius.medio)
 Nenhuma tela deve conter `Color(0x...)` nem `Colors.*`. Se um valor não existe no
 sistema, a resposta é acrescentá-lo aqui e no `lib/theme/` — não improvisar na tela.
 
+**Essa regra tem teste.** `test/unit/design_system_test.dart` varre `lib/screens/`
+e falha se encontrar cor literal, listando arquivo e linha. Regra sem teste é
+recomendação esquecida: sem a guarda, a próxima tela da agenda volta a hardcodear
+e a revisão não pega. `lib/theme/` fica fora da varredura — é onde o sistema é
+definido, e ali a cor literal é o próprio ponto.
+
 ## 7. O que mudou em relação ao protótipo
 
 | mudança | motivo |
@@ -155,10 +161,51 @@ sistema, a resposta é acrescentá-lo aqui e no `lib/theme/` — não improvisar
 O protótipo continua válido como validação de **fluxo**. Como sistema visual, ele era um
 rascunho — e um rascunho que não passava em acessibilidade.
 
-## 8. Fora deste documento
+## 8. Componentes
 
-- **Componentes.** Este documento define tokens. Botões, campos e cartões vêm depois, em
-  `lib/theme/` e em widgets reutilizáveis.
+Os tokens acima são aplicados aos componentes do Material pelo `AppTheme`, de modo
+que a tela não precise estilizar nada: um `Card` sem nenhum parâmetro já sai com a
+forma do sistema. Doze temas de componente, cobrindo tudo o que as telas usam:
+
+| componente | o que o tema fixa |
+|---|---|
+| `AppBar` | `superficie`, título centralizado, sem sombra, borda inferior `borda` |
+| `Card` | `superficie`, raio médio, borda `borda`, elevação 0 |
+| `ListTile` | título em `tinta`, subtítulo e ícone em `tintaFraca` |
+| campo (`InputDecoration`) | preenchido em `superficie`, raio pequeno, borda `borda`; foco em `primaria` com 2px; erro em `alerta`; desabilitado em `tintaDesabilitada` |
+| `FloatingActionButton` | `primaria` com ícone em `superficie` |
+| `FilledButton` | `primaria`, raio médio, padding `xl`/`lg`; desabilitado em `borda` |
+| `TextButton` | texto em `primaria`, raio pequeno |
+| `IconButton` | `tintaFraca` |
+| `SnackBar` | contraste invertido: fundo `tinta`, texto `fundo`, ação em `primariaFundo` |
+| diálogo | `superficie`, raio grande, elevação 0 |
+| divisor | `bordaForte`, 1px |
+| indicador de progresso | `primaria` |
+
+**Por que sem sombra.** Com o `surfaceTint` desligado (ver abaixo), a elevação do
+Material 3 não teria como se manifestar em cor, e sobraria uma sombra solta. A
+separação entre superfícies é feita por **borda**, não por elevação.
+
+**Por que o `surfaceTint` está desligado.** No Material 3 ele tinge o cartão elevado
+com a primária. Toda a paleta da seção 2 foi medida contra `#FFFFFF` e `#F2F4F4`;
+com o tint ligado, qualquer cartão com elevação passaria a ter um branco azulado que
+não foi medido.
+
+**Por que o `ColorScheme` é escrito à mão.** `ColorScheme.fromSeed` derivaria as trinta
+e tantas cores do esquema de uma única semente, pelo algoritmo tonal do Material 3, e
+descartaria no caminho a paleta medida — inclusive as três correções da seção 7. O
+custo assumido é manutenção manual.
+
+`tarde` e `sucesso` ficam **fora** do `ColorScheme`, em `AppColors`: significam período
+do dia e serviço concluído, e não nível de hierarquia Material. `secondary` e `tertiary`
+espelham a primária, para que um widget que peça `tertiary` por acidente receba a paleta
+principal em vez de um verde que mentiria sobre o estado do atendimento.
+
+### Ainda fora deste documento
+
+- **Widgets reutilizáveis.** O tema cobre os componentes do Material. Widgets próprios
+  do domínio — cartão de atendimento, selo de período, linha de peça — nascem com as
+  telas da agenda, não antes delas.
 - **Tema escuro.** O app é claro. A decisão está registrada em `arquitetura.md` §7. Um
   tema escuro exigiria medir a paleta inteira de novo, e não há demanda da usuária.
 - **Figma.** Fora do escopo do projeto, com a justificativa registrada em `arquitetura.md` §7.
@@ -168,3 +215,4 @@ rascunho — e um rascunho que não passava em acessibilidade.
 | Versão | Data | Autor | Alterações |
 |---|---|---|---|
 | 1.0 | 2026-09-23 | Wilson Gorosthides | Versão inicial: tokens de cor, tipografia, espaçamento e raio extraídos do protótipo da agenda e corrigidos para WCAG 2.1 AA. Regra de fonte da verdade (Dart canônico). Issue #60. |
+| 1.1 | 2026-10-06 | Wilson Gorosthides | Tokens implementados em `lib/theme/` e aplicados: §6 registra a guarda automatizada da regra de "nenhuma cor na tela" (`design_system_test.dart`); §8 deixa de listar componentes como pendência e passa a documentar os doze temas de componente do `AppTheme`, com as justificativas de `ColorScheme` explícito, `surfaceTint` desligado e separação por borda em vez de sombra. Widgets de domínio passam a ser a única pendência de componente. Issue #60. |
