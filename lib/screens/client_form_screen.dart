@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_spacing.dart';
 import '../models/client_model.dart';
 import '../models/endereco.dart';
 import '../services/supabase_service.dart';
@@ -167,12 +169,12 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
     }
 
     return [
-      const Align(
+      Align(
         alignment: Alignment.centerLeft,
         child: Text('Endereço (opcional)',
-            style: TextStyle(fontWeight: FontWeight.bold)),
+            style: Theme.of(context).textTheme.titleMedium),
       ),
-      const SizedBox(height: 8),
+      const SizedBox(height: AppSpacing.sm),
       Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -181,7 +183,7 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
             child:
                 campo('campo_logradouro', _logradouroController, 'Rua / Avenida'),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: campo('campo_numero', _numeroController, 'Número',
                 tipo: TextInputType.text,
@@ -189,12 +191,12 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
           ),
         ],
       ),
-      const SizedBox(height: 8),
+      const SizedBox(height: AppSpacing.sm),
       campo('campo_bairro', _bairroController, 'Bairro'),
-      const SizedBox(height: 8),
+      const SizedBox(height: AppSpacing.sm),
       campo('campo_complemento', _complementoController,
           'Complemento (bloco, apto, torre)'),
-      const SizedBox(height: 8),
+      const SizedBox(height: AppSpacing.sm),
       campo('campo_referencia', _referenciaController, 'Ponto de referência'),
     ];
   }
@@ -220,13 +222,13 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
             IconButton(
               key: Key('remover_telefone_$i'),
               icon: const Icon(Icons.remove_circle_outline,
-                  color: Colors.redAccent),
+                  color: AppColors.alerta),
               tooltip: 'Remover telefone',
               onPressed: () => _removerTelefone(i),
             ),
         ],
       ));
-      campos.add(const SizedBox(height: 8));
+      campos.add(const SizedBox(height: AppSpacing.sm));
     }
     campos.add(Align(
       alignment: Alignment.centerLeft,
@@ -245,13 +247,11 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.cliente == null ? 'Novo Cliente' : 'Editar Cliente'),
-        centerTitle: true,
-        elevation: 0,
       ),
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(AppSpacing.lg),
           children: [
             TextFormField(
               key: const Key('campo_nome'),
@@ -260,11 +260,11 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
               decoration: const InputDecoration(labelText: 'Nome'),
               validator: (valor) => Validadores.obrigatorio(valor, 'nome'),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             ..._camposEndereco(),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             ..._camposTelefone(),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.xl),
             FilledButton.icon(
               key: const Key('botao_salvar'),
               onPressed: _salvando ? null : _salvar,

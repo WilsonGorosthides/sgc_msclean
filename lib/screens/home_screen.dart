@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_spacing.dart';
 import '../services/supabase_service.dart';
 import '../services/maps_launcher.dart';
 import '../models/client_model.dart';
@@ -52,8 +54,11 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: () => Navigator.of(dialogContext).pop(false),
             child: const Text('Cancelar'),
           ),
+          // Acao destrutiva recebe a cor de alerta: a cor carrega informacao
+          // (design-system.md secao 2.3), e aqui ela avisa o que o toque faz.
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.alerta),
             child: const Text('Excluir'),
           ),
         ],
@@ -78,28 +83,20 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('MSClean - Clientes'),
-        centerTitle: true,
-        elevation: 0,
-      ),
+      appBar: AppBar(title: const Text('MSClean - Clientes')),
       body: Column(
         children: [
           // BARRA DE BUSCA (Requisito RF-004)
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             child: TextField(
               onChanged: (value) {
                 setState(() => _searchQuery = value);
               },
-              decoration: InputDecoration(
+              // Preenchimento, raio e bordas vem do InputDecorationTheme.
+              decoration: const InputDecoration(
                 hintText: 'Buscar por nome ou rua...',
-                prefixIcon: const Icon(Icons.search, color: Colors.blueAccent),
-                filled: true,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
+                prefixIcon: Icon(Icons.search, color: AppColors.primaria),
               ),
             ),
           ),
@@ -128,20 +125,28 @@ class _HomeScreenState extends State<HomeScreen> {
                   itemBuilder: (context, index) {
                     final cliente = clientes[index];
                     return Card(
-                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      // Cor, raio, borda e elevacao vem do CardTheme; so a
+                      // margem entre itens da lista fica com a tela.
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.lg,
+                        vertical: AppSpacing.xs,
+                      ),
                       child: ListTile(
                         leading: CircleAvatar(
-                          backgroundColor: Colors.blueAccent,
-                          child: Text(cliente.nome[0].toUpperCase(), style: const TextStyle(color: Colors.white)),
+                          backgroundColor: AppColors.primariaFundo,
+                          child: Text(
+                            cliente.nome[0].toUpperCase(),
+                            style: const TextStyle(color: AppColors.primaria),
+                          ),
                         ),
-                        title: Text(cliente.nome, style: const TextStyle(fontWeight: FontWeight.bold)),
+                        title: Text(cliente.nome,
+                            style: Theme.of(context).textTheme.titleMedium),
                         // endereço é opcional (#61) e estruturado (#65):
                         // resumo legível, ou placeholder discreto quando vazio
                         subtitle: cliente.endereco.vazio
-                            ? Text('Sem endereço',
+                            ? const Text('Sem endereço',
                                 style: TextStyle(
-                                    color: Colors.grey[500],
+                                    color: AppColors.tintaFraca,
                                     fontStyle: FontStyle.italic))
                             : Text(cliente.endereco.resumo),
                         trailing: Row(
@@ -153,7 +158,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               IconButton(
                                 key: Key('abrir_maps_${cliente.id}'),
                                 icon: const Icon(Icons.map_outlined,
-                                    color: Colors.blueAccent),
+                                    color: AppColors.primaria),
                                 tooltip: 'Abrir no mapa',
                                 onPressed: () => _abrirMaps(cliente.endereco),
                               ),
@@ -162,7 +167,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             IconButton(
                               key: Key('excluir_${cliente.id}'),
                               icon: const Icon(Icons.delete_outline,
-                                  color: Colors.redAccent),
+                                  color: AppColors.alerta),
                               tooltip: 'Excluir',
                               onPressed: () => _excluirCliente(cliente),
                             ),
@@ -183,8 +188,7 @@ class _HomeScreenState extends State<HomeScreen> {
       // BOTÃO DE ADICIONAR (RF-001)
       floatingActionButton: FloatingActionButton(
         onPressed: _abrirFormulario,
-        backgroundColor: Colors.blueAccent,
-        child: const Icon(Icons.person_add, color: Colors.white),
+        child: const Icon(Icons.person_add),
       ),
     );
   }
