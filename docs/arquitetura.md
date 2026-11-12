@@ -145,6 +145,7 @@ A auditoria registrou cobertura real de 0% — o único teste era o template pad
 | Perda do `.env` por falta de exemplo no repositório | Alta | Médio | Criar `.env.example` com chaves esperadas e instruções |
 | Documentação voltar a divergir do código | Média | Médio | Definição de pronto inclui atualização de docs; revisão a cada commit que mexer em model, stack ou estrutura |
 | Cobertura zero permitir regressões silenciosas | Alta (hoje) | Alto | Substituir template de teste; plano de testes precede cada feature do MVP (ver seção 8) |
+| Projeto Supabase (plano gratuito) pausar por inatividade | Alta em períodos sem desenvolvimento (aconteceu em 2026-07 e em 2026-10/11) | Médio: o app abre sem dados até a retomada manual pelo painel; os dados não se perdem (restaurável por meses) | Workflow `keep-alive.yml` faz uma leitura mínima na API REST todo dia (issue #72); credenciais em secrets do repositório. Quando a usuária estiver em uso diário, o próprio uso mantém o projeto ativo |
 
 ## 11. Histórico de Versões
 
@@ -159,6 +160,7 @@ A auditoria registrou cobertura real de 0% — o único teste era o template pad
 | 2026-07-21 | 2.6 | Wilson Gorosthides | Novo `lib/services/maps_launcher.dart` na árvore §5 e decisão técnica (§7): URL do Google Maps montada por função pura, disparo via `url_launcher` injetável na `HomeScreen` (RF-009, issue #66). |
 | 2026-07-21 | 2.5 | Wilson Gorosthides | Schema da tabela `clientes` (§4): `endereco` passa de text para **jsonb** com endereço estruturado (logradouro, número, bairro, complemento, referência; sem CEP/cidade — área de atendimento fixa em Campo Grande - MS); novo value object `Endereco` (`lib/models/endereco.dart`) na árvore §5. Requer migração no Supabase (text → jsonb, issue #65). |
 | 2026-09-23 | 2.7 | Wilson Gorosthides | Novo `lib/theme/` na árvore §5 (`app_colors`, `app_spacing`, `app_typography`, `app_theme`) e quatro decisões técnicas em §7: design system antes das telas da agenda, `ColorScheme` explícito em vez de `fromSeed`, só tema claro e Figma fora do projeto. Tokens especificados em `docs/design-system.md` (issue #60). |
+| 2026-11-12 | 2.9 | Wilson Gorosthides | §10: novo risco de pausa do projeto Supabase por inatividade, mitigado pelo workflow `keep-alive.yml` (leitura diária na API REST, issue #72). |
 | 2026-10-06 | 2.8 | Wilson Gorosthides | §8 registra a categoria de "guardas de consistência" na estratégia de testes, com o `design_system_test` (nenhuma cor literal em `lib/screens/`) como primeiro caso. Issue #60. |
 
 ## 12. Ambiente de Desenvolvimento
