@@ -14,7 +14,9 @@
 
 Todos os RFs do MVP (RF-001 a RF-004 e RF-008) estão implementados e com os
 casos de teste escritos; a coluna "Caso de teste" aponta os nomes reais na
-suíte.
+suíte. Os RFs da agenda (`requisitos.md` §2.2) entram na matriz à medida que
+seus casos são escritos: o RF-010 já tem os seus (CT-029 a CT-039), marcados
+"a implementar" até a entrega.
 
 | RF | Critério de aceitação (`requisitos.md` §2) | Caso de teste |
 |---|---|---|
@@ -45,6 +47,17 @@ suíte.
 | RF-008 | Ao confirmar, o cliente é removido do banco e desaparece da lista imediatamente após a confirmação. | CT-021 — `home_screen_test: confirmar remove e a lista reflete ao renovar a stream` |
 | RF-008 | Após a exclusão bem-sucedida, o sistema dá feedback visual (ex.: SnackBar "Cliente excluído"). | CT-022 — `home_screen_test: exclusão bem-sucedida exibe feedback` |
 | RF-009 | A partir de um cliente com endereço, uma ação abre o endereço no Google Maps; sem endereço, a ação não é exibida. | CT-028 — `maps_launcher_test: urlMaps monta a busca do Google Maps a partir do endereço` · `maps_launcher_test: urlMaps de endereço vazio é nula` · `home_screen_test: item com endereço mostra o botão de abrir no mapa e dispara` · `home_screen_test: item sem endereço não mostra o botão de abrir no mapa` |
+| RF-010 | Ao abrir o aplicativo, o sistema exibe a agenda posicionada no **dia de hoje**. | CT-029 — a implementar |
+| RF-010 | Os atendimentos do dia selecionado são agrupados por **período** (manhã, depois tarde) e, dentro do período, ordenados por hora quando houver — os sem hora aparecem depois dos com hora, na ordem em que foram registrados. | CT-030 — a implementar |
+| RF-010 | Cada período exibe **quantos atendimentos tem**, para que a carga do dia seja visível antes de aceitar mais um. | CT-031 — a implementar |
+| RF-010 | O usuário navega para outros dias sem precisar digitar uma data. | CT-032 — a implementar |
+| RF-010 | Um dia sem atendimentos exibe a mensagem "Nenhum atendimento neste dia." em vez de uma lista vazia silenciosa (consistente com o RF-003). | CT-033 — a implementar |
+| RF-010 | Na navegação entre dias, os dias que possuem ao menos um atendimento são visualmente distinguíveis dos vazios. | CT-034 — a implementar |
+| RF-010 | A **semana** do dia selecionado fica visível junto ao dia: os sete dias (domingo a sábado), cada um com a **quantidade de atendimentos**. O usuário avança e retrocede de semana em semana. | CT-035 — a implementar |
+| RF-010 | A partir da agenda, em **um toque**, o usuário abre o **mês** em formato de calendário: cada dia do mês exibe a quantidade de atendimentos. O usuário avança e retrocede de mês em mês. | CT-036 — a implementar |
+| RF-010 | Tocar em um dia, na semana ou no mês, seleciona esse dia e exibe os seus atendimentos. | CT-037 — a implementar |
+| RF-010 | O **dia de hoje** é identificável na semana e no mês, e um atalho volta a hoje a partir de qualquer data. | CT-038 — a implementar |
+| RF-010 | A lista de clientes (RF-003) continua acessível, deixando de ser a tela inicial. | CT-039 — a implementar |
 
 Os casos de teste de RF-003 e RF-004 estão **implementados e passando** — vivem em
 `test/unit/supabase_service_test.dart` e `test/widget/home_screen_test.dart`, com
@@ -69,3 +82,4 @@ descoberto.
 | 2026-07-21 | 1.10 | Wilson Gorosthides | RF-001: linha de obrigatórios ajustada (ao menos um telefone) e nova linha de múltiplos telefones ↔ CT-026 (`requisitos.md` 2.7, issue #62). |
 | 2026-07-21 | 1.11 | Wilson Gorosthides | Endereço estruturado (`requisitos.md` 2.8, issue #65): nova linha do RF-001 ↔ CT-027; RF-003 (resumo + placeholder ↔ CT-011) e RF-004 (busca por qualquer campo do endereço) ajustados. |
 | 2026-07-21 | 1.12 | Wilson Gorosthides | Abrir no mapa (`requisitos.md` 2.9, issue #66): nova linha do RF-009 ↔ CT-028 (URL do Google Maps + botão de mapa que aparece/dispara só com endereço). |
+| 2026-11-12 | 1.13 | Wilson Gorosthides | Agenda entra na matriz: onze linhas do RF-010 ↔ CT-029 a CT-039 (`requisitos.md` 3.2, incluindo as visões de semana e mês), todas "a implementar"; nota introdutória passa a registrar a entrada progressiva dos RFs da agenda. |
