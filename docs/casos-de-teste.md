@@ -458,7 +458,7 @@
 ### CT-040 — Registro parte do dia selecionado
 - **Critério:** "O registro parte de um dia da agenda: a Data já vem preenchida
   com o dia selecionado."
-- **Tipo:** Widget · **Situação:** a implementar
+- **Tipo:** Widget · **Situação:** implementado — `agenda_screen_test: novo atendimento parte do dia selecionado e, salvo, consta no período` · `atendimento_form_screen_test: exige cliente e período; hora é opcional`
 - **Pré-condições:** agenda aberta com um dia selecionado diferente de hoje.
 - **Passos:**
   1. Acionar "Novo atendimento" na agenda.
@@ -468,7 +468,7 @@
 
 ### CT-041 — Cliente e Período obrigatórios; Hora opcional
 - **Critério:** "**Cliente e Período são obrigatórios.** **Hora é opcional**."
-- **Tipo:** Widget · **Situação:** a implementar
+- **Tipo:** Widget · **Situação:** implementado — `atendimento_form_screen_test: exige cliente e período; hora é opcional` · `atendimento_form_screen_test: hora inválida bloqueia; hora válida é gravada` · `validadores: hora é opcional e, quando informada, segue HH:MM`
 - **Pré-condições:** formulário aberto.
 - **Passos:**
   1. Salvar sem cliente e sem período.
@@ -479,7 +479,7 @@
 ### CT-042 — Hora alterável depois sem refazer o atendimento
 - **Critério:** "Quando informada, a Hora pode ser alterada depois sem refazer o
   atendimento."
-- **Tipo:** Widget · **Situação:** a implementar
+- **Tipo:** Widget · **Situação:** implementado — `agenda_screen_test: tocar no cartão abre a edição e a hora alterada é atualizada` · `atendimento_form_screen_test: edição abre preenchida e salva pelo update`
 - **Pré-condições:** um atendimento do dia, com hora.
 - **Passos:**
   1. Tocar no cartão do atendimento na agenda.
@@ -493,7 +493,7 @@
   (tapete, sofá, poltrona, cortina, colchão, outro), **quantidade** e, quando o
   tipo é medido por metragem, **largura e comprimento**. Uma peça sem medida é
   registrada apenas por quantidade."
-- **Tipo:** Unitário + Widget · **Situação:** a implementar
+- **Tipo:** Unitário + Widget · **Situação:** implementado — `peca_test: toMap de peça medida leva as medidas; contada só a quantidade` · `peca_test: tapete é o tipo medido por metragem; os demais são contados` · `atendimento_test: toMap grava a linha do banco, sem id e sem criado_em` · `atendimento_form_screen_test: peças: tipo medido mostra as medidas; a lista é gravada` · `atendimento_form_screen_test: remover peça tira a linha`
 - **Pré-condições:** formulário aberto com cliente e período escolhidos.
 - **Passos:**
   1. Serializar uma peça medida e uma contada (função pura).
@@ -506,7 +506,7 @@
 ### CT-044 — Valor informado pela proprietária
 - **Critério:** "O **Valor** [...] **pode ser sobrescrito** pela proprietária
   antes de salvar." (nesta entrega, o valor é só digitado; o cálculo é o RF-013)
-- **Tipo:** Unitário + Widget · **Situação:** a implementar
+- **Tipo:** Unitário + Widget · **Situação:** implementado — `agenda_test: lerValor aceita virgula ou ponto e devolve nulo para vazio` · `atendimento_form_screen_test: valor digitado com vírgula; campo vazio grava sem valor`
 - **Pré-condições:** formulário aberto com cliente e período escolhidos.
 - **Passos:**
   1. Converter "180,50", "180" e "" (função pura).
@@ -518,7 +518,7 @@
 - **Critério:** "O Cliente pode ser escolhido entre os cadastrados **ou**
   informado por um nome ainda não cadastrado. Neste segundo caso o sistema cria
   um **cliente provisório** apenas com o nome."
-- **Tipo:** Widget · **Situação:** a implementar
+- **Tipo:** Widget · **Situação:** implementado — `atendimento_form_screen_test: nome não cadastrado cria cliente provisório só com o nome` · `atendimento_form_screen_test: busca filtra os clientes pelo nome`
 - **Pré-condições:** formulário aberto; o nome digitado não existe na lista.
 - **Passos:**
   1. Digitar um nome na busca de cliente.
@@ -530,7 +530,7 @@
 ### CT-046 — Cliente provisório sinalizado na lista
 - **Critério:** "O cliente provisório é sinalizado na lista de clientes até ser
   completado."
-- **Tipo:** Unitário + Widget · **Situação:** a implementar
+- **Tipo:** Unitário + Widget · **Situação:** implementado — `client_model_test: provisório é o cliente sem telefone (RF-005)` · `home_screen_test: cliente provisório exibe o selo na lista`
 - **Pré-condições:** lista com um cliente sem telefone e um completo.
 - **Passos:**
   1. Consultar a regra de provisório (função pura).
@@ -543,7 +543,7 @@
 - **Critério:** "Quando o Cliente tem endereço cadastrado, o Local vem
   pré-preenchido com o resumo do endereço (mesmo resumo do RF-003), e pode ser
   alterado."
-- **Tipo:** Widget · **Situação:** a implementar
+- **Tipo:** Widget · **Situação:** implementado — `atendimento_form_screen_test: local vem do endereço do cliente e pode ser alterado` · `atendimento_form_screen_test: trocar o cliente volta à busca`
 - **Pré-condições:** um cliente com endereço e um sem.
 - **Passos:**
   1. Escolher o cliente com endereço; conferir o Local.
@@ -555,7 +555,7 @@
 ### CT-048 — Atendimento salvo consta no dia e no período
 - **Critério:** "Ao salvar, o atendimento passa a constar no dia e no período
   correspondentes da agenda."
-- **Tipo:** Widget · **Situação:** a implementar
+- **Tipo:** Widget · **Situação:** implementado — `agenda_screen_test: novo atendimento parte do dia selecionado e, salvo, consta no período`
 - **Pré-condições:** agenda aberta num dia vazio.
 - **Passos:**
   1. Registrar um atendimento da tarde nesse dia e voltar à agenda.
@@ -734,3 +734,4 @@
 | 2026-11-12 | 1.10 | Wilson Gorosthides | Primeiros casos da agenda: CT-029 a CT-039 para o RF-010 (`requisitos.md` 3.2) — abertura em hoje, agrupamento e ordenação por período, contagem por período, navegação entre dias, dia vazio, dias ocupados distinguíveis, semana com quantidade por dia, mês em calendário, seleção de dia pela semana ou pelo mês, hoje identificável com atalho, e acesso à lista de clientes. Todos "a implementar". Convenção nova: a data de hoje é injetada nos testes. |
 | 2026-11-13 | 1.11 | Wilson Gorosthides | CT-029 a CT-039 passam a "implementado" com os testes reais da entrega do RF-010 (issue #75): `atendimento_test`, `agenda_test` (funções puras de semana, mês, contagem e ordem) e `agenda_screen_test` (catorze casos de widget com o relógio injetado). |
 | 2026-11-13 | 1.12 | Wilson Gorosthides | Casos do RF-005 enxuto (issue #77): CT-040 a CT-048 — data do dia selecionado, cliente e período obrigatórios com hora opcional, hora alterável depois, peças como lista, valor digitado, cliente provisório só com o nome e o seu selo na lista, local pré-preenchido com o endereço, e o atendimento salvo constando no dia e no período. Todos "a implementar". |
+| 2026-11-13 | 1.13 | Wilson Gorosthides | CT-040 a CT-048 passam a "implementado" com os testes da entrega do RF-005 enxuto (issue #77): `atendimento_form_screen_test` (onze casos), mais os novos casos em `agenda_screen_test`, `home_screen_test`, `atendimento_test`, `agenda_test`, `client_model_test` e `validators_test`. |
