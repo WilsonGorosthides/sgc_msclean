@@ -15,8 +15,8 @@
 Todos os RFs do MVP (RF-001 a RF-004 e RF-008) estão implementados e com os
 casos de teste escritos; a coluna "Caso de teste" aponta os nomes reais na
 suíte. Os RFs da agenda (`requisitos.md` §2.2) entram na matriz à medida que
-seus casos são escritos: o RF-010 já tem os seus (CT-029 a CT-039), marcados
-"a implementar" até a entrega.
+seus casos são escritos: o RF-010 já tem os seus (CT-029 a CT-039), entregues
+na issue #75.
 
 | RF | Critério de aceitação (`requisitos.md` §2) | Caso de teste |
 |---|---|---|
@@ -47,17 +47,17 @@ seus casos são escritos: o RF-010 já tem os seus (CT-029 a CT-039), marcados
 | RF-008 | Ao confirmar, o cliente é removido do banco e desaparece da lista imediatamente após a confirmação. | CT-021 — `home_screen_test: confirmar remove e a lista reflete ao renovar a stream` |
 | RF-008 | Após a exclusão bem-sucedida, o sistema dá feedback visual (ex.: SnackBar "Cliente excluído"). | CT-022 — `home_screen_test: exclusão bem-sucedida exibe feedback` |
 | RF-009 | A partir de um cliente com endereço, uma ação abre o endereço no Google Maps; sem endereço, a ação não é exibida. | CT-028 — `maps_launcher_test: urlMaps monta a busca do Google Maps a partir do endereço` · `maps_launcher_test: urlMaps de endereço vazio é nula` · `home_screen_test: item com endereço mostra o botão de abrir no mapa e dispara` · `home_screen_test: item sem endereço não mostra o botão de abrir no mapa` |
-| RF-010 | Ao abrir o aplicativo, o sistema exibe a agenda posicionada no **dia de hoje**. | CT-029 — a implementar |
-| RF-010 | Os atendimentos do dia selecionado são agrupados por **período** (manhã, depois tarde) e, dentro do período, ordenados por hora quando houver — os sem hora aparecem depois dos com hora, na ordem em que foram registrados. | CT-030 — a implementar |
-| RF-010 | Cada período exibe **quantos atendimentos tem**, para que a carga do dia seja visível antes de aceitar mais um. | CT-031 — a implementar |
-| RF-010 | O usuário navega para outros dias sem precisar digitar uma data. | CT-032 — a implementar |
-| RF-010 | Um dia sem atendimentos exibe a mensagem "Nenhum atendimento neste dia." em vez de uma lista vazia silenciosa (consistente com o RF-003). | CT-033 — a implementar |
-| RF-010 | Na navegação entre dias, os dias que possuem ao menos um atendimento são visualmente distinguíveis dos vazios. | CT-034 — a implementar |
-| RF-010 | A **semana** do dia selecionado fica visível junto ao dia: os sete dias (domingo a sábado), cada um com a **quantidade de atendimentos**. O usuário avança e retrocede de semana em semana. | CT-035 — a implementar |
-| RF-010 | A partir da agenda, em **um toque**, o usuário abre o **mês** em formato de calendário: cada dia do mês exibe a quantidade de atendimentos. O usuário avança e retrocede de mês em mês. | CT-036 — a implementar |
-| RF-010 | Tocar em um dia, na semana ou no mês, seleciona esse dia e exibe os seus atendimentos. | CT-037 — a implementar |
-| RF-010 | O **dia de hoje** é identificável na semana e no mês, e um atalho volta a hoje a partir de qualquer data. | CT-038 — a implementar |
-| RF-010 | A lista de clientes (RF-003) continua acessível, deixando de ser a tela inicial. | CT-039 — a implementar |
+| RF-010 | Ao abrir o aplicativo, o sistema exibe a agenda posicionada no **dia de hoje**. | CT-029 — `agenda_screen_test: abre no dia de hoje e mostra só os atendimentos de hoje` |
+| RF-010 | Os atendimentos do dia selecionado são agrupados por **período** (manhã, depois tarde) e, dentro do período, ordenados por hora quando houver — os sem hora aparecem depois dos com hora, na ordem em que foram registrados. | CT-030 — `agenda_test: manhã antes da tarde; com hora por hora; sem hora por registro` · `agenda_test: período sem atendimento não aparece nos grupos` · `agenda_screen_test: agrupa por período e ordena por hora, sem hora depois` · `agenda_screen_test: cartão exibe a hora, ou "sem hora", e o local` |
+| RF-010 | Cada período exibe **quantos atendimentos tem**, para que a carga do dia seja visível antes de aceitar mais um. | CT-031 — `agenda_screen_test: cada período exibe quantos atendimentos tem` |
+| RF-010 | O usuário navega para outros dias sem precisar digitar uma data. | CT-032 — `agenda_screen_test: navega para outro dia tocando na faixa da semana` |
+| RF-010 | Um dia sem atendimentos exibe a mensagem "Nenhum atendimento neste dia." em vez de uma lista vazia silenciosa (consistente com o RF-003). | CT-033 — `agenda_screen_test: dia sem atendimento exibe a mensagem` |
+| RF-010 | Na navegação entre dias, os dias que possuem ao menos um atendimento são visualmente distinguíveis dos vazios. | CT-034 — `agenda_test: conta atendimentos por dia` · `agenda_screen_test: dias com atendimento têm marca; os vazios não` |
+| RF-010 | A **semana** do dia selecionado fica visível junto ao dia: os sete dias (domingo a sábado), cada um com a **quantidade de atendimentos**. O usuário avança e retrocede de semana em semana. | CT-035 — `agenda_test: semana vai do domingo ao sábado que contêm o dia` · `agenda_test: domingo abre a semana e sábado a fecha` · `agenda_test: semana que atravessa a virada de mês` · `agenda_screen_test: faixa mostra domingo a sábado com a quantidade por dia` · `agenda_screen_test: avança e retrocede a semana` |
+| RF-010 | A partir da agenda, em **um toque**, o usuário abre o **mês** em formato de calendário: cada dia do mês exibe a quantidade de atendimentos. O usuário avança e retrocede de mês em mês. | CT-036 — `agenda_test: grade do mês alinha o dia 1 à coluna do dia da semana` · `agenda_test: grade de um mês que começa no domingo não tem vazios antes` · `agenda_test: somar meses cai no dia 1 do mês de destino` · `agenda_screen_test: abre o mês com um toque e navega entre meses` |
+| RF-010 | Tocar em um dia, na semana ou no mês, seleciona esse dia e exibe os seus atendimentos. | CT-037 — `agenda_screen_test: tocar num dia do mês seleciona e volta à visão do dia` |
+| RF-010 | O **dia de hoje** é identificável na semana e no mês, e um atalho volta a hoje a partir de qualquer data. | CT-038 — `agenda_screen_test: hoje tem marca própria na semana e no mês` · `agenda_screen_test: atalho volta a hoje a partir de outro mês` |
+| RF-010 | A lista de clientes (RF-003) continua acessível, deixando de ser a tela inicial. | CT-039 — `agenda_screen_test: lista de clientes abre pela agenda e volta ao mesmo dia` |
 
 Os casos de teste de RF-003 e RF-004 estão **implementados e passando** — vivem em
 `test/unit/supabase_service_test.dart` e `test/widget/home_screen_test.dart`, com
@@ -83,3 +83,4 @@ descoberto.
 | 2026-07-21 | 1.11 | Wilson Gorosthides | Endereço estruturado (`requisitos.md` 2.8, issue #65): nova linha do RF-001 ↔ CT-027; RF-003 (resumo + placeholder ↔ CT-011) e RF-004 (busca por qualquer campo do endereço) ajustados. |
 | 2026-07-21 | 1.12 | Wilson Gorosthides | Abrir no mapa (`requisitos.md` 2.9, issue #66): nova linha do RF-009 ↔ CT-028 (URL do Google Maps + botão de mapa que aparece/dispara só com endereço). |
 | 2026-11-12 | 1.13 | Wilson Gorosthides | Agenda entra na matriz: onze linhas do RF-010 ↔ CT-029 a CT-039 (`requisitos.md` 3.2, incluindo as visões de semana e mês), todas "a implementar"; nota introdutória passa a registrar a entrada progressiva dos RFs da agenda. |
+| 2026-11-13 | 1.14 | Wilson Gorosthides | RF-010 entregue (issue #75): as onze linhas trocam "a implementar" pelos nomes reais dos testes em `agenda_test`, `atendimento_test` e `agenda_screen_test`. |

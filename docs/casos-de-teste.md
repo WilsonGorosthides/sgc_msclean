@@ -456,7 +456,7 @@
 ### CT-029 — Agenda abre no dia de hoje
 - **Critério:** "Ao abrir o aplicativo, o sistema exibe a agenda posicionada no
   **dia de hoje**."
-- **Tipo:** Widget · **Situação:** a implementar
+- **Tipo:** Widget · **Situação:** implementado — `agenda_screen_test: abre no dia de hoje e mostra só os atendimentos de hoje`
 - **Pré-condições:** relógio fixo; atendimentos registrados em hoje e em outro
   dia.
 - **Passos:**
@@ -469,7 +469,7 @@
   **período** (manhã, depois tarde) e, dentro do período, ordenados por hora
   quando houver — os sem hora aparecem depois dos com hora, na ordem em que
   foram registrados."
-- **Tipo:** Unitário + Widget · **Situação:** a implementar
+- **Tipo:** Unitário + Widget · **Situação:** implementado — `agenda_test: manhã antes da tarde; com hora por hora; sem hora por registro` · `agenda_test: período sem atendimento não aparece nos grupos` · `agenda_screen_test: agrupa por período e ordena por hora, sem hora depois` · `agenda_screen_test: cartão exibe a hora, ou "sem hora", e o local`
 - **Pré-condições:** um dia com, na manhã, um atendimento às 10:00, um às 08:00
   e dois sem hora (registrados em ordem conhecida); na tarde, um sem hora.
 - **Passos:**
@@ -481,7 +481,7 @@
 ### CT-031 — Contagem de atendimentos por período
 - **Critério:** "Cada período exibe **quantos atendimentos tem**, para que a
   carga do dia seja visível antes de aceitar mais um."
-- **Tipo:** Widget · **Situação:** a implementar
+- **Tipo:** Widget · **Situação:** implementado — `agenda_screen_test: cada período exibe quantos atendimentos tem`
 - **Pré-condições:** um dia com três atendimentos na manhã e um na tarde.
 - **Passos:**
   1. Renderizar a agenda nesse dia.
@@ -490,7 +490,7 @@
 ### CT-032 — Navegar para outro dia sem digitar data
 - **Critério:** "O usuário navega para outros dias sem precisar digitar uma
   data."
-- **Tipo:** Widget · **Situação:** a implementar
+- **Tipo:** Widget · **Situação:** implementado — `agenda_screen_test: navega para outro dia tocando na faixa da semana`
 - **Pré-condições:** agenda aberta em hoje; atendimento registrado em amanhã.
 - **Passos:**
   1. Tocar no dia de amanhã na faixa da semana.
@@ -500,7 +500,7 @@
 ### CT-033 — Dia sem atendimentos exibe mensagem
 - **Critério:** "Um dia sem atendimentos exibe a mensagem "Nenhum atendimento
   neste dia." em vez de uma lista vazia silenciosa (consistente com o RF-003)."
-- **Tipo:** Widget · **Situação:** a implementar
+- **Tipo:** Widget · **Situação:** implementado — `agenda_screen_test: dia sem atendimento exibe a mensagem`
 - **Pré-condições:** nenhum atendimento no dia selecionado.
 - **Passos:**
   1. Renderizar a agenda nesse dia.
@@ -510,7 +510,7 @@
 ### CT-034 — Dias com atendimento são distinguíveis dos vazios
 - **Critério:** "Na navegação entre dias, os dias que possuem ao menos um
   atendimento são visualmente distinguíveis dos vazios."
-- **Tipo:** Widget · **Situação:** a implementar
+- **Tipo:** Widget · **Situação:** implementado — `agenda_test: conta atendimentos por dia` · `agenda_screen_test: dias com atendimento têm marca; os vazios não`
 - **Pré-condições:** semana com atendimentos em alguns dias e nenhum em outros.
 - **Passos:**
   1. Renderizar a faixa da semana.
@@ -521,7 +521,7 @@
 - **Critério:** "A **semana** do dia selecionado fica visível junto ao dia: os
   sete dias (domingo a sábado), cada um com a **quantidade de atendimentos**. O
   usuário avança e retrocede de semana em semana."
-- **Tipo:** Unitário + Widget · **Situação:** a implementar
+- **Tipo:** Unitário + Widget · **Situação:** implementado — `agenda_test: semana vai do domingo ao sábado que contêm o dia` · `agenda_test: domingo abre a semana e sábado a fecha` · `agenda_test: semana que atravessa a virada de mês` · `agenda_screen_test: faixa mostra domingo a sábado com a quantidade por dia` · `agenda_screen_test: avança e retrocede a semana`
 - **Pré-condições:** hoje é quarta-feira; dois atendimentos na segunda da
   semana corrente e um na terça da semana seguinte.
 - **Passos:**
@@ -537,7 +537,7 @@
 - **Critério:** "A partir da agenda, em **um toque**, o usuário abre o **mês**
   em formato de calendário: cada dia do mês exibe a quantidade de atendimentos.
   O usuário avança e retrocede de mês em mês."
-- **Tipo:** Unitário + Widget · **Situação:** a implementar
+- **Tipo:** Unitário + Widget · **Situação:** implementado — `agenda_test: grade do mês alinha o dia 1 à coluna do dia da semana` · `agenda_test: grade de um mês que começa no domingo não tem vazios antes` · `agenda_test: somar meses cai no dia 1 do mês de destino` · `agenda_screen_test: abre o mês com um toque e navega entre meses`
 - **Pré-condições:** agenda aberta; atendimentos em dias conhecidos do mês
   corrente e do mês seguinte.
 - **Passos:**
@@ -551,7 +551,7 @@
 ### CT-037 — Tocar em um dia da semana ou do mês seleciona e exibe
 - **Critério:** "Tocar em um dia, na semana ou no mês, seleciona esse dia e
   exibe os seus atendimentos."
-- **Tipo:** Widget · **Situação:** a implementar
+- **Tipo:** Widget · **Situação:** implementado — `agenda_screen_test: tocar num dia do mês seleciona e volta à visão do dia`
 - **Pré-condições:** atendimento registrado em um dia de outra semana do mês.
 - **Passos:**
   1. Abrir o mês e tocar nesse dia.
@@ -562,7 +562,7 @@
 ### CT-038 — Hoje identificável e atalho de retorno a hoje
 - **Critério:** "O **dia de hoje** é identificável na semana e no mês, e um
   atalho volta a hoje a partir de qualquer data."
-- **Tipo:** Widget · **Situação:** a implementar
+- **Tipo:** Widget · **Situação:** implementado — `agenda_screen_test: hoje tem marca própria na semana e no mês` · `agenda_screen_test: atalho volta a hoje a partir de outro mês`
 - **Pré-condições:** relógio fixo.
 - **Passos:**
   1. Conferir a marca de hoje na faixa da semana e no calendário do mês.
@@ -575,7 +575,7 @@
 ### CT-039 — Lista de clientes acessível a partir da agenda
 - **Critério:** "A lista de clientes (RF-003) continua acessível, deixando de
   ser a tela inicial."
-- **Tipo:** Widget · **Situação:** a implementar
+- **Tipo:** Widget · **Situação:** implementado — `agenda_screen_test: lista de clientes abre pela agenda e volta ao mesmo dia`
 - **Pré-condições:** agenda aberta.
 - **Passos:**
   1. Tocar na ação de clientes da agenda.
@@ -617,3 +617,4 @@
 | 2026-07-21 | 1.8 | Wilson Gorosthides | Endereço estruturado (RF-001/003/004, `requisitos.md` 2.8, issue #65): novo CT-027 (value object `Endereco`, jsonb, resumo, busca); CT-006 (campos estruturados no pré-preenchimento), CT-011 (resumo + placeholder) e CT-014 (busca por qualquer campo) ajustados. |
 | 2026-07-21 | 1.9 | Wilson Gorosthides | Abrir no mapa (RF-009, `requisitos.md` 2.9, issue #66): novo CT-028 (montagem da URL do Google Maps e o botão de mapa que aparece/dispara só com endereço). |
 | 2026-11-12 | 1.10 | Wilson Gorosthides | Primeiros casos da agenda: CT-029 a CT-039 para o RF-010 (`requisitos.md` 3.2) — abertura em hoje, agrupamento e ordenação por período, contagem por período, navegação entre dias, dia vazio, dias ocupados distinguíveis, semana com quantidade por dia, mês em calendário, seleção de dia pela semana ou pelo mês, hoje identificável com atalho, e acesso à lista de clientes. Todos "a implementar". Convenção nova: a data de hoje é injetada nos testes. |
+| 2026-11-13 | 1.11 | Wilson Gorosthides | CT-029 a CT-039 passam a "implementado" com os testes reais da entrega do RF-010 (issue #75): `atendimento_test`, `agenda_test` (funções puras de semana, mês, contagem e ordem) e `agenda_screen_test` (catorze casos de widget com o relógio injetado). |
