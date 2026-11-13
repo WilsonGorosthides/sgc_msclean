@@ -87,10 +87,11 @@ void main() {
     testWidgets('agrupa por período e ordena por hora, sem hora depois',
         (tester) async {
       await bombear(tester, [
+        // fora da ordem de exibição de propósito; sem1 é registrado antes de sem2
         at('tarde', hoje, Periodo.tarde, '5'),
-        at('sem2', hoje, Periodo.manha, '4'),
-        at('dez', hoje, Periodo.manha, '2', hora: '10:00'),
         at('sem1', hoje, Periodo.manha, '3'),
+        at('dez', hoje, Periodo.manha, '2', hora: '10:00'),
+        at('sem2', hoje, Periodo.manha, '4'),
         at('oito', hoje, Periodo.manha, '1', hora: '08:00'),
       ]);
 
