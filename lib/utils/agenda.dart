@@ -141,3 +141,18 @@ String valorEmReais(double valor) {
   }
   return 'R\$ $buffer,$fracao';
 }
+
+// Lê o valor digitado ("180,50", "R$ 1.250,00", "180"): vírgula ou ponto como
+// decimal, milhar ignorado. Vazio ou ilegível vira nulo — valor é opcional.
+double? lerValor(String texto) {
+  var limpo = texto.replaceAll(RegExp(r'[^\d,.]'), '');
+  if (limpo.isEmpty) return null;
+  if (limpo.contains(',')) {
+    // vírgula é o decimal; pontos são milhar
+    limpo = limpo.replaceAll('.', '').replaceAll(',', '.');
+  } else if (limpo.indexOf('.') != limpo.lastIndexOf('.')) {
+    // vários pontos sem vírgula: todos são milhar
+    limpo = limpo.replaceAll('.', '');
+  }
+  return double.tryParse(limpo);
+}

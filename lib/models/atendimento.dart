@@ -60,6 +60,20 @@ class Atendimento {
     );
   }
 
+  // Mapa para escrita no banco; sem id (gerado pelo Supabase) e sem
+  // criado_em (default now() na tabela).
+  Map<String, dynamic> toMap() => {
+        'data': '${data.year}-${_dois(data.month)}-${_dois(data.day)}',
+        'periodo': periodo.name,
+        'hora': hora,
+        'cliente_id': clienteId,
+        'local': local,
+        'pecas': pecas.map((p) => p.toMap()).toList(),
+        'valor': valor,
+      };
+
+  static String _dois(int n) => n.toString().padLeft(2, '0');
+
   static List<Peca> _lerPecas(dynamic valor) {
     if (valor is! List) return const [];
     return valor

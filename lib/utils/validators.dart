@@ -24,4 +24,16 @@ class Validadores {
     }
     return null;
   }
+  // Hora opcional do atendimento (RF-005): vazio é válido; preenchido tem que
+  // ser H:MM ou HH:MM, com hora 0-23 e minuto 0-59.
+  static String? hora(String? valor) {
+    final texto = (valor ?? '').trim();
+    if (texto.isEmpty) return null;
+    final m = RegExp(r'^(\d{1,2}):(\d{2})$').firstMatch(texto);
+    if (m == null) return 'Use o formato HH:MM';
+    final h = int.parse(m.group(1)!);
+    final min = int.parse(m.group(2)!);
+    if (h > 23 || min > 59) return 'Hora inválida';
+    return null;
+  }
 }
