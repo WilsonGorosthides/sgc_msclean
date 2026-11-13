@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:sgc_msclean/models/atendimento.dart';
 import 'package:sgc_msclean/models/client_model.dart';
 import 'package:sgc_msclean/models/endereco.dart';
 import 'package:sgc_msclean/services/supabase_service.dart';
@@ -14,6 +15,7 @@ void main() {
   setUpAll(() {
     registerFallbackValue(<String>[]);
     registerFallbackValue((List<Map<String, dynamic>> _) => <ClientModel>[]);
+    registerFallbackValue((List<Map<String, dynamic>> _) => <Atendimento>[]);
   });
   // filtrarClientes opera sobre a lista de modelos já emitida pela stream
   // (o filtro da busca vive no widget; a assinatura da stream é única)
@@ -94,6 +96,26 @@ void main() {
       // Sem ascending: true explícito, o padrão do .order() da stream do
       // supabase 2.10.2 é decrescente — bug registrado na issue #39.
       verify(() => streamBuilder.order('nome', ascending: true)).called(1);
+    });
+
+    test('atendimentos: lê a tabela atendimentos ordenada por data', () {
+      final client = MockSupabaseClient();
+      final queryBuilder = MockSupabaseQueryBuilder();
+      final streamBuilder = MockSupabaseStreamFilterBuilder();
+
+      when(() => client.from('atendimentos')).thenAnswer((_) => queryBuilder);
+      when(() => queryBuilder.stream(primaryKey: any(named: 'primaryKey')))
+          .thenAnswer((_) => streamBuilder);
+      when(() =>
+              streamBuilder.order(any(), ascending: any(named: 'ascending')))
+          .thenAnswer((_) => streamBuilder);
+      when(() => streamBuilder.map<List<Atendimento>>(any()))
+          .thenAnswer((_) => const Stream<List<Atendimento>>.empty());
+
+      SupabaseService(client: client).getAtendimentosStream();
+
+      verify(() => client.from('atendimentos')).called(1);
+      verify(() => streamBuilder.order('data', ascending: true)).called(1);
     });
   });
 }
