@@ -46,7 +46,23 @@ void main() {
       expect(Validadores.hora('24:00'), isNotNull);
       expect(Validadores.hora('09:60'), isNotNull);
       expect(Validadores.hora('nove'), isNotNull);
-      expect(Validadores.hora('0900'), isNotNull);
+      expect(Validadores.hora('99'), isNotNull);
+      // digitação abreviada é aceita: o formulário completa para HH:MM
+      expect(Validadores.hora('8'), isNull);
+      expect(Validadores.hora('830'), isNull);
+      expect(Validadores.hora('0900'), isNull);
+
+      expect(Validadores.completarHora('8'), '08:00');
+      expect(Validadores.completarHora('14'), '14:00');
+      expect(Validadores.completarHora('830'), '08:30');
+      expect(Validadores.completarHora('1430'), '14:30');
+      expect(Validadores.completarHora('9:00'), '09:00');
+      expect(Validadores.completarHora('8h'), '08:00');
+      expect(Validadores.completarHora('8h30'), '08:30');
+      expect(Validadores.completarHora('14:30'), '14:30');
+      expect(Validadores.completarHora(''), isNull);
+      expect(Validadores.completarHora('25'), isNull);
+      expect(Validadores.completarHora('nove'), isNull);
     });
   });
 }

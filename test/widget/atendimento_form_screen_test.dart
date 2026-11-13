@@ -110,9 +110,10 @@ void main() {
       await tocar(tester, 'botao_salvar');
       verifyNever(() => service.addAtendimento(any()));
 
-      await digitar(tester, 'campo_hora', '14:30');
+      // digitação abreviada: "830" é completado para 08:30
+      await digitar(tester, 'campo_hora', '830');
       final gravado = await salvarECapturar(tester);
-      expect(gravado.hora, '14:30');
+      expect(gravado.hora, '08:30');
     });
 
     testWidgets('busca filtra os clientes pelo nome', (tester) async {
