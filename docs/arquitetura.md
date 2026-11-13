@@ -38,21 +38,64 @@ O banco é relacional, organizado em tabelas.
 
 A tabela é lida via stream ordenada por `nome`. O mapeamento jsonb ⇄ objeto vive no value object `Endereco` (`lib/models/endereco.dart`), aninhado em `ClientModel`.
 
-**Row Level Security.** A tabela `clientes` tem RLS habilitada, com uma única política verificada em produção: `mvp_acesso_total_anon` (`FOR ALL`, role `anon`, `USING (true)` e `WITH CHECK (true)`). Na prática, com o RLS ligado, a role `anon` — a mesma que a `anonKey` pública carregada pelo app assume — tem acesso total de leitura e escrita à tabela, sem nenhum filtro por linha. Essa permissividade é **deliberada** para o estágio atual (usuária única, app ainda não distribuído publicamente) e tem prazo de validade: deve ser substituída por políticas restritivas quando o RF-007 (autenticação) for implementado. Ver as dívidas técnicas (seção 9) e os riscos (seção 10).
+* **Tabela:** `atendimentos` (RF-010, issue #75)
+* **Colunas (baseado em `atendimento.dart`):**
+    -   `id` (uuid / chave primária, gerado pelo Supabase)
+    -   `data` (date, obrigatória — o dia da agenda; sem fuso, porque a agenda é por dia e não por instante)
+    -   `periodo` (text, obrigatório — `'manha'` ou `'tarde'`, com `check`; é o eixo de agrupamento do dia)
+    -   `hora` (time, opcional — a proprietária quase nunca anota hora; quando anota, ordena dentro do período)
+    -   `cliente_id` (uuid, obrigatório — FK para `clientes.id` com `on delete cascade`: excluir um cliente leva os atendimentos dele; a alternativa `restrict` bloquearia a exclusão de qualquer cliente já atendido, o que não existe na agenda de papel)
+    -   `local` (text, opcional — endereço do serviço quando não é o do cadastro)
+    -   `pecas` (**jsonb**, lista — cada peça é `{ "tipo", "quantidade", "largura", "comprimento" }`, mesmo molde do `endereco`; o mapeamento vive no value object `Peca`, `lib/models/peca.dart`)
+    -   `valor` (numeric, opcional — valor combinado)
+    -   `criado_em` (timestamptz, `default now()` — desempata os atendimentos sem hora: ficam na ordem em que foram registrados)
+
+A tabela é lida via stream ordenada por `data`; o agrupamento por período, a contagem por dia e a ordem dentro do período são calculados no app (`lib/utils/agenda.dart`), porque a stream já traz todos os atendimentos em memória — mesmo raciocínio da busca client-side (§7). Os campos de conclusão (feito/pago, RF-014) e observação (RF-005) entram por `alter table` nas suas entregas.
+
+SQL aplicado no painel do Supabase (não há pasta de migrations — ver `CLAUDE.md`):
+
+```sql
+create table public.atendimentos (
+  id         uuid primary key default gen_random_uuid(),
+  data       date not null,
+  periodo    text not null check (periodo in ('manha', 'tarde')),
+  hora       time,
+  cliente_id uuid not null references public.clientes (id) on delete cascade,
+  local      text,
+  pecas      jsonb not null default '[]'::jsonb,
+  valor      numeric,
+  criado_em  timestamptz not null default now()
+);
+
+create index atendimentos_data_idx on public.atendimentos (data);
+
+alter table public.atendimentos enable row level security;
+
+create policy mvp_acesso_total_anon on public.atendimentos
+  for all to anon using (true) with check (true);
+
+-- a stream do app depende da publicação de realtime
+alter publication supabase_realtime add table public.atendimentos;
+```
+
+**Row Level Security.** As tabelas `clientes` e `atendimentos` têm RLS habilitada, cada uma com uma única política de mesmo nome: `mvp_acesso_total_anon` (`FOR ALL`, role `anon`, `USING (true)` e `WITH CHECK (true)`). Na prática, com o RLS ligado, a role `anon` — a mesma que a `anonKey` pública carregada pelo app assume — tem acesso total de leitura e escrita às tabelas, sem nenhum filtro por linha. Essa permissividade é **deliberada** para o estágio atual (usuária única, app ainda não distribuído publicamente) e tem prazo de validade: deve ser substituída por políticas restritivas quando o RF-007 (autenticação) for implementado. Ver as dívidas técnicas (seção 9) e os riscos (seção 10).
 
 ## 5. Estrutura de Diretórios do Projeto
 A organização real do código:
 ```
 lib/
-├── main.dart                       # inicializa o app e o Supabase via .env
+├── main.dart                       # inicializa o app e o Supabase via .env; abre na AgendaScreen
 ├── models/
+│   ├── atendimento.dart            # Atendimento e Periodo (manhã/tarde): a linha da agenda
+│   ├── peca.dart                   # Peca: value object das peças do serviço (jsonb), com o resumo do cartão
 │   ├── client_model.dart           # ClientModel: id, nome, endereco (Endereco), telefones
 │   └── endereco.dart               # Endereco: value object do endereço estruturado (jsonb)
 ├── screens/
-│   ├── home_screen.dart            # lista de clientes + barra de busca
+│   ├── agenda_screen.dart          # tela inicial (RF-010): dia por período, faixa da semana, mês em calendário
+│   ├── home_screen.dart            # lista de clientes + barra de busca (aberta a partir da agenda)
 │   └── client_form_screen.dart     # formulário de cadastro (RF-001; reusável na edição)
 ├── services/
-│   ├── supabase_service.dart       # acesso ao Supabase (stream de leitura + insert)
+│   ├── supabase_service.dart       # acesso ao Supabase (streams de clientes e atendimentos + CRUD de clientes)
 │   └── maps_launcher.dart          # abre o endereco no Google Maps (RF-009, url_launcher)
 ├── theme/
 │   ├── app_colors.dart             # paleta (contrastes WCAG medidos em comentário)
@@ -60,6 +103,7 @@ lib/
 │   ├── app_typography.dart         # TextTheme em Archivo, os seis tokens de texto
 │   └── app_theme.dart              # ColorScheme explícito + ThemeData (AppTheme.claro)
 └── utils/
+    ├── agenda.dart                 # funções puras da agenda: semana, grade do mês, contagem, ordem do dia, nomes em PT-BR
     └── validators.dart             # validações puras do formulário (obrigatório, telefone)
 ```
 Fora de `lib/`: `docs/` (esta documentação e os requisitos) e `test/` (testes).
@@ -70,27 +114,37 @@ Relação entre as camadas do app e o backend:
 ```mermaid
 flowchart LR
     subgraph App["App Flutter"]
-        Screen["HomeScreen<br/>(screens/home_screen.dart)"]
+        Agenda["AgendaScreen (inicial)<br/>(screens/agenda_screen.dart)"]
+        Home["HomeScreen<br/>(screens/home_screen.dart)"]
+        Utils["funções puras da agenda<br/>(utils/agenda.dart)"]
         Service["SupabaseService<br/>(services/supabase_service.dart)"]
-        Model["ClientModel<br/>(models/client_model.dart)"]
+        Model["Atendimento / Peca / ClientModel<br/>(models/)"]
     end
     Client["Supabase Client (SDK)"]
-    DB[("PostgreSQL<br/>tabela clientes")]
+    DB[("PostgreSQL<br/>tabelas clientes e atendimentos")]
 
-    Screen -->|"chama getClientsStream / CRUD"| Service
+    Agenda -->|"abre a lista de clientes"| Home
+    Agenda -->|"getAtendimentosStream / getClientsStream"| Service
+    Agenda -->|"semana, mês, contagem, ordem"| Utils
+    Home -->|"getClientsStream / CRUD"| Service
     Service -->|"fromMap / objetos"| Model
-    Screen -->|"renderiza"| Model
-    Service -->|"from('clientes').stream()"| Client
+    Agenda -->|"renderiza"| Model
+    Home -->|"renderiza"| Model
+    Service -->|"from(...).stream()"| Client
     Client <-->|"realtime + queries"| DB
 ```
 
-Em texto: a **screen** consome o **service**, que conversa com o **Supabase client**; o client lê/escreve no **PostgreSQL**. Os dados trafegam mapeados para o **model** (`ClientModel.fromMap`), que a screen renderiza.
+Em texto: a **AgendaScreen** é a tela inicial e consome as duas streams do **service** (atendimentos e clientes, esta para resolver o nome de cada atendimento); as regras de calendário e de ordem do dia ficam em **funções puras** (`utils/agenda.dart`), testadas sem widget. A **HomeScreen** (lista de clientes) abre a partir da agenda. O service conversa com o **Supabase client**, que lê/escreve no **PostgreSQL**; os dados trafegam mapeados para os **models**, que as screens renderizam.
 
 ## 7. Decisões Técnicas e Justificativas
 
 * **Por que Supabase e não Firebase.** Decisão histórica registrada em `docs/AUDITORIA_INICIAL.md`: o commit de "reconstrução da base com supabase" trocou o backend, mas a documentação só foi sincronizada agora. Supabase entrega PostgreSQL gerenciado (schema explícito e SQL padrão), realtime nativo e RLS para autorização, além de ser uma alternativa open-source que evita lock-in. Firebase fica fora do projeto.
 
 * **Por que `setState` e não Provider/Riverpod neste estágio.** O escopo é pequeno (uma tela, estado local de busca e a stream de clientes). `setState` cobre essa necessidade sem introduzir uma camada de gerência de estado — evitar overengineering. Quando o app crescer (múltiplas telas compartilhando estado, navegação com dependências), a decisão será reavaliada em favor de uma solução como Provider/Riverpod.
+
+  *Reavaliação na entrega da agenda (RF-010, #75):* a decisão continua valendo. A agenda e a lista de clientes não compartilham estado — cada tela abre as suas streams e o Supabase é a única fonte da verdade; o que a agenda guarda (`dia selecionado`, `mês exibido`, `vista dia/mês`) é estado de navegação local, que morre com a tela. A agenda substitui os `StreamBuilder` aninhados por duas assinaturas abertas no `initState`, para que o primeiro quadro com dados já traga atendimentos e nomes de clientes de uma vez. O gatilho para rever de novo é o RF-005/RF-014: se o formulário de atendimento e as marcas de feito/pago passarem a exigir que a agenda reaja a mudanças feitas noutra tela sem depender do realtime (cuja entrega de UPDATE é o problema conhecido da issue #57), aí entra uma solução de estado compartilhado.
+
+* **Por que a agenda calcula semana, mês e ordem no app, e não no SQL.** A stream de `atendimentos` já traz a tabela inteira ordenada por `data` (volume pequeno: uma prestadora, poucos atendimentos por dia). Semana, grade do mês, contagem por dia e ordem dentro do período são funções puras em `lib/utils/agenda.dart`, que recebem a lista e o "hoje" por parâmetro — testáveis sem Supabase e sem relógio real (`agenda_test`). A alternativa (uma view ou RPC por período) adicionaria ida e volta ao servidor a cada navegação de dia, sem ganho no volume atual. A semana vai de domingo a sábado, como o calendário de parede; a confirmação com a proprietária fica para a verificação manual.
 
 * **Por que busca client-side.** O volume de dados é pequeno (uma prestadora, base na casa das dezenas/centenas de clientes) e a stream já traz a lista completa em memória; filtrar no cliente dá UX em tempo real, sem ida e volta ao servidor a cada tecla. Isso muda quando a base crescer a ponto de não ser razoável manter tudo em memória ou quando a latência incomodar — aí a busca passa a ser feita no servidor (query/filtro no Postgres, ex.: `ilike`/full-text search).
 
@@ -162,10 +216,11 @@ A auditoria registrou cobertura real de 0% — o único teste era o template pad
 | 2026-09-23 | 2.7 | Wilson Gorosthides | Novo `lib/theme/` na árvore §5 (`app_colors`, `app_spacing`, `app_typography`, `app_theme`) e quatro decisões técnicas em §7: design system antes das telas da agenda, `ColorScheme` explícito em vez de `fromSeed`, só tema claro e Figma fora do projeto. Tokens especificados em `docs/design-system.md` (issue #60). |
 | 2026-11-12 | 2.9 | Wilson Gorosthides | §10: novo risco de pausa do projeto Supabase por inatividade, mitigado pelo workflow `keep-alive.yml` (leitura diária na API REST, issue #72). |
 | 2026-10-06 | 2.8 | Wilson Gorosthides | §8 registra a categoria de "guardas de consistência" na estratégia de testes, com o `design_system_test` (nenhuma cor literal em `lib/screens/`) como primeiro caso. Issue #60. |
+| 2026-11-13 | 2.10 | Wilson Gorosthides | Agenda como tela inicial (RF-010, issue #75): tabela `atendimentos` na §4 (colunas, FK com cascade, `pecas` em jsonb, SQL com RLS e publicação de realtime); árvore §5 com `agenda_screen`, `atendimento`, `peca` e `utils/agenda`; diagrama §6 com a `AgendaScreen` inicial e as duas tabelas; §7 reavalia e mantém o `setState` e registra a decisão de calcular semana, mês e ordem no app; §12 cita a nova tabela. |
 
 ## 12. Ambiente de Desenvolvimento
 Os seguintes softwares e configurações são necessários para iniciar o desenvolvimento:
 -   Flutter SDK
 -   Editor de código (Visual Studio Code ou Android Studio)
--   Conta no **Supabase** com o projeto e a tabela `clientes` configurados (incl. políticas de RLS)
+-   Conta no **Supabase** com o projeto e as tabelas `clientes` e `atendimentos` configuradas (incl. políticas de RLS e, para `atendimentos`, a publicação de realtime — SQL na §4)
 -   Arquivo `.env` na raiz do app com `SUPABASE_URL` e `SUPABASE_ANON_KEY` (use o `.env.example` como referência; o `.env` real fica fora do controle de versão)
