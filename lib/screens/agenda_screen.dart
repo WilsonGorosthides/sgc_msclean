@@ -9,6 +9,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
 import '../utils/agenda.dart';
+import 'atendimento_form_screen.dart';
 import 'home_screen.dart';
 
 // Tela inicial do app (RF-010): a agenda virtual. Mostra o dia selecionado
@@ -47,6 +48,18 @@ class _AgendaScreenState extends State<AgendaScreen> {
   @override
   void initState() {
     super.initState();
+    _assinarAtendimentos();
+    _assinaturaClientes = _service.getClientsStream().listen(
+          (dados) => setState(() => _clientes = dados),
+          onError: (Object erro) => setState(() => _erro = erro),
+        );
+  }
+
+  // (Re)abre a assinatura de atendimentos. Renovada ao voltar do formulário:
+  // o projeto Supabase não entrega eventos UPDATE (issue #57), e a edição da
+  // hora (RF-005) precisa refletir na agenda sem reiniciar o app.
+  void _assinarAtendimentos() {
+    _assinaturaAtendimentos?.cancel();
     _assinaturaAtendimentos = _service.getAtendimentosStream().listen(
           (dados) => setState(() {
             _atendimentos = dados;
@@ -54,10 +67,21 @@ class _AgendaScreenState extends State<AgendaScreen> {
           }),
           onError: (Object erro) => setState(() => _erro = erro),
         );
-    _assinaturaClientes = _service.getClientsStream().listen(
-          (dados) => setState(() => _clientes = dados),
-          onError: (Object erro) => setState(() => _erro = erro),
-        );
+  }
+
+  // Abre o formulário de atendimento (RF-005): novo, no dia selecionado, ou
+  // edição de um cartão. Ao voltar, renova a stream.
+  Future<void> _abrirFormulario({Atendimento? atendimento}) async {
+    await Navigator.of(context).push(MaterialPageRoute(
+      builder: (_) => AtendimentoFormScreen(
+        service: _service,
+        data: atendimento?.data ?? _selecionado,
+        clientes: _clientes ?? const [],
+        atendimento: atendimento,
+      ),
+    ));
+    if (!mounted) return;
+    _assinarAtendimentos();
   }
 
   @override
@@ -117,6 +141,15 @@ class _AgendaScreenState extends State<AgendaScreen> {
         ],
       ),
       body: _corpo(hoje),
+      // NOVO ATENDIMENTO (RF-005): parte do dia selecionado.
+      floatingActionButton: _verMes
+          ? null
+          : FloatingActionButton.extended(
+              key: const Key('novo_atendimento'),
+              onPressed: () => _abrirFormulario(),
+              icon: const Icon(Icons.add),
+              label: const Text('Novo atendimento'),
+            ),
     );
   }
 
@@ -159,6 +192,7 @@ class _AgendaScreenState extends State<AgendaScreen> {
             hoje: hoje,
             atendimentos: atendimentosDoDia(atendimentos, _selecionado),
             clientes: clientes,
+            aoTocar: (a) => _abrirFormulario(atendimento: a),
           ),
         ),
       ],
@@ -465,12 +499,14 @@ class _DiaSelecionado extends StatelessWidget {
     required this.hoje,
     required this.atendimentos,
     required this.clientes,
+    required this.aoTocar,
   });
 
   final DateTime dia;
   final DateTime hoje;
   final List<Atendimento> atendimentos;
   final List<ClientModel> clientes;
+  final void Function(Atendimento) aoTocar;
 
   @override
   Widget build(BuildContext context) {
@@ -481,7 +517,8 @@ class _DiaSelecionado extends StatelessWidget {
     final grupos = agruparPorPeriodo(atendimentos);
 
     return ListView(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xxl * 3),
       children: [
         Text(titulo, style: textos.titleLarge),
         Text(
@@ -506,6 +543,7 @@ class _DiaSelecionado extends StatelessWidget {
             _CartaoAtendimento(
               atendimento: a,
               nomeDoCliente: _nomeDoCliente(a.clienteId),
+              aoTocar: () => aoTocar(a),
             ),
           const SizedBox(height: AppSpacing.xl),
         ],
@@ -579,10 +617,12 @@ class _CartaoAtendimento extends StatelessWidget {
   const _CartaoAtendimento({
     required this.atendimento,
     required this.nomeDoCliente,
+    required this.aoTocar,
   });
 
   final Atendimento atendimento;
   final String nomeDoCliente;
+  final VoidCallback aoTocar;
 
   @override
   Widget build(BuildContext context) {
@@ -594,7 +634,9 @@ class _CartaoAtendimento extends StatelessWidget {
       key: Key('atendimento_${a.id}'),
       margin: const EdgeInsets.only(bottom: AppSpacing.sm),
       clipBehavior: Clip.antiAlias,
-      child: IntrinsicHeight(
+      child: InkWell(
+        onTap: aoTocar,
+        child: IntrinsicHeight(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -653,6 +695,7 @@ class _CartaoAtendimento extends StatelessWidget {
               ),
             ),
           ],
+        ),
         ),
       ),
     );

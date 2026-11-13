@@ -139,8 +139,42 @@ class _HomeScreenState extends State<HomeScreen> {
                             style: const TextStyle(color: AppColors.primaria),
                           ),
                         ),
-                        title: Text(cliente.nome,
-                            style: Theme.of(context).textTheme.titleMedium),
+                        title: Row(
+                          children: [
+                            Flexible(
+                              child: Text(cliente.nome,
+                                  overflow: TextOverflow.ellipsis,
+                                  style:
+                                      Theme.of(context).textTheme.titleMedium),
+                            ),
+                            // PROVISÓRIO (RF-005): criado pela agenda só com o
+                            // nome; o selo some quando o telefone é preenchido.
+                            if (cliente.provisorio)
+                              Padding(
+                                padding:
+                                    const EdgeInsets.only(left: AppSpacing.sm),
+                                child: Container(
+                                  key: Key('provisorio_${cliente.id}'),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: AppSpacing.sm,
+                                    vertical: AppSpacing.xs / 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.tardeFundo,
+                                    borderRadius:
+                                        BorderRadius.circular(AppRadius.pequeno),
+                                  ),
+                                  child: Text(
+                                    'provisório',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelSmall
+                                        ?.copyWith(color: AppColors.tarde),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
                         // endereço é opcional (#61) e estruturado (#65):
                         // resumo legível, ou placeholder discreto quando vazio
                         subtitle: cliente.endereco.vazio
