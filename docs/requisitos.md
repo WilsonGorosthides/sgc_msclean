@@ -4,6 +4,8 @@
 
 Este documento detalha os requisitos funcionais e não funcionais do Sistema de Gestão de Clientes (SGC) da MSClean. Serve de guia para as fases de design, desenvolvimento e teste.
 
+**O produto é uma agenda virtual.** O que a proprietária quer é o controle diário, semanal e mensal dos seus clientes e serviços, no lugar do caderno de papel. A agenda (§2.2) é a tela que abre com o aplicativo e o centro de todas as decisões de prioridade e de navegação. A gestão de clientes (§2.1), a tabela de preços (RF-013) e o histórico (RF-011) existem para **apoiar a agenda** — facilitar o orçamento e a consulta —, e não como fins em si.
+
 Decisões históricas de escopo e priorização estão registradas em `docs/AUDITORIA_INICIAL.md`.
 
 Cada requisito funcional é acompanhado de critérios de aceitação verificáveis
@@ -138,7 +140,12 @@ O sistema deve permitir registrar um atendimento em uma data da agenda.
   - Ao salvar, o atendimento passa a constar no dia e no período correspondentes da agenda.
 
 #### RF-010 - Agenda por Data
-O sistema deve exibir os atendimentos organizados por dia, e abrir nessa visão.
+O sistema deve exibir os atendimentos organizados por dia, abrir nessa visão, e permitir enxergar a **semana** e o **mês**.
+
+> A agenda de papel dá as três leituras de graça: a página é o dia, virar duas ou
+> três folhas é a semana, e folhear o caderno é o mês. O aplicativo precisa
+> devolver as três, ou a proprietária perde a noção de carga que hoje tem ao
+> folhear — e é essa noção que decide se ela aceita mais um serviço.
 
 * **Critérios de aceitação:**
   - Ao abrir o aplicativo, o sistema exibe a agenda posicionada no **dia de hoje**.
@@ -147,7 +154,12 @@ O sistema deve exibir os atendimentos organizados por dia, e abrir nessa visão.
   - O usuário navega para outros dias sem precisar digitar uma data.
   - Um dia sem atendimentos exibe a mensagem "Nenhum atendimento neste dia." em vez de uma lista vazia silenciosa (consistente com o RF-003).
   - Na navegação entre dias, os dias que possuem ao menos um atendimento são visualmente distinguíveis dos vazios.
+  - A **semana** do dia selecionado fica visível junto ao dia: os sete dias (domingo a sábado), cada um com a **quantidade de atendimentos**. O usuário avança e retrocede de semana em semana.
+  - A partir da agenda, em **um toque**, o usuário abre o **mês** em formato de calendário: cada dia do mês exibe a quantidade de atendimentos. O usuário avança e retrocede de mês em mês.
+  - Tocar em um dia, na semana ou no mês, seleciona esse dia e exibe os seus atendimentos.
+  - O **dia de hoje** é identificável na semana e no mês, e um atalho volta a hoje a partir de qualquer data.
   - A lista de clientes (RF-003) continua acessível, deixando de ser a tela inicial.
+* **Fora do escopo:** semana e mês são alcances de **navegação e de carga** (quantos atendimentos há em cada dia). Não exibem totais de valor por período — a proprietária declarou não fazer controle financeiro (ver a nota de prioridade do RF-006).
 
 #### RF-011 - Consultar o Histórico de um Cliente
 O sistema deve permitir consultar, para um cliente, **quanto foi cobrado** e **quando foi a última visita**.
@@ -248,8 +260,8 @@ O sistema deve ter um mecanismo de login para o único usuário (a proprietária
     * **Para que** nada se perca entre a conversa e a agenda.
 * **História 6: Ver o meu dia**
     * **Como** proprietária da empresa,
-    * **Eu quero** abrir o aplicativo e já ver os atendimentos de hoje,
-    * **Para que** eu saiba para onde vou sem precisar consultar o caderno.
+    * **Eu quero** abrir o aplicativo e já ver os atendimentos de hoje, com a semana à vista e o mês a um toque,
+    * **Para que** eu saiba para onde vou e como está a minha carga sem precisar consultar o caderno.
 * **História 7: Lembrar quanto eu cobro e quando estive lá**
     * **Como** proprietária da empresa,
     * **Eu quero** ver quanto cobrei de uma cliente da última vez e há quanto tempo foi,
@@ -280,10 +292,10 @@ O sistema deve ter um mecanismo de login para o único usuário (a proprietária
 
 * **UC-002 - Gerenciar a Agenda**
     1.  O usuário abre o aplicativo.
-    2.  O sistema exibe a agenda posicionada no dia de hoje, com os atendimentos em ordem de hora.
+    2.  O sistema exibe a agenda posicionada no dia de hoje, com os atendimentos agrupados por período e a semana corrente à vista.
     3.  **Cenário A - Registrar:** O usuário seleciona o dia, aciona a opção de adicionar, escolhe o cliente e o período. Se o cliente já tem atendimento anterior, as peças, o valor e a observação vêm pré-preenchidos, e o local vem do endereço cadastrado. O usuário confirma e o atendimento passa a constar no dia, dentro do período.
     4.  **Cenário B - Cliente novo:** No mesmo formulário, o usuário informa um nome ainda não cadastrado; o sistema cria um cliente provisório com esse nome e segue com o registro.
-    5.  **Cenário C - Navegar entre dias:** O usuário avança ou retrocede o dia; a agenda mostra os atendimentos daquele dia, ou a mensagem de dia vazio.
+    5.  **Cenário C - Navegar entre dias, semanas e meses:** O usuário toca em outro dia da semana, avança ou retrocede a semana, ou abre o mês e toca em um dia do calendário; a agenda mostra os atendimentos do dia escolhido, ou a mensagem de dia vazio. Semana e mês mostram quantos atendimentos há em cada dia; um atalho volta a hoje.
     6.  **Cenário D - Conflito de horário:** Ao salvar em horário próximo a outro atendimento do mesmo dia, o sistema avisa identificando o conflito; o usuário confirma mesmo assim ou volta e ajusta.
     7.  **Cenário E - Consultar histórico:** A partir de um cliente, o usuário vê há quanto tempo foi a última visita, o último valor cobrado com as peças que o compuseram, e o histórico dos atendimentos anteriores.
     8.  **Cenário F - Orçar pelas peças:** Ao informar as peças e as medidas, o sistema calcula o valor pela tabela de preços; o usuário aceita o valor calculado ou digita outro.
@@ -306,3 +318,4 @@ O sistema deve ter um mecanismo de login para o único usuário (a proprietária
 | 2026-09-10 | 3.1 | Wilson Gorosthides | **Correção da 3.0 a partir das fotos da agenda de papel** (quatro páginas, 2026-09-10), que contradisseram o formato escrito de memória. RF-005: **Hora deixa de ser obrigatória** e entra **Período** (manhã/tarde) como campo de tempo — a proprietária não anota horário, organiza por período e acerta na conversa conforme a rota; "Descrição do serviço" vira **lista de peças** com tipo, quantidade e medidas (o negócio é higienização de estofados e tapetes, cobrado por peça e por metragem). Novo **RF-013** (tabela de preços editável e cálculo por metro quadrado, com valor sobrescrevível). Novo **RF-014** (dois estados independentes: serviço feito e cliente pagou; concluído só com os dois). RF-011 passa a cobrir também **quando foi a última visita** — o serviço é periódico e "quando revisitar" é a segunda consulta mais frequente. RF-012 passa a valer só quando os dois atendimentos têm hora; a proteção para os sem hora é a contagem por período no RF-010. Novas Histórias 9 e 10, Cenários F e G no UC-002. Seção "Origem" reescrita com o formato real observado (dados fictícios: as fotos não são versionadas por conterem nome e endereço de clientes reais). |
 | 2026-09-10 | 3.0 | Wilson Gorosthides | **A agenda por data passa a ser o centro do produto**, a partir do levantamento de campo com a proprietária (§2.2, "Origem"). Seção 2 reorganizada em 2.1 Gestão de Clientes, 2.2 Agenda e Atendimentos e 2.3 Pagamentos e Acesso. RF-005 reescrito de "histórico de serviço por cliente" para "registrar atendimento em uma data", com pré-preenchimento a partir do atendimento anterior e criação de cliente provisório (exceção declarada ao RF-001). Novos RF-010 (agenda por data como tela inicial), RF-011 (consultar o valor cobrado) e RF-012 (aviso de conflito de horário). Novos RNF-006 (teto de toques para registrar) e RNF-007 (tolerância a conexão fraca). História 5 reescrita e novas Histórias 6, 7 e 8; novo UC-002 e UC-001 deixa de iniciar no aplicativo. RF-006 marcado como não priorizado (a proprietária não faz controle financeiro e não pediu relatório). |
 | 2026-07-21 | 2.8 | Wilson Gorosthides | Endereço passa a ser **estruturado** (logradouro, número, bairro, complemento, ponto de referência), todos opcionais — RF-001 (dados e aviso por endereço vazio), RF-003 (item exibe resumo) e RF-004 (busca por qualquer campo do endereço). Sem campos de CEP e cidade (decisão de simplicidade: na prática não seriam preenchidos; a área de atendimento é só Campo Grande - MS, âncora fixa na consulta ao mapa). Modela casa/apartamento/condomínio e prepara a abertura no mapa (issue #65). Requer migração no Supabase (`endereco` text → jsonb). |
+| 2026-11-12 | 3.2 | Wilson Gorosthides | **A agenda é o produto: visões de semana e mês.** §1 passa a declarar o produto como agenda virtual (controle diário, semanal e mensal de clientes e serviços), com clientes, preços e histórico como apoio a ela. RF-010 ganha quatro critérios: semana do dia selecionado sempre visível, com a quantidade de atendimentos por dia e navegação por semana; mês em calendário a um toque, com a quantidade por dia e navegação por mês; tocar em um dia (na semana ou no mês) seleciona e exibe; hoje identificável e com atalho de retorno. Nota de fora do escopo: semana e mês não exibem totais de valor (RF-006 segue não priorizado). História 6 e UC-002 (passo 2 e Cenário C) ajustados. |

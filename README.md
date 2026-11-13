@@ -38,7 +38,7 @@ A documentação detalhada do projeto vive na pasta [`docs/`](./docs):
 
 **Agenda de atendimentos** — especificada, ainda não implementada
 
-- [ ] Agenda por data, abrindo no dia de hoje (RF-010)
+- [ ] Agenda por data, abrindo no dia de hoje, com visões de semana e mês (RF-010)
 - [ ] Registrar atendimento com período, cliente e peças do serviço (RF-005)
 - [ ] Histórico do cliente: quanto foi cobrado e quando foi a última visita (RF-011)
 - [ ] Aviso de conflito de horário (RF-012)

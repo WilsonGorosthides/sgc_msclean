@@ -17,6 +17,9 @@
   rastreabilidade; CT-023 é o caso manual de RNF-001. CT-024, criado depois
   (issue #48), cobre o piso de dígitos do telefone (RF-001) e fica junto do
   CT-003 — o número fora de ordem preserva a numeração dos demais CTs.
+- CT-029 em diante cobrem a agenda (`requisitos.md` §2.2). Os CTs de cada RF da
+  agenda são escritos no PR que entrega o RF, como primeiro commit; os do RF-010
+  vieram antes, junto do requisito de semana e mês (`requisitos.md` 3.2).
 - Critérios de aceitação são copiados literalmente da matriz.
 - Nos CTs automatizados, os "passos" descrevem o que o teste executa; nos
   manuais, o que a pessoa executa.
@@ -444,6 +447,141 @@
   canal nativo do plugin. Número fora de ordem (após CT-027) segue a convenção
   de append.
 
+## RF-010 — Agenda por Data
+
+> Os testes automatizados da agenda recebem a data de "hoje" por injeção (relógio
+> fixo), nunca de `DateTime.now()` direto — sem isso, o resultado dependeria do
+> dia em que a suíte roda. Nos exemplos abaixo, "hoje" é uma quarta-feira.
+
+### CT-029 — Agenda abre no dia de hoje
+- **Critério:** "Ao abrir o aplicativo, o sistema exibe a agenda posicionada no
+  **dia de hoje**."
+- **Tipo:** Widget · **Situação:** a implementar
+- **Pré-condições:** relógio fixo; atendimentos registrados em hoje e em outro
+  dia.
+- **Passos:**
+  1. Abrir o aplicativo.
+- **Resultado esperado:** a primeira tela é a agenda; o dia selecionado é hoje;
+  só os atendimentos de hoje aparecem.
+
+### CT-030 — Agrupamento por período e ordenação dentro do período
+- **Critério:** "Os atendimentos do dia selecionado são agrupados por
+  **período** (manhã, depois tarde) e, dentro do período, ordenados por hora
+  quando houver — os sem hora aparecem depois dos com hora, na ordem em que
+  foram registrados."
+- **Tipo:** Unitário + Widget · **Situação:** a implementar
+- **Pré-condições:** um dia com, na manhã, um atendimento às 10:00, um às 08:00
+  e dois sem hora (registrados em ordem conhecida); na tarde, um sem hora.
+- **Passos:**
+  1. Ordenar a lista do dia (função pura).
+  2. Renderizar a agenda nesse dia.
+- **Resultado esperado:** a seção Manhã vem antes da Tarde; na manhã, a ordem é
+  08:00, 10:00 e depois os dois sem hora, na ordem de registro.
+
+### CT-031 — Contagem de atendimentos por período
+- **Critério:** "Cada período exibe **quantos atendimentos tem**, para que a
+  carga do dia seja visível antes de aceitar mais um."
+- **Tipo:** Widget · **Situação:** a implementar
+- **Pré-condições:** um dia com três atendimentos na manhã e um na tarde.
+- **Passos:**
+  1. Renderizar a agenda nesse dia.
+- **Resultado esperado:** o cabeçalho da Manhã exibe 3 e o da Tarde exibe 1.
+
+### CT-032 — Navegar para outro dia sem digitar data
+- **Critério:** "O usuário navega para outros dias sem precisar digitar uma
+  data."
+- **Tipo:** Widget · **Situação:** a implementar
+- **Pré-condições:** agenda aberta em hoje; atendimento registrado em amanhã.
+- **Passos:**
+  1. Tocar no dia de amanhã na faixa da semana.
+- **Resultado esperado:** o dia selecionado passa a ser amanhã e o atendimento
+  de amanhã é exibido; nenhum campo de texto de data é usado.
+
+### CT-033 — Dia sem atendimentos exibe mensagem
+- **Critério:** "Um dia sem atendimentos exibe a mensagem "Nenhum atendimento
+  neste dia." em vez de uma lista vazia silenciosa (consistente com o RF-003)."
+- **Tipo:** Widget · **Situação:** a implementar
+- **Pré-condições:** nenhum atendimento no dia selecionado.
+- **Passos:**
+  1. Renderizar a agenda nesse dia.
+- **Resultado esperado:** a mensagem "Nenhum atendimento neste dia." é exibida;
+  nenhum cabeçalho de período aparece.
+
+### CT-034 — Dias com atendimento são distinguíveis dos vazios
+- **Critério:** "Na navegação entre dias, os dias que possuem ao menos um
+  atendimento são visualmente distinguíveis dos vazios."
+- **Tipo:** Widget · **Situação:** a implementar
+- **Pré-condições:** semana com atendimentos em alguns dias e nenhum em outros.
+- **Passos:**
+  1. Renderizar a faixa da semana.
+- **Resultado esperado:** os dias com atendimento trazem a marca de ocupado; os
+  vazios, não.
+
+### CT-035 — Semana visível com a quantidade por dia e navegação por semana
+- **Critério:** "A **semana** do dia selecionado fica visível junto ao dia: os
+  sete dias (domingo a sábado), cada um com a **quantidade de atendimentos**. O
+  usuário avança e retrocede de semana em semana."
+- **Tipo:** Unitário + Widget · **Situação:** a implementar
+- **Pré-condições:** hoje é quarta-feira; dois atendimentos na segunda da
+  semana corrente e um na terça da semana seguinte.
+- **Passos:**
+  1. Calcular os sete dias da semana de uma data (função pura), incluindo uma
+     semana que atravessa a virada de mês.
+  2. Renderizar a agenda e conferir a faixa da semana.
+  3. Avançar uma semana; depois retroceder duas.
+- **Resultado esperado:** a faixa vai do domingo ao sábado que contêm o dia
+  selecionado; a segunda exibe 2; ao avançar, a faixa mostra a semana seguinte
+  e a terça exibe 1; ao retroceder, mostra a semana anterior à inicial.
+
+### CT-036 — Mês em calendário com a quantidade por dia e navegação por mês
+- **Critério:** "A partir da agenda, em **um toque**, o usuário abre o **mês**
+  em formato de calendário: cada dia do mês exibe a quantidade de atendimentos.
+  O usuário avança e retrocede de mês em mês."
+- **Tipo:** Unitário + Widget · **Situação:** a implementar
+- **Pré-condições:** agenda aberta; atendimentos em dias conhecidos do mês
+  corrente e do mês seguinte.
+- **Passos:**
+  1. Contar atendimentos por dia de um mês (função pura).
+  2. Na agenda, tocar uma vez na ação de abrir o mês.
+  3. Avançar um mês; depois retroceder.
+- **Resultado esperado:** o calendário do mês corrente abre com um único toque;
+  cada dia com atendimento exibe a sua quantidade e os vazios não exibem
+  número; avançar e retroceder trocam o mês exibido e as quantidades.
+
+### CT-037 — Tocar em um dia da semana ou do mês seleciona e exibe
+- **Critério:** "Tocar em um dia, na semana ou no mês, seleciona esse dia e
+  exibe os seus atendimentos."
+- **Tipo:** Widget · **Situação:** a implementar
+- **Pré-condições:** atendimento registrado em um dia de outra semana do mês.
+- **Passos:**
+  1. Abrir o mês e tocar nesse dia.
+- **Resultado esperado:** a agenda volta à visão do dia, com esse dia
+  selecionado, a semana dele na faixa e o atendimento exibido. (O toque em um
+  dia da faixa da semana é exercitado pelo CT-032.)
+
+### CT-038 — Hoje identificável e atalho de retorno a hoje
+- **Critério:** "O **dia de hoje** é identificável na semana e no mês, e um
+  atalho volta a hoje a partir de qualquer data."
+- **Tipo:** Widget · **Situação:** a implementar
+- **Pré-condições:** relógio fixo.
+- **Passos:**
+  1. Conferir a marca de hoje na faixa da semana e no calendário do mês.
+  2. Navegar para um dia de outro mês.
+  3. Acionar o atalho de voltar a hoje.
+- **Resultado esperado:** hoje tem marca própria, distinta da marca de dia
+  selecionado; depois do atalho, o dia selecionado é hoje. Com hoje já
+  selecionado, o atalho não é exibido.
+
+### CT-039 — Lista de clientes acessível a partir da agenda
+- **Critério:** "A lista de clientes (RF-003) continua acessível, deixando de
+  ser a tela inicial."
+- **Tipo:** Widget · **Situação:** a implementar
+- **Pré-condições:** agenda aberta.
+- **Passos:**
+  1. Tocar na ação de clientes da agenda.
+- **Resultado esperado:** a lista de clientes (RF-003) é exibida em um toque, e
+  voltar retorna à agenda no mesmo dia selecionado.
+
 ## RNF-001 — Verificação manual de usabilidade
 
 ### CT-023 — Fluxo geral no dispositivo da cliente
@@ -478,3 +616,4 @@
 | 2026-07-21 | 1.7 | Wilson Gorosthides | Múltiplos telefones (RF-001, `requisitos.md` 2.7, issue #62): novo CT-026 (adicionar/remover campos, salvar com dois números, validação por telefone). |
 | 2026-07-21 | 1.8 | Wilson Gorosthides | Endereço estruturado (RF-001/003/004, `requisitos.md` 2.8, issue #65): novo CT-027 (value object `Endereco`, jsonb, resumo, busca); CT-006 (campos estruturados no pré-preenchimento), CT-011 (resumo + placeholder) e CT-014 (busca por qualquer campo) ajustados. |
 | 2026-07-21 | 1.9 | Wilson Gorosthides | Abrir no mapa (RF-009, `requisitos.md` 2.9, issue #66): novo CT-028 (montagem da URL do Google Maps e o botão de mapa que aparece/dispara só com endereço). |
+| 2026-11-12 | 1.10 | Wilson Gorosthides | Primeiros casos da agenda: CT-029 a CT-039 para o RF-010 (`requisitos.md` 3.2) — abertura em hoje, agrupamento e ordenação por período, contagem por período, navegação entre dias, dia vazio, dias ocupados distinguíveis, semana com quantidade por dia, mês em calendário, seleção de dia pela semana ou pelo mês, hoje identificável com atalho, e acesso à lista de clientes. Todos "a implementar". Convenção nova: a data de hoje é injetada nos testes. |
