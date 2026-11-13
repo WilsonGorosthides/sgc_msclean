@@ -103,6 +103,14 @@ class _AtendimentoFormScreenState extends State<AtendimentoFormScreen> {
 
   bool get _editando => widget.atendimento != null;
 
+  // Ao sair do campo, a hora abreviada ("8", "830") vira HH:MM na tela.
+  late final FocusNode _horaFoco = FocusNode()
+    ..addListener(() {
+      if (_horaFoco.hasFocus) return;
+      final completa = Validadores.completarHora(_horaController.text);
+      if (completa != null) _horaController.text = completa;
+    });
+
   @override
   void initState() {
     super.initState();
@@ -118,6 +126,7 @@ class _AtendimentoFormScreenState extends State<AtendimentoFormScreen> {
   @override
   void dispose() {
     _buscaController.dispose();
+    _horaFoco.dispose();
     _horaController.dispose();
     _localController.dispose();
     _valorController.dispose();
@@ -168,7 +177,7 @@ class _AtendimentoFormScreenState extends State<AtendimentoFormScreen> {
         id: widget.atendimento?.id,
         data: widget.data,
         periodo: _periodo!,
-        hora: hora.isEmpty ? null : _normalizarHora(hora),
+        hora: Validadores.completarHora(hora),
         clienteId: clienteId!,
         local: _localController.text.trim(),
         pecas: _pecas.map((p) => p.paraPeca()).toList(),
@@ -191,10 +200,6 @@ class _AtendimentoFormScreenState extends State<AtendimentoFormScreen> {
       );
     }
   }
-
-  // "9:00" vira "09:00": a coluna é `time` e a ordenação do dia compara texto.
-  static String _normalizarHora(String h) =>
-      h.length == 4 ? '0$h' : h;
 
   @override
   Widget build(BuildContext context) {
@@ -257,10 +262,11 @@ class _AtendimentoFormScreenState extends State<AtendimentoFormScreen> {
             TextFormField(
               key: const Key('campo_hora'),
               controller: _horaController,
+              focusNode: _horaFoco,
               keyboardType: TextInputType.datetime,
               decoration: const InputDecoration(
                 labelText: 'Hora (opcional)',
-                hintText: '09:00',
+                hintText: '8, 830 ou 14:30',
               ),
               validator: Validadores.hora,
             ),
@@ -308,7 +314,7 @@ class _AtendimentoFormScreenState extends State<AtendimentoFormScreen> {
               key: const Key('botao_salvar'),
               onPressed: _salvando ? null : _salvar,
               icon: const Icon(Icons.check),
-              label: Text(_editando ? 'Salvar' : 'Confirmar atendimento'),
+              label: const Text('Salvar atendimento'),
             ),
           ],
         ),
