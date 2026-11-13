@@ -1,0 +1,34 @@
+# Keep-alive do Supabase (issue #72). O projeto no plano gratuito pausa apos
+# cerca de uma semana sem atividade e a retomada e manual, pelo painel. Este
+# workflow faz uma leitura minima na API REST todo dia para contar como uso.
+# URL e chave vem de secrets do repositorio (SUPABASE_URL, SUPABASE_ANON_KEY).
+name: Keep-alive Supabase
+
+on:
+  schedule:
+    - cron: '17 9 * * *' # todo dia, 09:17 UTC (06:17 em Campo Grande)
+  workflow_dispatch:
+
+jobs:
+  ping:
+    name: leitura minima em clientes
+    runs-on: ubuntu-latest
+    steps:
+      - name: Consulta 1 linha da tabela clientes
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
+            echo "::error::Secrets SUPABASE_URL e SUPABASE_ANON_KEY nao configurados no repositorio."
+            exit 1
+          fi
+          status=$(curl -sS -o /dev/null -w '%{http_code}' \
+            "$SUPABASE_URL/rest/v1/clientes?select=id&limit=1" \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            -H "Authorization: Bearer $SUPABASE_ANON_KEY")
+          echo "HTTP $status"
+          case "$status" in
+            2*) echo "Supabase ativo." ;;
+            *) echo "::error::Supabase respondeu HTTP $status - projeto pausado ou credenciais invalidas."; exit 1 ;;
+          esac

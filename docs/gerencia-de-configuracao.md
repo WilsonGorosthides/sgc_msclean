@@ -162,6 +162,11 @@ Detalhes e justificativas da stack ficam em `arquitetura.md`. Resumo operacional
 - **Backend:** Supabase (PostgreSQL gerenciado, realtime, RLS).
 - **Controle de versão:** Git + GitHub.
 - **Testes:** `flutter_test` (unitário, widget, integração).
+- **Automação no GitHub Actions:** `ci.yml` (analyze + test em cada PR, §6) e
+  `keep-alive.yml` (leitura diária na API do Supabase para o projeto gratuito não
+  pausar por inatividade — issue #72). O keep-alive lê os secrets `SUPABASE_URL`
+  e `SUPABASE_ANON_KEY` do repositório, cadastrados pelo desenvolvedor em
+  Settings → Secrets and variables → Actions; nenhum valor fica no código.
 
 ## 12. Releases e Versionamento
 
@@ -183,3 +188,4 @@ tabela de Histórico de Versões do próprio doc (1.0, 1.1, ...).
 | 1.3 | 2026-07-13 | Wilson Gorosthides | Atualiza §2 e §3 após a movimentação do projeto Flutter de `app/sgc_msclean/` para a raiz do repositório (issue #8). |
 | 1.4 | 2026-07-16 | Wilson Gorosthides | §6: registra o gate de CI obrigatório no merge (ruleset `main-protegida` exigindo o check `analyze + test`, com bloqueio de force push e deleção da `main`) — issue #45. |
 | 1.5 | 2026-07-17 | Wilson Gorosthides | §2: registra as instruções de agente de IA (`CLAUDE.md` e `.claude/skills/`) como itens de configuração versionados e `.claude/settings.local.json` como não versionado — issue #51. |
+| 1.6 | 2026-11-12 | Wilson Gorosthides | §11: registra o workflow `keep-alive.yml` e os secrets do repositório que ele lê (issue #72). |
