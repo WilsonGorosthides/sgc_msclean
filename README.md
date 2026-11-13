@@ -1,6 +1,6 @@
 # SGC para MSClean
 
-> **Status:** MVP em andamento. A gestão de clientes está entregue; a **agenda de atendimentos** está especificada e em validação com a proprietária. As duas fazem parte do MVP.
+> **Status:** MVP em andamento. A gestão de clientes está entregue; a **agenda de atendimentos** está em construção — a visão por data (dia, semana e mês, RF-010) é a tela inicial do app; o registro de atendimentos (RF-005) é a próxima entrega. As duas frentes fazem parte do MVP.
 >
 > **Protótipo navegável:** **[wilsongorosthides.github.io/sgc_msclean](https://wilsongorosthides.github.io/sgc_msclean/)** — o fluxo da agenda, clicável, com dados fictícios. Não é o aplicativo: existe para validar as decisões de requisito com a usuária real antes de escrever código.
 
@@ -69,13 +69,20 @@ sgc_msclean/
 ├── lib/
 │   ├── main.dart
 │   ├── models/
-│   │   └── client_model.dart
+│   │   ├── atendimento.dart
+│   │   ├── peca.dart
+│   │   ├── client_model.dart
+│   │   └── endereco.dart
 │   ├── screens/
+│   │   ├── agenda_screen.dart      # tela inicial
 │   │   ├── home_screen.dart
 │   │   └── client_form_screen.dart
 │   ├── services/
-│   │   └── supabase_service.dart
+│   │   ├── supabase_service.dart
+│   │   └── maps_launcher.dart
+│   ├── theme/
 │   └── utils/
+│       ├── agenda.dart
 │       └── validators.dart
 ├── test/
 └── docs/
