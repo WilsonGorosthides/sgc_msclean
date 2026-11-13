@@ -121,5 +121,12 @@ void main() {
       expect(dataPorExtenso(DateTime(2026, 11, 11)),
           'quarta-feira, 11 de novembro de 2026');
     });
+
+    test('valorEmReais formata com virgula decimal e ponto de milhar', () {
+      expect(valorEmReais(1250), 'R\$ 1.250,00');
+      expect(valorEmReais(80.5), 'R\$ 80,50');
+      expect(valorEmReais(0), 'R\$ 0,00');
+      expect(valorEmReais(1234567.891), 'R\$ 1.234.567,89');
+    });
   });
 }
