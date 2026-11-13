@@ -313,6 +313,50 @@ cliente com endereço, um toque abre o Google Maps na localização; sem endere�
 o ícone não aparece. Fecha o par de entregas do endereço estruturado (#65) + o
 mapa (#66).
 
+## Execução 008 — Verificação manual da agenda como tela inicial (pré-merge, #75)
+
+- **Data:** 2026-11-13.
+- **Objeto:** branch `feat/agenda-por-data-tela-inicial` — RF-010 agenda por
+  data, com as visões de dia, semana e mês (`requisitos.md` 3.2), antes do
+  merge. Com mudança de schema: criação da tabela `atendimentos` (RLS e
+  publicação de realtime — SQL em `arquitetura.md` §4), aplicada pelo
+  desenvolvedor no painel antes da rodada, mais um seed de oito atendimentos
+  de exemplo inserido pelo SQL Editor (o app ainda não os cria; isso é o
+  RF-005).
+- **Ambiente:** web desktop (`fvm flutter run -d chrome`), contra o Supabase
+  real do MVP. A verificação no celular da proprietária fica para a instalação
+  do APK (issue #23).
+- **Executor:** o desenvolvedor.
+
+### Resultados
+
+| Passo | O que verificou | CT(s) | Resultado |
+|---|---|---|---|
+| 1 | O app abre na agenda, em "Hoje", com a data por extenso e só os atendimentos de hoje | CT-029 | Aprovado |
+| 2 | Manhã antes da Tarde; na manhã, 08:00, 10:00 e depois os sem hora na ordem de registro | CT-030 | Aprovado |
+| 3 | Cartão com hora ou "sem hora", local, resumo das peças e valor em reais | CT-030 | Aprovado |
+| 4 | Cabeçalho de cada período com a quantidade (Manhã 4, Tarde 1) | CT-031 | Aprovado |
+| 5 | Tocar em amanhã na faixa da semana troca o dia, sem campo de data | CT-032 | Aprovado |
+| 6 | Dia vazio exibe "Nenhum atendimento neste dia." e nenhum período | CT-033 | Aprovado |
+| 7 | Na faixa, só os dias com atendimento exibem a quantidade | CT-034 | Aprovado |
+| 8 | Faixa de domingo a sábado; setas avançam e retrocedem a semana com as quantidades | CT-035 | Aprovado |
+| 9 | Um toque abre o mês em calendário com a quantidade por dia; setas trocam o mês | CT-036 | Aprovado |
+| 10 | Tocar num dia do mês seleciona, volta à visão do dia e mostra a semana dele | CT-037 | Aprovado |
+| 11 | Hoje tem marca própria na semana e no mês; o atalho de voltar a hoje só aparece fora de hoje | CT-038 | Aprovado |
+| 12 | Ícone de pessoas abre "MSClean - Clientes"; voltar retorna ao mesmo dia | CT-039 | Aprovado |
+| 13 | Regressão: cadastrar, editar e excluir cliente pela lista | CT-004, CT-008, CT-021 | Aprovado |
+| 14 | Atendimento inserido pelo painel com o app aberto aparece na agenda (realtime) | RF-010 | Aprovado |
+
+### Veredicto
+
+**#75 validado** em rodada única, suíte automatizada verde. A agenda passa a
+ser a tela inicial: o dia agrupado por período, a semana sempre à vista e o mês
+a um toque, com a lista de clientes acessível a partir dela. Decisões aceitas
+na revisão: semana de domingo a sábado (a confirmar com a proprietária no uso
+real), FK `cliente_id` com `on delete cascade`, tabela sem
+feito/pago/observação (entram no RF-014 e no RF-005) e mês como alternância na
+mesma tela.
+
 ## Histórico de Versões
 
 | Data | Versão | Autor | Descrição da mudança |
@@ -324,3 +368,4 @@ mapa (#66).
 | 2026-07-21 | 1.4 | Wilson Gorosthides | Execução 005 (múltiplos telefones, pré-merge #62): rodada única com a migração do Supabase (`telefone`→`telefones` text[]); CT-006/CT-026 aprovados, sem regressão. |
 | 2026-07-21 | 1.5 | Wilson Gorosthides | Execução 006 (endereço estruturado, pré-merge #65): rodada única com a migração do Supabase (`endereco` text → jsonb); CT-027/CT-011/CT-025/CT-006/CT-008/CT-014 aprovados, sem regressão. |
 | 2026-07-21 | 1.6 | Wilson Gorosthides | Execução 007 (abrir no Google Maps, pré-merge #66): rodada única, sem migração; CT-028 aprovado, sem regressão em edição e exclusão. |
+| 2026-11-13 | 1.7 | Wilson Gorosthides | Execução 008 (agenda como tela inicial, pré-merge #75): rodada única no Chrome, com a criação da tabela `atendimentos` no Supabase; CT-029 a CT-039 aprovados, sem regressão no cadastro de clientes. |
