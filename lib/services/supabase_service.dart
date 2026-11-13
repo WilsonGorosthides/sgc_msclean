@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../models/atendimento.dart';
 import '../models/client_model.dart';
 
 class SupabaseService {
@@ -22,6 +23,16 @@ class SupabaseService {
         // decrescente, diferente do PostgREST via REST (issue #39)
         .order('nome', ascending: true)
         .map((data) => data.map(ClientModel.fromMap).toList());
+  }
+
+  // Atendimentos da agenda (RF-010). Volume pequeno (alguns por dia), então
+  // vem tudo numa stream só e a tela filtra dia, semana e mês em memória.
+  Stream<List<Atendimento>> getAtendimentosStream() {
+    return _supabase
+        .from('atendimentos')
+        .stream(primaryKey: ['id'])
+        .order('data', ascending: true)
+        .map((data) => data.map(Atendimento.fromMap).toList());
   }
 
   // Cadastra um cliente novo (RF-001); o id é gerado pelo Supabase.
