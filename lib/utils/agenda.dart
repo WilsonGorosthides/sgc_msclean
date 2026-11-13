@@ -128,3 +128,16 @@ String dataPorExtenso(DateTime d) =>
 // Chave estável por dia ("2026-11-11"), usada pelas telas e pelos testes.
 String chaveDoDia(DateTime d) =>
     '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+// "R$ 1.250,00": vírgula decimal e ponto de milhar, como a proprietária escreve.
+String valorEmReais(double valor) {
+  final centavos = (valor * 100).round();
+  final inteiro = (centavos ~/ 100).toString();
+  final fracao = (centavos % 100).toString().padLeft(2, '0');
+  final buffer = StringBuffer();
+  for (var i = 0; i < inteiro.length; i++) {
+    if (i > 0 && (inteiro.length - i) % 3 == 0) buffer.write('.');
+    buffer.write(inteiro[i]);
+  }
+  return 'R\$ $buffer,$fracao';
+}

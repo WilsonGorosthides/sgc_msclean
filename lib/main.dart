@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-import 'screens/home_screen.dart';
+import 'screens/agenda_screen.dart';
 import 'theme/app_theme.dart';
 
 void main() async {
@@ -29,7 +29,8 @@ class MyApp extends StatelessWidget {
       // O tema vem inteiro do design system (docs/design-system.md); nenhuma
       // cor ou fonte e declarada aqui.
       theme: AppTheme.claro,
-      home: const HomeScreen(),
+      // A agenda e a tela inicial (RF-010); a lista de clientes abre a partir dela.
+      home: const AgendaScreen(),
     );
   }
 }
