@@ -18,11 +18,16 @@ Número da issue (ex.: `/entrega 26`). Sem número, perguntar qual issue entrega
 1. **Entender a issue.** `gh issue view <N>` (corpo e comentários). Se for RF:
    localizar os critérios de aceitação em `docs/requisitos.md` §2 e os CT-IDs
    correspondentes em `docs/matriz-rastreabilidade.md` e `docs/casos-de-teste.md`
-   — eles são o roteiro dos testes. Resumir o plano de entrega em 3–5 linhas para
-   o desenvolvedor antes de começar.
+   — eles são o roteiro dos testes. **Se o RF ainda não tem CTs** (caso dos RFs
+   da agenda), escrevê-los é o primeiro passo da entrega: ver passo 3. Em tela
+   da agenda, conferir também o protótipo (`git show origin/gh-pages:index.html`)
+   e os tokens de `lib/theme/`. Resumir o plano de entrega em 3–5 linhas para o
+   desenvolvedor antes de começar.
 2. **Branch.** `main` atualizada (`git checkout main && git pull`) → branch
    `<tipo>/<descricao-curta>` (GCS §4).
-3. **Teste-antes (quando há código).** Commit(s) `test:` com a suíte **vermelha**
+3. **Teste-antes (quando há código).** Quando o RF não tem CTs, abrir com um
+   commit `docs:` que cria os CTs em `docs/casos-de-teste.md` e as linhas na
+   matriz ("CT-NNN — a implementar"). Depois, commit(s) `test:` com a suíte **vermelha**
    descrevendo o comportamento esperado (nomes dos testes = nomes da matriz);
    depois commit(s) `feat:`/`fix:` da implementação até o **verde**. Docs
    sincronizados (GCS §8) em commits `docs:` próprios, incluindo a linha no
@@ -42,6 +47,9 @@ Número da issue (ex.: `/entrega 26`). Sem número, perguntar qual issue entrega
    que ele executa antes de autorizar o push:
    - **comandos:** `fvm flutter analyze` e `fvm flutter test` (suíte completa) —
      ambos devem ficar verdes;
+   - **SQL a aplicar no painel do Supabase** (quando a entrega muda schema ou
+     RLS): o agente não altera o banco; entrega o SQL aqui, no corpo do PR e em
+     `docs/arquitetura.md` §4, e o desenvolvedor roda antes do teste manual;
    - **roteiro de teste manual da funcionalidade** (quando há comportamento
      observável a verificar): passos numerados, cada um mapeado ao(s) CT-ID(s)
      correspondentes e com o **resultado esperado** a observar. Esse roteiro
