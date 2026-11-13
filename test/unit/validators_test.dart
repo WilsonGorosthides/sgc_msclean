@@ -36,5 +36,17 @@ void main() {
       // vazio/só espaços cai na regra de campo obrigatório
       expect(Validadores.telefone('  '), 'Informe o telefone');
     });
+
+    test('hora é opcional e, quando informada, segue HH:MM', () {
+      expect(Validadores.hora(null), isNull);
+      expect(Validadores.hora(''), isNull);
+      expect(Validadores.hora('09:00'), isNull);
+      expect(Validadores.hora('9:00'), isNull); // uma só casa na hora também
+      expect(Validadores.hora('23:59'), isNull);
+      expect(Validadores.hora('24:00'), isNotNull);
+      expect(Validadores.hora('09:60'), isNotNull);
+      expect(Validadores.hora('nove'), isNotNull);
+      expect(Validadores.hora('0900'), isNotNull);
+    });
   });
 }

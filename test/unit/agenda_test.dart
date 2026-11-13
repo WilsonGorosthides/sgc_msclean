@@ -128,5 +128,15 @@ void main() {
       expect(valorEmReais(0), 'R\$ 0,00');
       expect(valorEmReais(1234567.891), 'R\$ 1.234.567,89');
     });
+
+    test('lerValor aceita virgula ou ponto e devolve nulo para vazio', () {
+      expect(lerValor('180,50'), 180.5);
+      expect(lerValor('180.50'), 180.5);
+      expect(lerValor('180'), 180.0);
+      expect(lerValor('R\$ 1.250,00'), 1250.0);
+      expect(lerValor(''), isNull);
+      expect(lerValor('   '), isNull);
+      expect(lerValor('abc'), isNull);
+    });
   });
 }

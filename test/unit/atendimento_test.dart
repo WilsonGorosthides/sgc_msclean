@@ -52,6 +52,46 @@ void main() {
       expect(Periodo.manha.rotulo, 'Manhã');
       expect(Periodo.tarde.rotulo, 'Tarde');
     });
+
+    test('toMap grava a linha do banco, sem id e sem criado_em', () {
+      final a = Atendimento(
+        id: 'abc',
+        data: DateTime(2026, 11, 13),
+        periodo: Periodo.tarde,
+        hora: '14:30',
+        clienteId: 'c1',
+        local: 'Rua das Flores, 10',
+        pecas: const [Peca(tipo: 'sofá', quantidade: 2)],
+        valor: 360,
+      );
+
+      expect(a.toMap(), {
+        'data': '2026-11-13',
+        'periodo': 'tarde',
+        'hora': '14:30',
+        'cliente_id': 'c1',
+        'local': 'Rua das Flores, 10',
+        'pecas': [
+          {'tipo': 'sofá', 'quantidade': 2},
+        ],
+        'valor': 360.0,
+      });
+    });
+
+    test('toMap de atendimento mínimo grava hora e valor nulos', () {
+      final a = Atendimento(
+        data: DateTime(2026, 1, 5),
+        periodo: Periodo.manha,
+        clienteId: 'c1',
+      );
+      final mapa = a.toMap();
+
+      expect(mapa['data'], '2026-01-05');
+      expect(mapa['hora'], isNull);
+      expect(mapa['valor'], isNull);
+      expect(mapa['local'], '');
+      expect(mapa['pecas'], isEmpty);
+    });
   });
 
   group('peca_test:', () {
@@ -87,6 +127,26 @@ void main() {
       });
       expect(p.largura, 8.0);
       expect(p.comprimento, 4.5);
+    });
+
+    test('toMap de peça medida leva as medidas; contada só a quantidade', () {
+      expect(
+        const Peca(tipo: 'tapete', largura: 3, comprimento: 2).toMap(),
+        {'tipo': 'tapete', 'quantidade': 1, 'largura': 3.0, 'comprimento': 2.0},
+      );
+      expect(
+        const Peca(tipo: 'sofá', quantidade: 2).toMap(),
+        {'tipo': 'sofá', 'quantidade': 2},
+      );
+    });
+
+    test('tapete é o tipo medido por metragem; os demais são contados', () {
+      expect(Peca.tipos,
+          ['tapete', 'sofá', 'poltrona', 'cortina', 'colchão', 'outro']);
+      expect(Peca.ehMedido('tapete'), isTrue);
+      for (final t in Peca.tipos.where((t) => t != 'tapete')) {
+        expect(Peca.ehMedido(t), isFalse, reason: t);
+      }
     });
   });
 }
