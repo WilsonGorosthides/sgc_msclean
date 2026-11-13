@@ -16,7 +16,9 @@ Todos os RFs do MVP (RF-001 a RF-004 e RF-008) estão implementados e com os
 casos de teste escritos; a coluna "Caso de teste" aponta os nomes reais na
 suíte. Os RFs da agenda (`requisitos.md` §2.2) entram na matriz à medida que
 seus casos são escritos: o RF-010 já tem os seus (CT-029 a CT-039), entregues
-na issue #75.
+na issue #75; o RF-005 entra com CT-040 a CT-048 (issue #77). Os critérios do
+RF-005 que ficam para o RF-013 (valor calculado) e para o RNF-006
+(pré-preenchimento pelo atendimento anterior) entram na matriz nessas entregas.
 
 | RF | Critério de aceitação (`requisitos.md` §2) | Caso de teste |
 |---|---|---|
@@ -47,6 +49,15 @@ na issue #75.
 | RF-008 | Ao confirmar, o cliente é removido do banco e desaparece da lista imediatamente após a confirmação. | CT-021 — `home_screen_test: confirmar remove e a lista reflete ao renovar a stream` |
 | RF-008 | Após a exclusão bem-sucedida, o sistema dá feedback visual (ex.: SnackBar "Cliente excluído"). | CT-022 — `home_screen_test: exclusão bem-sucedida exibe feedback` |
 | RF-009 | A partir de um cliente com endereço, uma ação abre o endereço no Google Maps; sem endereço, a ação não é exibida. | CT-028 — `maps_launcher_test: urlMaps monta a busca do Google Maps a partir do endereço` · `maps_launcher_test: urlMaps de endereço vazio é nula` · `home_screen_test: item com endereço mostra o botão de abrir no mapa e dispara` · `home_screen_test: item sem endereço não mostra o botão de abrir no mapa` |
+| RF-005 | O registro parte de um dia da agenda: a Data já vem preenchida com o dia selecionado. | CT-040 — a implementar |
+| RF-005 | **Cliente e Período são obrigatórios.** **Hora é opcional.** | CT-041 — a implementar |
+| RF-005 | Quando informada, a Hora pode ser alterada depois sem refazer o atendimento. | CT-042 — a implementar |
+| RF-005 | As **Peças do serviço** são uma lista: cada peça tem **tipo** (tapete, sofá, poltrona, cortina, colchão, outro), **quantidade** e, quando o tipo é medido por metragem, **largura e comprimento**. Uma peça sem medida é registrada apenas por quantidade. | CT-043 — a implementar |
+| RF-005 | O **Valor** [...] **pode ser sobrescrito** pela proprietária antes de salvar (nesta entrega, digitado; o cálculo pelas peças é o RF-013). | CT-044 — a implementar |
+| RF-005 | O Cliente pode ser escolhido entre os cadastrados **ou** informado por um nome ainda não cadastrado; neste caso o sistema cria um **cliente provisório** apenas com o nome. | CT-045 — a implementar |
+| RF-005 | O cliente provisório é sinalizado na lista de clientes até ser completado. | CT-046 — a implementar |
+| RF-005 | Quando o Cliente tem endereço cadastrado, o Local vem pré-preenchido com o resumo do endereço (mesmo resumo do RF-003), e pode ser alterado. | CT-047 — a implementar |
+| RF-005 | Ao salvar, o atendimento passa a constar no dia e no período correspondentes da agenda. | CT-048 — a implementar |
 | RF-010 | Ao abrir o aplicativo, o sistema exibe a agenda posicionada no **dia de hoje**. | CT-029 — `agenda_screen_test: abre no dia de hoje e mostra só os atendimentos de hoje` |
 | RF-010 | Os atendimentos do dia selecionado são agrupados por **período** (manhã, depois tarde) e, dentro do período, ordenados por hora quando houver — os sem hora aparecem depois dos com hora, na ordem em que foram registrados. | CT-030 — `agenda_test: manhã antes da tarde; com hora por hora; sem hora por registro` · `agenda_test: período sem atendimento não aparece nos grupos` · `agenda_screen_test: agrupa por período e ordena por hora, sem hora depois` · `agenda_screen_test: cartão exibe a hora, ou "sem hora", e o local` |
 | RF-010 | Cada período exibe **quantos atendimentos tem**, para que a carga do dia seja visível antes de aceitar mais um. | CT-031 — `agenda_screen_test: cada período exibe quantos atendimentos tem` |
@@ -84,3 +95,4 @@ descoberto.
 | 2026-07-21 | 1.12 | Wilson Gorosthides | Abrir no mapa (`requisitos.md` 2.9, issue #66): nova linha do RF-009 ↔ CT-028 (URL do Google Maps + botão de mapa que aparece/dispara só com endereço). |
 | 2026-11-12 | 1.13 | Wilson Gorosthides | Agenda entra na matriz: onze linhas do RF-010 ↔ CT-029 a CT-039 (`requisitos.md` 3.2, incluindo as visões de semana e mês), todas "a implementar"; nota introdutória passa a registrar a entrada progressiva dos RFs da agenda. |
 | 2026-11-13 | 1.14 | Wilson Gorosthides | RF-010 entregue (issue #75): as onze linhas trocam "a implementar" pelos nomes reais dos testes em `agenda_test`, `atendimento_test` e `agenda_screen_test`. |
+| 2026-11-13 | 1.15 | Wilson Gorosthides | RF-005 enxuto entra na matriz (issue #77): nove linhas ↔ CT-040 a CT-048, todas "a implementar"; nota introdutória registra que valor calculado e pré-preenchimento ficam para RF-013 e RNF-006. |

@@ -19,7 +19,9 @@
   CT-003 — o número fora de ordem preserva a numeração dos demais CTs.
 - CT-029 em diante cobrem a agenda (`requisitos.md` §2.2). Os CTs de cada RF da
   agenda são escritos no PR que entrega o RF, como primeiro commit; os do RF-010
-  vieram antes, junto do requisito de semana e mês (`requisitos.md` 3.2).
+  vieram antes, junto do requisito de semana e mês (`requisitos.md` 3.2). Os do
+  RF-005 (CT-040 a CT-048) ficam antes dos do RF-010 no documento, na ordem dos
+  RFs, embora numerados depois.
 - Critérios de aceitação são copiados literalmente da matriz.
 - Nos CTs automatizados, os "passos" descrevem o que o teste executa; nos
   manuais, o que a pessoa executa.
@@ -447,6 +449,119 @@
   canal nativo do plugin. Número fora de ordem (após CT-027) segue a convenção
   de append.
 
+## RF-005 — Registrar Atendimento
+
+> Primeira entrega **enxuta** (issue #77): o valor é digitado. O cálculo pela
+> tabela de preços (RF-013) e o pré-preenchimento pelo atendimento anterior
+> (RNF-006) ganham CTs nas suas entregas. Como na agenda, o "hoje" é injetado.
+
+### CT-040 — Registro parte do dia selecionado
+- **Critério:** "O registro parte de um dia da agenda: a Data já vem preenchida
+  com o dia selecionado."
+- **Tipo:** Widget · **Situação:** a implementar
+- **Pré-condições:** agenda aberta com um dia selecionado diferente de hoje.
+- **Passos:**
+  1. Acionar "Novo atendimento" na agenda.
+  2. Escolher cliente e período e salvar.
+- **Resultado esperado:** o formulário exibe a data do dia selecionado, sem
+  campo para digitá-la; o atendimento salvo tem essa data.
+
+### CT-041 — Cliente e Período obrigatórios; Hora opcional
+- **Critério:** "**Cliente e Período são obrigatórios.** **Hora é opcional**."
+- **Tipo:** Widget · **Situação:** a implementar
+- **Pré-condições:** formulário aberto.
+- **Passos:**
+  1. Salvar sem cliente e sem período.
+  2. Escolher cliente e período, deixar a hora vazia e salvar.
+- **Resultado esperado:** no passo 1 nada é gravado e o formulário aponta os
+  dois campos; no passo 2 o atendimento é gravado com hora nula.
+
+### CT-042 — Hora alterável depois sem refazer o atendimento
+- **Critério:** "Quando informada, a Hora pode ser alterada depois sem refazer o
+  atendimento."
+- **Tipo:** Widget · **Situação:** a implementar
+- **Pré-condições:** um atendimento do dia, com hora.
+- **Passos:**
+  1. Tocar no cartão do atendimento na agenda.
+  2. Trocar a hora e salvar.
+- **Resultado esperado:** o formulário abre preenchido com os dados do
+  atendimento; ao salvar, o mesmo atendimento (mesmo id) é atualizado com a
+  nova hora, sem criar outro.
+
+### CT-043 — Peças do serviço como lista
+- **Critério:** "As **Peças do serviço** são uma lista: cada peça tem **tipo**
+  (tapete, sofá, poltrona, cortina, colchão, outro), **quantidade** e, quando o
+  tipo é medido por metragem, **largura e comprimento**. Uma peça sem medida é
+  registrada apenas por quantidade."
+- **Tipo:** Unitário + Widget · **Situação:** a implementar
+- **Pré-condições:** formulário aberto com cliente e período escolhidos.
+- **Passos:**
+  1. Serializar uma peça medida e uma contada (função pura).
+  2. Adicionar uma peça "tapete" com largura e comprimento e uma "sofá" com
+     quantidade 2; salvar.
+- **Resultado esperado:** só os tipos medidos exibem os campos de medida; o
+  atendimento salvo traz as duas peças, a medida com largura e comprimento, a
+  contada só com a quantidade.
+
+### CT-044 — Valor informado pela proprietária
+- **Critério:** "O **Valor** [...] **pode ser sobrescrito** pela proprietária
+  antes de salvar." (nesta entrega, o valor é só digitado; o cálculo é o RF-013)
+- **Tipo:** Unitário + Widget · **Situação:** a implementar
+- **Pré-condições:** formulário aberto com cliente e período escolhidos.
+- **Passos:**
+  1. Converter "180,50", "180" e "" (função pura).
+  2. Digitar um valor com vírgula e salvar; depois salvar com o campo vazio.
+- **Resultado esperado:** "180,50" vira 180.5 e vazio vira nulo; o atendimento
+  salvo traz o valor digitado, ou nenhum valor quando o campo fica vazio.
+
+### CT-045 — Cliente novo entra só com o nome (provisório)
+- **Critério:** "O Cliente pode ser escolhido entre os cadastrados **ou**
+  informado por um nome ainda não cadastrado. Neste segundo caso o sistema cria
+  um **cliente provisório** apenas com o nome."
+- **Tipo:** Widget · **Situação:** a implementar
+- **Pré-condições:** formulário aberto; o nome digitado não existe na lista.
+- **Passos:**
+  1. Digitar um nome na busca de cliente.
+  2. Acionar "Anotar só o nome".
+  3. Escolher o período e salvar.
+- **Resultado esperado:** um cliente é criado só com o nome (sem telefone e sem
+  endereço) e o atendimento salvo aponta para ele.
+
+### CT-046 — Cliente provisório sinalizado na lista
+- **Critério:** "O cliente provisório é sinalizado na lista de clientes até ser
+  completado."
+- **Tipo:** Unitário + Widget · **Situação:** a implementar
+- **Pré-condições:** lista com um cliente sem telefone e um completo.
+- **Passos:**
+  1. Consultar a regra de provisório (função pura).
+  2. Renderizar a lista de clientes.
+- **Resultado esperado:** cliente sem telefone é provisório; só ele exibe o selo
+  "provisório" na lista. Ao editá-lo, o telefone continua obrigatório (RF-001),
+  e é isso que o completa.
+
+### CT-047 — Local pré-preenchido com o endereço, editável
+- **Critério:** "Quando o Cliente tem endereço cadastrado, o Local vem
+  pré-preenchido com o resumo do endereço (mesmo resumo do RF-003), e pode ser
+  alterado."
+- **Tipo:** Widget · **Situação:** a implementar
+- **Pré-condições:** um cliente com endereço e um sem.
+- **Passos:**
+  1. Escolher o cliente com endereço; conferir o Local.
+  2. Alterar o Local e salvar.
+  3. Reabrir e escolher o cliente sem endereço.
+- **Resultado esperado:** o Local vem com o resumo do endereço; o valor
+  alterado é o que fica gravado; para o cliente sem endereço o Local vem vazio.
+
+### CT-048 — Atendimento salvo consta no dia e no período
+- **Critério:** "Ao salvar, o atendimento passa a constar no dia e no período
+  correspondentes da agenda."
+- **Tipo:** Widget · **Situação:** a implementar
+- **Pré-condições:** agenda aberta num dia vazio.
+- **Passos:**
+  1. Registrar um atendimento da tarde nesse dia e voltar à agenda.
+- **Resultado esperado:** a agenda continua no mesmo dia e o cartão aparece na
+  seção Tarde, sem recarregar o app.
+
 ## RF-010 — Agenda por Data
 
 > Os testes automatizados da agenda recebem a data de "hoje" por injeção (relógio
@@ -618,3 +733,4 @@
 | 2026-07-21 | 1.9 | Wilson Gorosthides | Abrir no mapa (RF-009, `requisitos.md` 2.9, issue #66): novo CT-028 (montagem da URL do Google Maps e o botão de mapa que aparece/dispara só com endereço). |
 | 2026-11-12 | 1.10 | Wilson Gorosthides | Primeiros casos da agenda: CT-029 a CT-039 para o RF-010 (`requisitos.md` 3.2) — abertura em hoje, agrupamento e ordenação por período, contagem por período, navegação entre dias, dia vazio, dias ocupados distinguíveis, semana com quantidade por dia, mês em calendário, seleção de dia pela semana ou pelo mês, hoje identificável com atalho, e acesso à lista de clientes. Todos "a implementar". Convenção nova: a data de hoje é injetada nos testes. |
 | 2026-11-13 | 1.11 | Wilson Gorosthides | CT-029 a CT-039 passam a "implementado" com os testes reais da entrega do RF-010 (issue #75): `atendimento_test`, `agenda_test` (funções puras de semana, mês, contagem e ordem) e `agenda_screen_test` (catorze casos de widget com o relógio injetado). |
+| 2026-11-13 | 1.12 | Wilson Gorosthides | Casos do RF-005 enxuto (issue #77): CT-040 a CT-048 — data do dia selecionado, cliente e período obrigatórios com hora opcional, hora alterável depois, peças como lista, valor digitado, cliente provisório só com o nome e o seu selo na lista, local pré-preenchido com o endereço, e o atendimento salvo constando no dia e no período. Todos "a implementar". |
