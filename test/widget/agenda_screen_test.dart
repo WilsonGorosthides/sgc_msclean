@@ -4,6 +4,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:sgc_msclean/models/atendimento.dart';
 import 'package:sgc_msclean/models/client_model.dart';
 import 'package:sgc_msclean/screens/agenda_screen.dart';
+import 'package:sgc_msclean/screens/atendimento_form_screen.dart';
 
 import '../mocks/mock_supabase_client.dart';
 
@@ -37,6 +38,14 @@ void main() {
       criadoEm: DateTime(2026, 11, 1, 8, ordem),
     );
   }
+
+  setUpAll(() {
+    registerFallbackValue(Atendimento(
+      data: DateTime(2026),
+      periodo: Periodo.manha,
+      clienteId: '',
+    ));
+  });
 
   setUp(() {
     service = MockSupabaseService();
@@ -295,6 +304,80 @@ void main() {
 
       expect(find.text('MSClean - Clientes'), findsNothing);
       expect(dataSelecionada(tester), 'sexta-feira, 13 de novembro de 2026');
+    });
+
+    testWidgets(
+        'novo atendimento parte do dia selecionado e, salvo, consta no período',
+        (tester) async {
+      await bombear(tester, []);
+      await tocar(tester, 'dia_2026-11-13');
+
+      await tocar(tester, 'novo_atendimento');
+      await tester.pumpAndSettle();
+
+      // CT-040: a data vem do dia selecionado, sem campo para digitá-la
+      expect(find.byType(AtendimentoFormScreen), findsOneWidget);
+      expect(textoDe(tester, 'data_atendimento'),
+          'sexta-feira, 13 de novembro de 2026');
+      expect(find.byKey(const Key('campo_data')), findsNothing);
+
+      final salvo = Atendimento(
+        id: 'novo',
+        data: DateTime(2026, 11, 13),
+        periodo: Periodo.tarde,
+        clienteId: '4',
+      );
+      when(() => service.addAtendimento(any())).thenAnswer((_) async {});
+      // a agenda renova a stream ao voltar do formulário (issue #57)
+      when(() => service.getAtendimentosStream())
+          .thenAnswer((_) => Stream.value([salvo]));
+
+      await tocar(tester, 'escolher_cliente_4');
+      await tocar(tester, 'escolher_tarde');
+      await tocar(tester, 'botao_salvar');
+      await tester.pumpAndSettle();
+
+      final gravado =
+          verify(() => service.addAtendimento(captureAny())).captured.single
+              as Atendimento;
+      expect(gravado.data, DateTime(2026, 11, 13));
+      expect(gravado.periodo, Periodo.tarde);
+      expect(gravado.clienteId, '4');
+
+      // CT-048: de volta à agenda, no mesmo dia, o cartão está na Tarde
+      expect(find.byType(AtendimentoFormScreen), findsNothing);
+      expect(dataSelecionada(tester), 'sexta-feira, 13 de novembro de 2026');
+      expect(find.byKey(const Key('periodo_tarde')), findsOneWidget);
+      expect(find.text('Dani Reis'), findsOneWidget);
+    });
+
+    testWidgets('tocar no cartão abre a edição e a hora alterada é atualizada',
+        (tester) async {
+      await bombear(tester, [
+        at('a', hoje, Periodo.manha, '1', hora: '09:00'),
+      ]);
+
+      await tocar(tester, 'atendimento_a');
+      await tester.pumpAndSettle();
+
+      expect(find.text('Editar atendimento'), findsOneWidget);
+      expect(find.text('Ana Souza'), findsOneWidget);
+      final campoHora =
+          tester.widget<TextFormField>(find.byKey(const Key('campo_hora')));
+      expect(campoHora.controller!.text, '09:00');
+
+      when(() => service.updateAtendimento(any())).thenAnswer((_) async {});
+      await tester.enterText(find.byKey(const Key('campo_hora')), '10:30');
+      await tocar(tester, 'botao_salvar');
+      await tester.pumpAndSettle();
+
+      final gravado =
+          verify(() => service.updateAtendimento(captureAny())).captured.single
+              as Atendimento;
+      expect(gravado.id, 'a');
+      expect(gravado.hora, '10:30');
+      expect(gravado.clienteId, '1');
+      verifyNever(() => service.addAtendimento(any()));
     });
   });
 }
