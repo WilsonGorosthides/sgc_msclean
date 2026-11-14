@@ -38,7 +38,12 @@ Rodar tudo antes de instalar o APK (issue #23).
 
 **SQL a aplicar no painel antes da rodada:** nenhum.
 
-_(nenhuma entrega na pilha)_
+### #87 — seleção ao trocar a semana pela seta
+
+| # | Passo | Resultado esperado | CT |
+|---|---|---|---|
+| 1 | Selecionar um sábado e tocar na seta de próxima semana | A faixa mostra a semana seguinte e o dia selecionado é o **domingo** dela (não o sábado seguinte) | CT-035 |
+| 2 | Tocar na seta de semana anterior até voltar à semana de hoje | O dia selecionado passa a ser **hoje** e o título volta a "Hoje" | CT-035, CT-038 |
 
 ## Execução 001 — Verificação manual do RF-001 (pré-merge do PR #44)
 
@@ -424,3 +429,4 @@ pelo próprio app.
 | 2026-11-13 | 1.7 | Wilson Gorosthides | Execução 008 (agenda como tela inicial, pré-merge #75): rodada única no Chrome, com a criação da tabela `atendimentos` no Supabase; CT-029 a CT-039 aprovados, sem regressão no cadastro de clientes. |
 | 2026-11-13 | 1.8 | Wilson Gorosthides | Execução 009 (registro de atendimento, #77, PR #89): rodada única no Chrome e no celular; CT-040 a CT-048 aprovados, sem migração. Registra a falha de rede do celular na primeira abertura (bug #47) e os achados #87 e #88. |
 | 2026-11-13 | 1.9 | Wilson Gorosthides | Nova seção "Pilha de verificação manual (pendente)" e convenção correspondente: os passos manuais de cada entrega acumulam ali e são executados de uma vez antes do APK (replanejamento do fluxo; `plano-de-testes.md` 1.8). |
+| 2026-11-13 | 1.10 | Wilson Gorosthides | Pilha: entram os passos do fix #87 (seleção ao trocar a semana). |

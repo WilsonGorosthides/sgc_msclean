@@ -636,7 +636,7 @@
 - **Critério:** "A **semana** do dia selecionado fica visível junto ao dia: os
   sete dias (domingo a sábado), cada um com a **quantidade de atendimentos**. O
   usuário avança e retrocede de semana em semana."
-- **Tipo:** Unitário + Widget · **Situação:** implementado — `agenda_test: semana vai do domingo ao sábado que contêm o dia` · `agenda_test: domingo abre a semana e sábado a fecha` · `agenda_test: semana que atravessa a virada de mês` · `agenda_screen_test: faixa mostra domingo a sábado com a quantidade por dia` · `agenda_screen_test: avança e retrocede a semana`
+- **Tipo:** Unitário + Widget · **Situação:** implementado — `agenda_test: semana vai do domingo ao sábado que contêm o dia` · `agenda_test: domingo abre a semana e sábado a fecha` · `agenda_test: semana que atravessa a virada de mês` · `agenda_test: trocar de semana seleciona o domingo, ou hoje se estiver na semana` · `agenda_screen_test: faixa mostra domingo a sábado com a quantidade por dia` · `agenda_screen_test: avança e retrocede a semana`
 - **Pré-condições:** hoje é quarta-feira; dois atendimentos na segunda da
   semana corrente e um na terça da semana seguinte.
 - **Passos:**
@@ -646,7 +646,9 @@
   3. Avançar uma semana; depois retroceder duas.
 - **Resultado esperado:** a faixa vai do domingo ao sábado que contêm o dia
   selecionado; a segunda exibe 2; ao avançar, a faixa mostra a semana seguinte
-  e a terça exibe 1; ao retroceder, mostra a semana anterior à inicial.
+  e a terça exibe 1; ao retroceder, mostra a semana anterior à inicial. Ao
+  trocar de semana, o dia selecionado passa a ser o domingo da semana de
+  destino — ou hoje, quando a semana de destino é a corrente (issue #87).
 
 ### CT-036 — Mês em calendário com a quantidade por dia e navegação por mês
 - **Critério:** "A partir da agenda, em **um toque**, o usuário abre o **mês**
@@ -735,3 +737,4 @@
 | 2026-11-13 | 1.11 | Wilson Gorosthides | CT-029 a CT-039 passam a "implementado" com os testes reais da entrega do RF-010 (issue #75): `atendimento_test`, `agenda_test` (funções puras de semana, mês, contagem e ordem) e `agenda_screen_test` (catorze casos de widget com o relógio injetado). |
 | 2026-11-13 | 1.12 | Wilson Gorosthides | Casos do RF-005 enxuto (issue #77): CT-040 a CT-048 — data do dia selecionado, cliente e período obrigatórios com hora opcional, hora alterável depois, peças como lista, valor digitado, cliente provisório só com o nome e o seu selo na lista, local pré-preenchido com o endereço, e o atendimento salvo constando no dia e no período. Todos "a implementar". |
 | 2026-11-13 | 1.13 | Wilson Gorosthides | CT-040 a CT-048 passam a "implementado" com os testes da entrega do RF-005 enxuto (issue #77): `atendimento_form_screen_test` (onze casos), mais os novos casos em `agenda_screen_test`, `home_screen_test`, `atendimento_test`, `agenda_test`, `client_model_test` e `validators_test`. |
+| 2026-11-13 | 1.14 | Wilson Gorosthides | CT-035 fixa qual dia fica selecionado ao trocar de semana: o domingo da semana de destino, ou hoje se ela for a corrente (bug #87); novo teste unitário associado. |
