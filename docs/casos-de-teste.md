@@ -699,6 +699,54 @@
 - **Resultado esperado:** a lista de clientes (RF-003) é exibida em um toque, e
   voltar retorna à agenda no mesmo dia selecionado.
 
+## RF-014 — Estados de Conclusão do Atendimento
+
+### CT-049 — Dois marcadores independentes
+- **Critério:** "Cada atendimento tem dois marcadores **independentes**:
+  *serviço feito* e *cliente pagou*, cada um podendo ser ligado e desligado."
+- **Tipo:** Unitário + Widget · **Situação:** implementado — `atendimento_test: lê feito e pago; ausentes valem falso` · `atendimento_test: toMap não leva feito nem pago` · `agenda_screen_test: marcar serviço feito não abre o formulário e não marca o pago` · `agenda_screen_test: desmarcar o pago desliga só ele`
+- **Pré-condições:** um atendimento sem marca e outro com as duas.
+- **Passos:**
+  1. Ler uma linha do banco com e sem as colunas `feito` e `pago` (função pura).
+  2. Na agenda, marcar "Feito" no primeiro; desmarcar "Pago" no segundo.
+- **Resultado esperado:** colunas ausentes valem falso; marcar "Feito" grava só
+  o feito e não liga o pago; desmarcar "Pago" grava só o pago e mantém o feito.
+
+### CT-050 — Concluído somente com os dois marcados
+- **Critério:** "Um atendimento é considerado **concluído** somente quando **os
+  dois** estão marcados."
+- **Tipo:** Unitário + Widget · **Situação:** implementado — `atendimento_test: concluído só com os dois marcados` · `agenda_screen_test: cartão distingue nada marcado, um dos dois e concluído`
+- **Pré-condições:** atendimentos nas quatro combinações de feito e pago.
+- **Passos:**
+  1. Consultar `concluido` em cada combinação (função pura).
+  2. Renderizar a agenda.
+- **Resultado esperado:** só o atendimento com feito e pago é concluído e exibe
+  a indicação "Concluído".
+
+### CT-051 — Três situações distinguíveis na agenda
+- **Critério:** "A agenda distingue visualmente três situações: nada marcado, um
+  dos dois marcado, e concluído."
+- **Tipo:** Widget · **Situação:** implementado — `agenda_screen_test: cartão distingue nada marcado, um dos dois e concluído`
+- **Pré-condições:** um dia com um atendimento sem marca, um só com "Feito" e
+  um concluído.
+- **Passos:**
+  1. Renderizar a agenda nesse dia.
+- **Resultado esperado:** o primeiro mostra as duas marcas vazias; o segundo, só
+  a marca "Feito" preenchida; o terceiro, as duas preenchidas e o cartão com a
+  indicação de concluído.
+
+### CT-052 — Marcar sem abrir o formulário
+- **Critério:** "Marcar ou desmarcar não exige abrir o formulário de edição do
+  atendimento."
+- **Tipo:** Widget · **Situação:** implementado — `agenda_screen_test: marcar serviço feito não abre o formulário e não marca o pago` · `agenda_screen_test: falha ao marcar desfaz a marca e avisa`
+- **Pré-condições:** um atendimento no dia.
+- **Passos:**
+  1. Tocar na marca "Feito" do cartão.
+  2. Repetir com a gravação falhando.
+- **Resultado esperado:** a marca muda no próprio cartão, sem abrir o
+  formulário; se a gravação falha, a marca volta ao estado anterior e um aviso é
+  exibido.
+
 ## RNF-001 — Verificação manual de usabilidade
 
 ### CT-023 — Fluxo geral no dispositivo da cliente
@@ -738,3 +786,5 @@
 | 2026-11-13 | 1.12 | Wilson Gorosthides | Casos do RF-005 enxuto (issue #77): CT-040 a CT-048 — data do dia selecionado, cliente e período obrigatórios com hora opcional, hora alterável depois, peças como lista, valor digitado, cliente provisório só com o nome e o seu selo na lista, local pré-preenchido com o endereço, e o atendimento salvo constando no dia e no período. Todos "a implementar". |
 | 2026-11-13 | 1.13 | Wilson Gorosthides | CT-040 a CT-048 passam a "implementado" com os testes da entrega do RF-005 enxuto (issue #77): `atendimento_form_screen_test` (onze casos), mais os novos casos em `agenda_screen_test`, `home_screen_test`, `atendimento_test`, `agenda_test`, `client_model_test` e `validators_test`. |
 | 2026-11-13 | 1.14 | Wilson Gorosthides | CT-035 fixa qual dia fica selecionado ao trocar de semana: o domingo da semana de destino, ou hoje se ela for a corrente (bug #87); novo teste unitário associado. |
+| 2026-11-13 | 1.15 | Wilson Gorosthides | Casos do RF-014 (issue #79): CT-049 a CT-052 — dois marcadores independentes, concluído só com os dois, três situações distinguíveis na agenda, e marcar sem abrir o formulário. Todos "a implementar". |
+| 2026-11-13 | 1.16 | Wilson Gorosthides | CT-049 a CT-052 passam a "implementado" com os testes da entrega do RF-014 (issue #79), em `atendimento_test` e `agenda_screen_test`. |

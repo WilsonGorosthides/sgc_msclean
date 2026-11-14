@@ -50,7 +50,15 @@ A tabela é lida via stream ordenada por `nome`. O mapeamento jsonb ⇄ objeto v
     -   `valor` (numeric, opcional — valor combinado)
     -   `criado_em` (timestamptz, `default now()` — desempata os atendimentos sem hora: ficam na ordem em que foram registrados)
 
-A tabela é lida via stream ordenada por `data`; o agrupamento por período, a contagem por dia e a ordem dentro do período são calculados no app (`lib/utils/agenda.dart`), porque a stream já traz todos os atendimentos em memória — mesmo raciocínio da busca client-side (§7). Os campos de conclusão (feito/pago, RF-014) e observação (RF-005) entram por `alter table` nas suas entregas. A escrita (RF-005, #77) usa `insert` e `update` pela chave primária, com o mapa de `Atendimento.toMap()`; não exigiu mudança de schema.
+A tabela é lida via stream ordenada por `data`; o agrupamento por período, a contagem por dia e a ordem dentro do período são calculados no app (`lib/utils/agenda.dart`), porque a stream já traz todos os atendimentos em memória — mesmo raciocínio da busca client-side (§7). O campo de observação (RF-005) entra por `alter table` na sua entrega. A escrita (RF-005, #77) usa `insert` e `update` pela chave primária, com o mapa de `Atendimento.toMap()`; não exigiu mudança de schema.
+
+**Estados de conclusão (RF-014, issue #79).** Duas colunas `boolean not null default false`: `feito` (serviço feito) e `pago` (cliente pagou), independentes; "concluído" é derivado no app (`Atendimento.concluido`), não gravado. As marcas têm escrita própria (`SupabaseService.marcarConclusao`, que atualiza só a coluna pedida) e ficam **fora** do `Atendimento.toMap()`: salvar o formulário não pode apagar uma marca feita na agenda, e o registro de atendimento continua funcionando mesmo antes de as colunas existirem. A agenda aplica a marca na tela de imediato e desfaz se a gravação falhar.
+
+```sql
+alter table public.atendimentos
+  add column feito boolean not null default false,
+  add column pago  boolean not null default false;
+```
 
 **Cliente provisório (RF-005) sem coluna nova.** O registro pela agenda pode criar um cliente só com o nome; como o cadastro (RF-001) exige ao menos um telefone, a marca de provisório é `telefones` vazio (`ClientModel.provisorio`). Completar o cadastro pela edição, que continua exigindo telefone, é o que apaga a marca. A alternativa (coluna `provisorio boolean`) exigiria migração e um segundo lugar para manter coerente.
 
@@ -223,6 +231,7 @@ A auditoria registrou cobertura real de 0% — o único teste era o template pad
 | 2026-11-12 | 2.9 | Wilson Gorosthides | §10: novo risco de pausa do projeto Supabase por inatividade, mitigado pelo workflow `keep-alive.yml` (leitura diária na API REST, issue #72). |
 | 2026-10-06 | 2.8 | Wilson Gorosthides | §8 registra a categoria de "guardas de consistência" na estratégia de testes, com o `design_system_test` (nenhuma cor literal em `lib/screens/`) como primeiro caso. Issue #60. |
 | 2026-11-13 | 2.11 | Wilson Gorosthides | Registro de atendimento (RF-005 enxuto, issue #77): §4 registra a escrita em `atendimentos` sem mudança de schema e a decisão do cliente provisório sem coluna nova (`telefones` vazio); árvore §5 com `atendimento_form_screen.dart`; diagrama §6 com o formulário e as escritas pelo service. |
+| 2026-11-13 | 2.12 | Wilson Gorosthides | Estados de conclusão (RF-014, issue #79): §4 registra as colunas `feito` e `pago` (SQL de `alter table`), a escrita própria das marcas fora do `toMap` e o "concluído" derivado no app. Requer migração no Supabase. |
 | 2026-11-13 | 2.10 | Wilson Gorosthides | Agenda como tela inicial (RF-010, issue #75): tabela `atendimentos` na §4 (colunas, FK com cascade, `pecas` em jsonb, SQL com RLS e publicação de realtime); árvore §5 com `agenda_screen`, `atendimento`, `peca` e `utils/agenda`; diagrama §6 com a `AgendaScreen` inicial e as duas tabelas; §7 reavalia e mantém o `setState` e registra a decisão de calcular semana, mês e ordem no app; §12 cita a nova tabela. |
 
 ## 12. Ambiente de Desenvolvimento

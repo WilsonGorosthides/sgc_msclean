@@ -384,5 +384,93 @@ void main() {
       expect(gravado.clienteId, '1');
       verifyNever(() => service.addAtendimento(any()));
     });
+
+    // ---- RF-014: marcas de serviço feito e cliente pagou ----
+
+    Finder marcada(String chave) => find.descendant(
+        of: find.byKey(Key(chave)), matching: find.byIcon(Icons.check_circle));
+
+    Atendimento marcado(String id, String clienteId,
+            {bool feito = false, bool pago = false}) =>
+        Atendimento(
+          id: id,
+          data: hoje,
+          periodo: Periodo.manha,
+          clienteId: clienteId,
+          feito: feito,
+          pago: pago,
+        );
+
+    void aceitarMarcas() {
+      when(() => service.marcarConclusao(any(),
+          feito: any(named: 'feito'),
+          pago: any(named: 'pago'))).thenAnswer((_) async {});
+    }
+
+    testWidgets(
+        'marcar serviço feito não abre o formulário e não marca o pago',
+        (tester) async {
+      aceitarMarcas();
+      await bombear(tester, [marcado('a', '1')]);
+      expect(marcada('feito_a'), findsNothing);
+
+      await tocar(tester, 'feito_a');
+      await tester.pump();
+
+      verify(() => service.marcarConclusao('a', feito: true)).called(1);
+      expect(marcada('feito_a'), findsOneWidget);
+      expect(marcada('pago_a'), findsNothing);
+      expect(find.byKey(const Key('concluido_a')), findsNothing);
+      expect(find.byType(AtendimentoFormScreen), findsNothing);
+    });
+
+    testWidgets('desmarcar o pago desliga só ele', (tester) async {
+      aceitarMarcas();
+      await bombear(tester, [marcado('a', '1', feito: true, pago: true)]);
+      expect(find.byKey(const Key('concluido_a')), findsOneWidget);
+
+      await tocar(tester, 'pago_a');
+      await tester.pump();
+
+      verify(() => service.marcarConclusao('a', pago: false)).called(1);
+      expect(marcada('pago_a'), findsNothing);
+      expect(marcada('feito_a'), findsOneWidget);
+      expect(find.byKey(const Key('concluido_a')), findsNothing);
+    });
+
+    testWidgets('cartão distingue nada marcado, um dos dois e concluído',
+        (tester) async {
+      await bombear(tester, [
+        marcado('n', '1'),
+        marcado('u', '2', feito: true),
+        marcado('c', '3', feito: true, pago: true),
+      ]);
+
+      expect(marcada('feito_n'), findsNothing);
+      expect(marcada('pago_n'), findsNothing);
+      expect(find.byKey(const Key('concluido_n')), findsNothing);
+
+      expect(marcada('feito_u'), findsOneWidget);
+      expect(marcada('pago_u'), findsNothing);
+      expect(find.byKey(const Key('concluido_u')), findsNothing);
+
+      expect(marcada('feito_c'), findsOneWidget);
+      expect(marcada('pago_c'), findsOneWidget);
+      expect(find.byKey(const Key('concluido_c')), findsOneWidget);
+    });
+
+    testWidgets('falha ao marcar desfaz a marca e avisa', (tester) async {
+      when(() => service.marcarConclusao(any(),
+          feito: any(named: 'feito'),
+          pago: any(named: 'pago'))).thenThrow(Exception('rede'));
+      await bombear(tester, [marcado('a', '1')]);
+
+      await tocar(tester, 'feito_a');
+      await tester.pump();
+
+      expect(marcada('feito_a'), findsNothing);
+      expect(find.text('Não foi possível marcar. Tente novamente.'),
+          findsOneWidget);
+    });
   });
 }

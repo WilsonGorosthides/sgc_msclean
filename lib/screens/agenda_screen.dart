@@ -84,6 +84,30 @@ class _AgendaScreenState extends State<AgendaScreen> {
     _assinarAtendimentos();
   }
 
+  // Marca/desmarca feito ou pago (RF-014) direto no cartão. A tela muda na
+  // hora e a gravação segue em paralelo; se falhar, a marca volta e avisa.
+  Future<void> _marcar(Atendimento a, {bool? feito, bool? pago}) async {
+    final novo = a.copyWith(feito: feito, pago: pago);
+    _trocar(novo);
+    try {
+      await _service.marcarConclusao(a.id!, feito: feito, pago: pago);
+    } catch (_) {
+      if (!mounted) return;
+      _trocar(a);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Não foi possível marcar. Tente novamente.')),
+      );
+    }
+  }
+
+  void _trocar(Atendimento para) => setState(() {
+        _atendimentos = [
+          for (final x in _atendimentos ?? const <Atendimento>[])
+            x.id == para.id ? para : x,
+        ];
+      });
+
   @override
   void dispose() {
     _assinaturaAtendimentos?.cancel();
@@ -193,6 +217,7 @@ class _AgendaScreenState extends State<AgendaScreen> {
             atendimentos: atendimentosDoDia(atendimentos, _selecionado),
             clientes: clientes,
             aoTocar: (a) => _abrirFormulario(atendimento: a),
+            aoMarcar: _marcar,
           ),
         ),
       ],
@@ -500,6 +525,7 @@ class _DiaSelecionado extends StatelessWidget {
     required this.atendimentos,
     required this.clientes,
     required this.aoTocar,
+    required this.aoMarcar,
   });
 
   final DateTime dia;
@@ -507,6 +533,7 @@ class _DiaSelecionado extends StatelessWidget {
   final List<Atendimento> atendimentos;
   final List<ClientModel> clientes;
   final void Function(Atendimento) aoTocar;
+  final void Function(Atendimento, {bool? feito, bool? pago}) aoMarcar;
 
   @override
   Widget build(BuildContext context) {
@@ -544,6 +571,8 @@ class _DiaSelecionado extends StatelessWidget {
               atendimento: a,
               nomeDoCliente: _nomeDoCliente(a.clienteId),
               aoTocar: () => aoTocar(a),
+              aoMarcarFeito: () => aoMarcar(a, feito: !a.feito),
+              aoMarcarPago: () => aoMarcar(a, pago: !a.pago),
             ),
           const SizedBox(height: AppSpacing.xl),
         ],
@@ -618,11 +647,15 @@ class _CartaoAtendimento extends StatelessWidget {
     required this.atendimento,
     required this.nomeDoCliente,
     required this.aoTocar,
+    required this.aoMarcarFeito,
+    required this.aoMarcarPago,
   });
 
   final Atendimento atendimento;
   final String nomeDoCliente;
   final VoidCallback aoTocar;
+  final VoidCallback aoMarcarFeito;
+  final VoidCallback aoMarcarPago;
 
   @override
   Widget build(BuildContext context) {
@@ -634,6 +667,9 @@ class _CartaoAtendimento extends StatelessWidget {
       key: Key('atendimento_${a.id}'),
       margin: const EdgeInsets.only(bottom: AppSpacing.sm),
       clipBehavior: Clip.antiAlias,
+      // Concluído (feito e pago) muda o cartão inteiro: é a terceira situação
+      // que a agenda distingue (RF-014).
+      color: a.concluido ? AppColors.sucessoFundo : null,
       child: InkWell(
         onTap: aoTocar,
         child: IntrinsicHeight(
@@ -690,12 +726,94 @@ class _CartaoAtendimento extends StatelessWidget {
                           ),
                         ),
                       ),
+                    const SizedBox(height: AppSpacing.sm),
+                    Row(
+                      children: [
+                        _Marca(
+                          chave: 'feito_${a.id}',
+                          rotulo: 'Feito',
+                          marcada: a.feito,
+                          aoTocar: aoMarcarFeito,
+                        ),
+                        const SizedBox(width: AppSpacing.sm),
+                        _Marca(
+                          chave: 'pago_${a.id}',
+                          rotulo: 'Pago',
+                          marcada: a.pago,
+                          aoTocar: aoMarcarPago,
+                        ),
+                        const Spacer(),
+                        if (a.concluido)
+                          Text(
+                            'Concluído',
+                            key: Key('concluido_${a.id}'),
+                            style: textos.labelSmall
+                                ?.copyWith(color: AppColors.sucesso),
+                          ),
+                      ],
+                    ),
                   ],
                 ),
               ),
             ),
           ],
         ),
+        ),
+      ),
+    );
+  }
+}
+
+// Marca de conferido do cartão (RF-014): "Feito" e "Pago", independentes. O
+// toque não abre o formulário — a marca tem o seu próprio alvo de toque.
+class _Marca extends StatelessWidget {
+  const _Marca({
+    required this.chave,
+    required this.rotulo,
+    required this.marcada,
+    required this.aoTocar,
+  });
+
+  final String chave;
+  final String rotulo;
+  final bool marcada;
+  final VoidCallback aoTocar;
+
+  @override
+  Widget build(BuildContext context) {
+    final cor = marcada ? AppColors.sucesso : AppColors.tintaFraca;
+    return Material(
+      key: Key(chave),
+      color: marcada ? AppColors.sucessoFundo : AppColors.superficie,
+      shape: StadiumBorder(
+        side: BorderSide(color: marcada ? AppColors.sucesso : AppColors.borda),
+      ),
+      child: InkWell(
+        customBorder: const StadiumBorder(),
+        onTap: aoTocar,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.md,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                marcada ? Icons.check_circle : Icons.radio_button_unchecked,
+                size: AppSpacing.lg + AppSpacing.xs,
+                color: cor,
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              Text(
+                rotulo,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: cor,
+                      fontWeight: FontWeight.w700,
+                    ),
+              ),
+            ],
+          ),
         ),
       ),
     );

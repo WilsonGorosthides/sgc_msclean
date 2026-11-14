@@ -48,6 +48,56 @@ void main() {
       expect(a.valor, isNull);
     });
 
+    test('lê feito e pago; ausentes valem falso', () {
+      final base = {
+        'id': 'abc',
+        'data': '2026-11-11',
+        'periodo': 'manha',
+        'cliente_id': 'c1',
+      };
+      final semColunas = Atendimento.fromMap(base);
+      expect(semColunas.feito, isFalse);
+      expect(semColunas.pago, isFalse);
+
+      final marcado = Atendimento.fromMap({...base, 'feito': true, 'pago': false});
+      expect(marcado.feito, isTrue);
+      expect(marcado.pago, isFalse);
+    });
+
+    test('concluído só com os dois marcados', () {
+      Atendimento com(bool feito, bool pago) => Atendimento(
+            data: DateTime(2026, 11, 11),
+            periodo: Periodo.manha,
+            clienteId: 'c1',
+            feito: feito,
+            pago: pago,
+          );
+      expect(com(false, false).concluido, isFalse);
+      expect(com(true, false).concluido, isFalse);
+      expect(com(false, true).concluido, isFalse);
+      expect(com(true, true).concluido, isTrue);
+
+      // copyWith troca só o que foi pedido
+      final soFeito = com(false, true).copyWith(feito: true);
+      expect(soFeito.feito, isTrue);
+      expect(soFeito.pago, isTrue);
+      expect(com(true, true).copyWith(pago: false).feito, isTrue);
+    });
+
+    test('toMap não leva feito nem pago', () {
+      // as marcas têm escrita própria (marcarConclusao): salvar o formulário
+      // não pode apagar uma marca feita na agenda
+      final mapa = Atendimento(
+        data: DateTime(2026, 11, 11),
+        periodo: Periodo.manha,
+        clienteId: 'c1',
+        feito: true,
+        pago: true,
+      ).toMap();
+      expect(mapa.containsKey('feito'), isFalse);
+      expect(mapa.containsKey('pago'), isFalse);
+    });
+
     test('período tem o rótulo exibido na agenda', () {
       expect(Periodo.manha.rotulo, 'Manhã');
       expect(Periodo.tarde.rotulo, 'Tarde');
