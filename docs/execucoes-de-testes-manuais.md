@@ -357,6 +357,45 @@ real), FK `cliente_id` com `on delete cascade`, tabela sem
 feito/pago/observação (entram no RF-014 e no RF-005) e mês como alternância na
 mesma tela.
 
+## Execução 009 — Verificação manual do registro de atendimento (pós-merge, #77)
+
+- **Data:** 2026-11-13.
+- **Objeto:** PR #89 (issue #77) — RF-005 enxuto, registrar e editar atendimento
+  a partir do dia da agenda (`requisitos.md` §2.2). Sem mudança de schema. A
+  rodada foi feita antes do merge; o registro entra depois dele.
+- **Ambiente:** web desktop (`fvm flutter run -d chrome`) e celular físico
+  (SM A505GT, Android 11, `fvm flutter run -d`), contra o Supabase real do MVP.
+- **Executor:** o desenvolvedor.
+
+### Resultados
+
+| Passo | O que verificou | CT(s) | Resultado |
+|---|---|---|---|
+| 1 | Novo atendimento abre com a data do dia selecionado, sem campo de data | CT-040 | Aprovado |
+| 2 | Salvar sem cliente e sem período não grava e aponta os dois campos | CT-041 | Aprovado |
+| 3 | Cliente com endereço, período Tarde, peças (tapete com medidas e sofá) e valor `180,50`; o Local vem do endereço; o cartão aparece na Tarde do mesmo dia | CT-043, CT-044, CT-047, CT-048 | Aprovado |
+| 4 | Tocar no cartão abre a edição; a hora alterada atualiza o mesmo atendimento, sem duplicar | CT-042 | Aprovado |
+| 5 | "Anotar só o nome" cria o cliente provisório, o atendimento aparece na Manhã e a lista de clientes mostra o selo "provisório" | CT-045, CT-046 | Aprovado |
+
+### Ocorrências
+- A hora abreviada (`8`, `830`, `1430`) passou a ser completada para `HH:MM`
+  durante a rodada, por sugestão do desenvolvedor, e o botão foi renomeado para
+  "Salvar atendimento" para não ser confundido com a marca de serviço feito
+  (RF-014); ambos já estavam no PR.
+- No celular, a primeira abertura veio sem dados por falta de rede do aparelho
+  (nenhuma rede ativa); o app mostrou "Nenhum cliente encontrado." porque a
+  falha de conexão não é distinguida de lista vazia — bug já registrado (#47).
+  Com a rede restabelecida, os dados apareceram.
+- Achados fora de escopo, abertos como issues: #87 (a seleção acompanha o mesmo
+  dia da semana ao trocar a semana pela seta) e #88 (abrir o Local no Google
+  Maps a partir do cartão).
+
+### Veredicto
+
+**#77 validado** em rodada única, no Chrome e no celular, com a suíte
+automatizada verde. A proprietária já consegue registrar e editar atendimentos
+pelo próprio app.
+
 ## Histórico de Versões
 
 | Data | Versão | Autor | Descrição da mudança |
@@ -369,3 +408,4 @@ mesma tela.
 | 2026-07-21 | 1.5 | Wilson Gorosthides | Execução 006 (endereço estruturado, pré-merge #65): rodada única com a migração do Supabase (`endereco` text → jsonb); CT-027/CT-011/CT-025/CT-006/CT-008/CT-014 aprovados, sem regressão. |
 | 2026-07-21 | 1.6 | Wilson Gorosthides | Execução 007 (abrir no Google Maps, pré-merge #66): rodada única, sem migração; CT-028 aprovado, sem regressão em edição e exclusão. |
 | 2026-11-13 | 1.7 | Wilson Gorosthides | Execução 008 (agenda como tela inicial, pré-merge #75): rodada única no Chrome, com a criação da tabela `atendimentos` no Supabase; CT-029 a CT-039 aprovados, sem regressão no cadastro de clientes. |
+| 2026-11-13 | 1.8 | Wilson Gorosthides | Execução 009 (registro de atendimento, #77, PR #89): rodada única no Chrome e no celular; CT-040 a CT-048 aprovados, sem migração. Registra a falha de rede do celular na primeira abertura (bug #47) e os achados #87 e #88. |
