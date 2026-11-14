@@ -208,14 +208,21 @@ registrou como quebrado e será removido ao entrarem os primeiros testes reais
 previsto na criação deste plano — "quando o RF-001 estiver perto de fechar" —
 disparou com a entrega do RF-001 (issue #25).
 
-O gate de qualidade é duplo: a **suíte local verde, rodada pelo desenvolvedor**
-antes de autorizar o push (exigida pela Definição de Pronto,
-`gerencia-de-configuracao.md` §9) **e** o workflow verde no PR. Durante o
+O gate de qualidade é o **workflow verde no PR**: ele roda o `analyze` e a
+suíte completa, e a ruleset da `main` impede o merge sem ele. Durante o
 desenvolvimento assistido por agente, este roda apenas os testes **direcionados**
-ao arquivo da feature (red→green); a suíte completa e o `analyze` são executados
-pelo desenvolvedor, dono do merge. O CI não substitui essa execução local (que
-continua obrigatória antes do push); permanece a **rede de segurança** que roda
-tudo e protege contra o que escapar dela.
+ao arquivo da feature (red→green) e, com o CI verde, faz o merge. A execução
+local da suíte completa pelo desenvolvedor deixou de ser exigida em 2026-11-13:
+repetia o que o CI já faz e parava cada entrega à espera dela.
+
+**Testes manuais em pilha.** A verificação manual deixou de ser pré-condição de
+cada merge. Cada entrega acrescenta os seus passos à "Pilha de verificação
+manual" de `execucoes-de-testes-manuais.md`, e o desenvolvedor roda a pilha
+inteira antes de instalar o APK no celular da proprietária (issue #23). É uma
+dívida assumida de propósito: um defeito de aparência ou de fluxo pode ficar
+escondido por algumas entregas e custar mais para corrigir; em troca, as
+entregas não esperam. A lógica continua protegida pelos testes unitários e de
+widget; o que a rodada em pilha achar vira issue de `fix`.
 
 ## 6. Cobertura
 
@@ -279,18 +286,16 @@ Fluxo de trabalho solo, aplicado por feature do MVP:
    vermelho.
 3. **Implementação.** Implementar a feature até os testes **direcionados**
    passarem (verde verificável no arquivo da feature).
-4. **Suíte verde (gate do desenvolvedor).** O **desenvolvedor** roda a suíte
-   completa (`fvm flutter test`) e o `fvm flutter analyze` sem falhas nem erros
-   antes de autorizar o push. Este é o gate final; o agente não o substitui.
-5. **PR.** Abrir o PR seguindo `gerencia-de-configuracao.md` §6 (título
-   `pr(<tipo>): ...`, corpo no template, `Closes #N`).
-6. **Autorrevisão.** Revisar o próprio diff antes do merge — código, testes e
-   sincronização de documentação (Definição de Pronto, §9 da GCS).
+4. **PR.** Push e PR seguindo `gerencia-de-configuracao.md` §6 (título
+   `pr(<tipo>): ...`, corpo no template, `Closes #N`). O CI roda o `analyze` e
+   a suíte completa.
+5. **Pilha manual.** Os passos de verificação manual da entrega entram na
+   pilha de `execucoes-de-testes-manuais.md` (seção 5.2), no mesmo PR.
+6. **Merge.** Com o CI verde, merge por merge commit e branch deletada.
 
 Os testes direcionados dos passos 2–3 são a verificação red→green feita durante o
-desenvolvimento; o passo 4 (suíte completa + `analyze`) é executado localmente
-pelo desenvolvedor e repetido pela CI no PR (seção 5.2); o passo 6 permanece
-manual.
+desenvolvimento; a suíte completa e o `analyze` rodam na CI do PR (seção 5.2); a
+verificação manual é feita em pilha, antes da instalação do APK.
 
 ## 10. Histórico de Versões
 
@@ -304,3 +309,4 @@ manual.
 | 2026-07-20 | 1.5 | Wilson Gorosthides | §1.2: tabela de escopo atualizada — RF-001, RF-002 e RF-008 passam a "Implementado" (MVP completo, issue #27). |
 | 2026-10-06 | 1.6 | Wilson Gorosthides | §2.2: novo tipo "guarda de consistência", para testes que verificam regra do projeto lendo o código-fonte em vez de critério de requisito; primeiro caso é o `design_system_test` (nenhuma cor literal nas telas, `design-system.md` §6), deliberadamente sem CT por não haver critério de aceitação que ele rastreie. Issue #60. |
 | 2026-11-13 | 1.7 | Wilson Gorosthides | §1.2: RF-010 e RF-005 (enxuto) entram na tabela de escopo como "Implementado" (issues #75 e #77); o parágrafo de fora de escopo deixa de citar o RF-005 e passa a listar os RFs da agenda que entram à medida que são entregues. |
+| 2026-11-13 | 1.8 | Wilson Gorosthides | Replanejamento do fluxo de entrega: §5.2 passa o gate para o CI (a suíte local do desenvolvedor deixa de ser exigida) e registra os testes manuais em pilha, rodados antes do APK (#23), como dívida assumida; §9 reescreve os passos 4 a 6 (PR, pilha manual, merge com CI verde). |

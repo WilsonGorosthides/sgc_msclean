@@ -36,14 +36,21 @@ Usuária única: a proprietária. Desenvolvedor solo.
 - **Schema do banco é aplicado pelo desenvolvedor**: não há pasta de migrations
   e o agente não altera o Supabase. Toda mudança de schema ou de RLS vai como
   SQL no corpo do PR e em `docs/arquitetura.md` §4; o desenvolvedor roda no
-  painel antes da verificação manual.
-- **Gate local antes do push (do desenvolvedor)**: a suíte completa
-  (`fvm flutter test`) e o `fvm flutter analyze` são executados pelo
-  **desenvolvedor** antes de autorizar o push; o agente roda apenas testes
-  **direcionados** ao(s) arquivo(s) da feature durante o desenvolvimento, para
-  verificar o red→green. Usar sempre `fvm flutter`, nunca `flutter` direto.
-- **Parar antes do push** e aguardar a revisão humana do desenvolvedor, salvo
-  instrução explícita em contrário na tarefa.
+  painel. SQL ainda não aplicado é avisado no fim da entrega e listado no topo
+  da pilha de verificação manual.
+- **Gate é o CI**: o agente roda apenas testes **direcionados** ao(s)
+  arquivo(s) da feature durante o desenvolvimento (red→green); a suíte completa
+  e o `analyze` rodam no CI do PR (`analyze + test`), que é o gate do merge.
+  Usar sempre `fvm flutter`, nunca `flutter` direto.
+- **Entrega sem parada**: com os testes direcionados verdes, o agente dá push,
+  abre o PR e, com o CI verde, **faz o merge** (merge commit, branch deletada)
+  e segue para a próxima issue. Só para se o CI falhar e não houver correção
+  clara, ou se a issue exigir uma decisão de produto.
+- **Testes manuais em pilha**: cada entrega acrescenta os seus passos à seção
+  "Pilha de verificação manual" de `docs/execucoes-de-testes-manuais.md`; o
+  desenvolvedor roda a pilha inteira **antes de instalar o APK** (#23). É uma
+  dívida assumida em 2026-11-13 para não atrasar cada entrega; o que a rodada
+  achar vira issue de `fix`.
 - **PR**: título `pr(<tipo>): ...`, corpo no template da GCS §6, `Closes #N` fora
   de backticks. Merge por merge commit; branch deletada depois.
 - **Docs sincronizados** no mesmo PR + linha nova no Histórico de Versões de cada

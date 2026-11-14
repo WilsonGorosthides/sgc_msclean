@@ -23,8 +23,22 @@
 | Adiado | Passo não executado nesta rodada, com motivo e destino registrados. |
 
 - Todo achado (reprovação ou ressalva) referencia a issue aberta a partir dele.
+- Desde 2026-11-13 a verificação manual não é mais feita a cada PR: os passos
+  de cada entrega acumulam na **Pilha de verificação manual** (seção abaixo) e
+  são executados de uma vez antes da instalação do APK (`plano-de-testes.md`
+  §5.2). Ao rodar a pilha, ela vira a próxima `Execução NNN` e a seção é
+  esvaziada.
 - Ocorrências de **ambiente** (ex.: backend fora do ar) também são registradas,
   mesmo quando não são defeito do app.
+
+## Pilha de verificação manual (pendente)
+
+Passos ainda não executados, por entrega, na ordem em que foram mergeadas.
+Rodar tudo antes de instalar o APK (issue #23).
+
+**SQL a aplicar no painel antes da rodada:** nenhum.
+
+_(nenhuma entrega na pilha)_
 
 ## Execução 001 — Verificação manual do RF-001 (pré-merge do PR #44)
 
@@ -409,3 +423,4 @@ pelo próprio app.
 | 2026-07-21 | 1.6 | Wilson Gorosthides | Execução 007 (abrir no Google Maps, pré-merge #66): rodada única, sem migração; CT-028 aprovado, sem regressão em edição e exclusão. |
 | 2026-11-13 | 1.7 | Wilson Gorosthides | Execução 008 (agenda como tela inicial, pré-merge #75): rodada única no Chrome, com a criação da tabela `atendimentos` no Supabase; CT-029 a CT-039 aprovados, sem regressão no cadastro de clientes. |
 | 2026-11-13 | 1.8 | Wilson Gorosthides | Execução 009 (registro de atendimento, #77, PR #89): rodada única no Chrome e no celular; CT-040 a CT-048 aprovados, sem migração. Registra a falha de rede do celular na primeira abertura (bug #47) e os achados #87 e #88. |
+| 2026-11-13 | 1.9 | Wilson Gorosthides | Nova seção "Pilha de verificação manual (pendente)" e convenção correspondente: os passos manuais de cada entrega acumulam ali e são executados de uma vez antes do APK (replanejamento do fluxo; `plano-de-testes.md` 1.8). |
