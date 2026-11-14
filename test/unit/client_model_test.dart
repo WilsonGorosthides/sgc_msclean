@@ -79,5 +79,16 @@ void main() {
 
       expect(cliente.endereco.logradouro, 'Rua Antiga, 5 - Centro');
     });
+
+    test('provisório é o cliente sem telefone (RF-005)', () {
+      // o RF-001 exige ao menos um telefone; só o registro pela agenda cria
+      // cliente sem nenhum — é essa a marca de provisório, sem coluna nova
+      expect(ClientModel(nome: 'Dona Ivete', telefones: const []).provisorio,
+          isTrue);
+      expect(
+          ClientModel(nome: 'Ana', telefones: const ['11 91111-1111'])
+              .provisorio,
+          isFalse);
+    });
   });
 }

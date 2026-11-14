@@ -49,6 +49,11 @@ class ClientModel {
     return [];
   }
 
+  // Cliente provisório (RF-005): criado pela agenda só com o nome. Como o
+  // cadastro (RF-001) exige ao menos um telefone, "sem telefone" é a marca —
+  // completar o cadastro pela edição é o que a apaga. Sem coluna nova.
+  bool get provisorio => telefones.isEmpty;
+
   // Mapa para escrita no banco; sem o id, que é gerado pelo Supabase.
   Map<String, dynamic> toMap() {
     return {

@@ -50,7 +50,9 @@ A tabela é lida via stream ordenada por `nome`. O mapeamento jsonb ⇄ objeto v
     -   `valor` (numeric, opcional — valor combinado)
     -   `criado_em` (timestamptz, `default now()` — desempata os atendimentos sem hora: ficam na ordem em que foram registrados)
 
-A tabela é lida via stream ordenada por `data`; o agrupamento por período, a contagem por dia e a ordem dentro do período são calculados no app (`lib/utils/agenda.dart`), porque a stream já traz todos os atendimentos em memória — mesmo raciocínio da busca client-side (§7). Os campos de conclusão (feito/pago, RF-014) e observação (RF-005) entram por `alter table` nas suas entregas.
+A tabela é lida via stream ordenada por `data`; o agrupamento por período, a contagem por dia e a ordem dentro do período são calculados no app (`lib/utils/agenda.dart`), porque a stream já traz todos os atendimentos em memória — mesmo raciocínio da busca client-side (§7). Os campos de conclusão (feito/pago, RF-014) e observação (RF-005) entram por `alter table` nas suas entregas. A escrita (RF-005, #77) usa `insert` e `update` pela chave primária, com o mapa de `Atendimento.toMap()`; não exigiu mudança de schema.
+
+**Cliente provisório (RF-005) sem coluna nova.** O registro pela agenda pode criar um cliente só com o nome; como o cadastro (RF-001) exige ao menos um telefone, a marca de provisório é `telefones` vazio (`ClientModel.provisorio`). Completar o cadastro pela edição, que continua exigindo telefone, é o que apaga a marca. A alternativa (coluna `provisorio boolean`) exigiria migração e um segundo lugar para manter coerente.
 
 SQL aplicado no painel do Supabase (não há pasta de migrations — ver `CLAUDE.md`):
 
@@ -92,10 +94,11 @@ lib/
 │   └── endereco.dart               # Endereco: value object do endereço estruturado (jsonb)
 ├── screens/
 │   ├── agenda_screen.dart          # tela inicial (RF-010): dia por período, faixa da semana, mês em calendário
+│   ├── atendimento_form_screen.dart # registro e edição de atendimento a partir do dia (RF-005)
 │   ├── home_screen.dart            # lista de clientes + barra de busca (aberta a partir da agenda)
 │   └── client_form_screen.dart     # formulário de cadastro (RF-001; reusável na edição)
 ├── services/
-│   ├── supabase_service.dart       # acesso ao Supabase (streams de clientes e atendimentos + CRUD de clientes)
+│   ├── supabase_service.dart       # acesso ao Supabase (streams de clientes e atendimentos + escrita de clientes e atendimentos)
 │   └── maps_launcher.dart          # abre o endereco no Google Maps (RF-009, url_launcher)
 ├── theme/
 │   ├── app_colors.dart             # paleta (contrastes WCAG medidos em comentário)
@@ -103,8 +106,8 @@ lib/
 │   ├── app_typography.dart         # TextTheme em Archivo, os seis tokens de texto
 │   └── app_theme.dart              # ColorScheme explícito + ThemeData (AppTheme.claro)
 └── utils/
-    ├── agenda.dart                 # funções puras da agenda: semana, grade do mês, contagem, ordem do dia, nomes em PT-BR
-    └── validators.dart             # validações puras do formulário (obrigatório, telefone)
+    ├── agenda.dart                 # funções puras da agenda: semana, grade do mês, contagem, ordem do dia, nomes em PT-BR, valor em reais
+    └── validators.dart             # validações puras dos formulários (obrigatório, telefone, hora)
 ```
 Fora de `lib/`: `docs/` (esta documentação e os requisitos) e `test/` (testes).
 
@@ -115,6 +118,7 @@ Relação entre as camadas do app e o backend:
 flowchart LR
     subgraph App["App Flutter"]
         Agenda["AgendaScreen (inicial)<br/>(screens/agenda_screen.dart)"]
+        Form["AtendimentoFormScreen<br/>(screens/atendimento_form_screen.dart)"]
         Home["HomeScreen<br/>(screens/home_screen.dart)"]
         Utils["funções puras da agenda<br/>(utils/agenda.dart)"]
         Service["SupabaseService<br/>(services/supabase_service.dart)"]
@@ -124,6 +128,8 @@ flowchart LR
     DB[("PostgreSQL<br/>tabelas clientes e atendimentos")]
 
     Agenda -->|"abre a lista de clientes"| Home
+    Agenda -->|"novo / editar atendimento"| Form
+    Form -->|"addAtendimento / updateAtendimento / addClienteProvisorio"| Service
     Agenda -->|"getAtendimentosStream / getClientsStream"| Service
     Agenda -->|"semana, mês, contagem, ordem"| Utils
     Home -->|"getClientsStream / CRUD"| Service
@@ -134,7 +140,7 @@ flowchart LR
     Client <-->|"realtime + queries"| DB
 ```
 
-Em texto: a **AgendaScreen** é a tela inicial e consome as duas streams do **service** (atendimentos e clientes, esta para resolver o nome de cada atendimento); as regras de calendário e de ordem do dia ficam em **funções puras** (`utils/agenda.dart`), testadas sem widget. A **HomeScreen** (lista de clientes) abre a partir da agenda. O service conversa com o **Supabase client**, que lê/escreve no **PostgreSQL**; os dados trafegam mapeados para os **models**, que as screens renderizam.
+Em texto: a **AgendaScreen** é a tela inicial e consome as duas streams do **service** (atendimentos e clientes, esta para resolver o nome de cada atendimento); as regras de calendário e de ordem do dia ficam em **funções puras** (`utils/agenda.dart`), testadas sem widget. O **AtendimentoFormScreen** abre a partir da agenda (novo, no dia selecionado, ou edição de um cartão), recebe a lista de clientes já carregada e grava pelo service; ao voltar, a agenda renova a sua stream. A **HomeScreen** (lista de clientes) abre a partir da agenda. O service conversa com o **Supabase client**, que lê/escreve no **PostgreSQL**; os dados trafegam mapeados para os **models**, que as screens renderizam.
 
 ## 7. Decisões Técnicas e Justificativas
 
@@ -216,6 +222,7 @@ A auditoria registrou cobertura real de 0% — o único teste era o template pad
 | 2026-09-23 | 2.7 | Wilson Gorosthides | Novo `lib/theme/` na árvore §5 (`app_colors`, `app_spacing`, `app_typography`, `app_theme`) e quatro decisões técnicas em §7: design system antes das telas da agenda, `ColorScheme` explícito em vez de `fromSeed`, só tema claro e Figma fora do projeto. Tokens especificados em `docs/design-system.md` (issue #60). |
 | 2026-11-12 | 2.9 | Wilson Gorosthides | §10: novo risco de pausa do projeto Supabase por inatividade, mitigado pelo workflow `keep-alive.yml` (leitura diária na API REST, issue #72). |
 | 2026-10-06 | 2.8 | Wilson Gorosthides | §8 registra a categoria de "guardas de consistência" na estratégia de testes, com o `design_system_test` (nenhuma cor literal em `lib/screens/`) como primeiro caso. Issue #60. |
+| 2026-11-13 | 2.11 | Wilson Gorosthides | Registro de atendimento (RF-005 enxuto, issue #77): §4 registra a escrita em `atendimentos` sem mudança de schema e a decisão do cliente provisório sem coluna nova (`telefones` vazio); árvore §5 com `atendimento_form_screen.dart`; diagrama §6 com o formulário e as escritas pelo service. |
 | 2026-11-13 | 2.10 | Wilson Gorosthides | Agenda como tela inicial (RF-010, issue #75): tabela `atendimentos` na §4 (colunas, FK com cascade, `pecas` em jsonb, SQL com RLS e publicação de realtime); árvore §5 com `agenda_screen`, `atendimento`, `peca` e `utils/agenda`; diagrama §6 com a `AgendaScreen` inicial e as duas tabelas; §7 reavalia e mantém o `setState` e registra a decisão de calcular semana, mês e ordem no app; §12 cita a nova tabela. |
 
 ## 12. Ambiente de Desenvolvimento

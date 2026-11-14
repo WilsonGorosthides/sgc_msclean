@@ -1,6 +1,14 @@
 // Peça de um atendimento (RF-005): o negócio é cobrado por peça e, nas peças
 // medidas, por metragem. Persistida dentro do jsonb `pecas` do atendimento.
 class Peca {
+  // Tipos oferecidos no formulário (RF-005), na ordem de frequência do
+  // negócio; "outro" fecha a lista.
+  static const tipos = ['tapete', 'sofá', 'poltrona', 'cortina', 'colchão', 'outro'];
+
+  // Só o tapete é cobrado por metragem (largura × comprimento); o resto é
+  // contado por unidade.
+  static bool ehMedido(String tipo) => tipo == 'tapete';
+
   final String tipo;
   final int quantidade;
   final double? largura;
@@ -23,6 +31,14 @@ class Peca {
       comprimento: lerNumero(map['comprimento']),
     );
   }
+
+  // Mapa para o jsonb `pecas`; as medidas só entram quando existem.
+  Map<String, dynamic> toMap() => {
+        'tipo': tipo,
+        'quantidade': quantidade,
+        if (largura != null) 'largura': largura,
+        if (comprimento != null) 'comprimento': comprimento,
+      };
 
   // Texto do cartão da agenda: "2× tapete 3 × 2", "6 folhas de cortina".
   String get resumo {

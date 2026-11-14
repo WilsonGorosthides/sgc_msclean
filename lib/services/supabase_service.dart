@@ -50,6 +50,31 @@ class SupabaseService {
     await _supabase.from('clientes').delete().eq('id', client.id!);
   }
 
+  // Registra um atendimento (RF-005); id e criado_em vêm do banco.
+  Future<void> addAtendimento(Atendimento atendimento) async {
+    await _supabase.from('atendimentos').insert(atendimento.toMap());
+  }
+
+  // Atualiza um atendimento existente (RF-005: hora alterável depois).
+  Future<void> updateAtendimento(Atendimento atendimento) async {
+    await _supabase
+        .from('atendimentos')
+        .update(atendimento.toMap())
+        .eq('id', atendimento.id!);
+  }
+
+  // Cliente provisório (RF-005): só o nome, sem telefone nem endereço — a
+  // exceção declarada ao RF-001. Devolve o cliente com o id gerado, para o
+  // atendimento apontar para ele.
+  Future<ClientModel> addClienteProvisorio(String nome) async {
+    final linha = await _supabase
+        .from('clientes')
+        .insert(ClientModel(nome: nome.trim(), telefones: const []).toMap())
+        .select()
+        .single();
+    return ClientModel.fromMap(linha);
+  }
+
   // Filtro da busca (RF-004): substring em nome ou em qualquer campo do
   // endereço (via Endereco.buscavel), sem diferenciar maiúsculas de
   // minúsculas. Função pura: testável sem mockar a stream do Supabase.

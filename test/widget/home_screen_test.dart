@@ -421,5 +421,17 @@ void main() {
 
       expect(find.text('Cliente excluído'), findsOneWidget);
     });
+
+    testWidgets('cliente provisório exibe o selo na lista', (tester) async {
+      final ivete =
+          ClientModel(id: '9', nome: 'Dona Ivete', telefones: const []);
+      when(() => service.getClientsStream())
+          .thenAnswer((_) => Stream.value([ana, ivete]));
+      await bombearTela(tester);
+
+      expect(find.byKey(const Key('provisorio_9')), findsOneWidget);
+      expect(find.text('provisório'), findsOneWidget);
+      expect(find.byKey(const Key('provisorio_1')), findsNothing);
+    });
   });
 }
