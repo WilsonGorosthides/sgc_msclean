@@ -182,8 +182,8 @@ class _AgendaScreenState extends State<AgendaScreen> {
           selecionado: _selecionado,
           hoje: hoje,
           contagem: contagem,
-          aoMudarSemana: (semanas) => setState(
-              () => _selecionado = somarDias(_selecionado, 7 * semanas)),
+          aoMudarSemana: (semanas) => setState(() =>
+              _selecionado = diaAoTrocarSemana(_selecionado, semanas, hoje)),
           aoEscolher: _selecionar,
         ),
         Expanded(

@@ -47,6 +47,16 @@ List<DateTime> semanaDe(DateTime d) {
   return [for (var i = 0; i < 7; i++) somarDias(domingo, i)];
 }
 
+// Dia que fica selecionado ao avançar/retroceder [semanas] (issue #87): hoje,
+// se a semana de destino o contém; senão o domingo dela. Manter o mesmo dia da
+// semana fazia a seleção "pular" de sábado para sábado sem a leitura da semana
+// recomeçar do início.
+DateTime diaAoTrocarSemana(DateTime selecionado, int semanas, DateTime hoje) {
+  final destino = semanaDe(somarDias(selecionado, 7 * semanas));
+  final alvo = soData(hoje);
+  return destino.contains(alvo) ? alvo : destino.first;
+}
+
 // Grade do mês em linhas de sete colunas (domingo a sábado); células de fora
 // do mês são null.
 List<DateTime?> gradeDoMes(DateTime mes) {
