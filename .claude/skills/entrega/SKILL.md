@@ -1,6 +1,6 @@
 ---
 name: entrega
-description: Fluxo GCS completo de entrega de uma issue - branch, teste-antes, commits granulares, parada para revisao humana, push + PR com CI verde. Uso - /entrega <numero-da-issue>
+description: Fluxo GCS completo de entrega de uma issue - branch, teste-antes, commits granulares, push + PR, merge com CI verde e passos manuais na pilha. Uso - /entrega <numero-da-issue>
 ---
 
 # Entrega de uma issue (fluxo GCS)
@@ -36,40 +36,30 @@ Número da issue (ex.: `/entrega 26`). Sem número, perguntar qual issue entrega
 4. **Verificação direcionada (quando há código).** O agente roda **apenas** os
    testes do(s) arquivo(s) da feature (`fvm flutter test test/<arquivo>`) para
    confirmar o red→green descrito na matriz. **Não** roda a suíte completa nem o
-   `analyze` — esse é o gate do desenvolvedor (passo 5). Reverter o ruído das
+   `analyze` — esse é o papel do CI (passo 6). Reverter o ruído das
    pastas de plataforma: `git checkout -- linux/ macos/ windows/`. Se o teste
    direcionado falhar quando deveria passar: diagnosticar e corrigir com um
    commit `fix:` adicional; se não resolver em poucas tentativas, parar e
    reportar ao desenvolvedor em vez de insistir ou pular a etapa.
-5. **PARAR para revisão — com roteiro de verificação.** Apresentar ao
-   desenvolvedor: lista de commits, resumo do diff e o que mudou em docs. Como o
-   **gate final é do desenvolvedor**, entregar junto o **roteiro de verificação**
-   que ele executa antes de autorizar o push:
-   - **comandos:** `fvm flutter analyze` e `fvm flutter test` (suíte completa) —
-     ambos devem ficar verdes;
-   - **SQL a aplicar no painel do Supabase** (quando a entrega muda schema ou
-     RLS): o agente não altera o banco; entrega o SQL aqui, no corpo do PR e em
-     `docs/arquitetura.md` §4, e o desenvolvedor roda antes do teste manual;
-   - **roteiro de teste manual da funcionalidade** (quando há comportamento
-     observável a verificar): passos numerados, cada um mapeado ao(s) CT-ID(s)
-     correspondentes e com o **resultado esperado** a observar. Esse roteiro
-     alimenta a próxima Execução NNN de
-     `docs/execucoes-de-testes-manuais.md`.
-
-   **Não fazer push sem o "ok"** — a menos que a tarefa tenha autorizado
-   explicitamente o push.
-6. **Push + PR (após o ok do desenvolvedor).** Só após o desenvolvedor reportar
-   **suíte completa verde + manuais ok**. Se ele devolver um log de falha, o
-   agente diagnostica e corrige com um commit próprio (`fix:`/`docs:`) antes de
-   retomar. Com o ok: push com upstream; PR com título `pr(<tipo>): ...`, corpo
-   no template da GCS §6 e `Closes #N` fora de backticks. Acompanhar o check
-   `analyze + test` até o verde (`gh pr checks --watch`) e reportar o link do PR
-   com o status.
+5. **Pilha de verificação manual.** Não há parada para revisão. Quando a
+   entrega tem comportamento observável, acrescentar à seção "Pilha de
+   verificação manual" de `docs/execucoes-de-testes-manuais.md` (commit `docs:`
+   do próprio PR) um bloco com a issue, o PR e 3 a 5 passos do fluxo novo, cada
+   um com o resultado esperado e o(s) CT-ID(s). Se a entrega muda schema ou RLS,
+   o SQL vai no corpo do PR, em `docs/arquitetura.md` §4 e no topo da pilha
+   ("SQL a aplicar"), pronto para colar — o agente não altera o banco.
+6. **Push + PR + merge.** Push com upstream; PR com título `pr(<tipo>): ...`,
+   corpo no template da GCS §6 e `Closes #N` fora de backticks. Acompanhar o
+   check `analyze + test` (`gh pr checks --watch`). Verde: `gh pr merge --merge
+   --delete-branch`, atualizar a `main` local, fechar a story pai se todas as
+   filhas fecharam, e reportar em poucas linhas o que entrou, o link do PR e
+   qualquer SQL pendente. Vermelho: diagnosticar e corrigir com commit próprio;
+   se não resolver em poucas tentativas, parar e reportar.
 
 ## O que NUNCA fazer
 
-- Commitar/mergear direto na `main`, dar push antes da revisão, ou usar
-  `--force`/amend em commits já revisados.
+- Commitar/mergear direto na `main`, mergear com o CI vermelho ou pendente, ou
+  usar `--force`/amend em commits já enviados.
 - Marcar a issue como resolvida por comentário — o fechamento é pelo `Closes #N`
   do PR (exceto issues pai/story, fechadas manualmente após as filhas).
 - Inventar escopo: o PR entrega a issue pedida; achados novos viram issues novas.

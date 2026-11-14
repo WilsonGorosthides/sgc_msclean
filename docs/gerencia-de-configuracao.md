@@ -144,7 +144,8 @@ migrarem para Histórias de Usuário (HU), a unidade passa a ser a HU. Uma featu
 - [ ] Documentação sincronizada (requisitos/arquitetura, quando aplicável).
 - [ ] Linha adicionada ao Histórico de Versões do(s) doc(s) tocado(s).
 - [ ] Sem código de depuração (ex.: `print()`) no que foi alterado.
-- [ ] PR aberto seguindo a [§6](#6-pull-requests).
+- [ ] PR aberto seguindo a [§6](#6-pull-requests), com o CI verde.
+- [ ] Passos de verificação manual acrescentados à pilha de `execucoes-de-testes-manuais.md` (quando há comportamento observável). A rodada manual em si não bloqueia o merge: é feita em pilha, antes da instalação do APK (`plano-de-testes.md` §5.2).
 
 ## 10. Configuração Sensível e Ambiente
 
@@ -189,3 +190,4 @@ tabela de Histórico de Versões do próprio doc (1.0, 1.1, ...).
 | 1.4 | 2026-07-16 | Wilson Gorosthides | §6: registra o gate de CI obrigatório no merge (ruleset `main-protegida` exigindo o check `analyze + test`, com bloqueio de force push e deleção da `main`) — issue #45. |
 | 1.5 | 2026-07-17 | Wilson Gorosthides | §2: registra as instruções de agente de IA (`CLAUDE.md` e `.claude/skills/`) como itens de configuração versionados e `.claude/settings.local.json` como não versionado — issue #51. |
 | 1.6 | 2026-11-12 | Wilson Gorosthides | §11: registra o workflow `keep-alive.yml` e os secrets do repositório que ele lê (issue #72). |
+| 1.7 | 2026-11-13 | Wilson Gorosthides | §9: a DoD passa a exigir o CI verde e os passos manuais na pilha, em vez da rodada manual antes de cada merge (replanejamento do fluxo de entrega; `plano-de-testes.md` 1.8). |
