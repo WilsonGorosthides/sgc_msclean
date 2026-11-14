@@ -138,5 +138,18 @@ void main() {
       expect(lerValor('   '), isNull);
       expect(lerValor('abc'), isNull);
     });
+
+    test('trocar de semana seleciona o domingo, ou hoje se estiver na semana',
+        () {
+      final hoje = DateTime(2026, 11, 11); // quarta
+      // de um sábado para a semana seguinte: domingo dela, não o outro sábado
+      expect(diaAoTrocarSemana(DateTime(2026, 11, 14), 1, hoje),
+          DateTime(2026, 11, 15));
+      expect(diaAoTrocarSemana(DateTime(2026, 11, 11), -1, hoje),
+          DateTime(2026, 11, 1));
+      // voltando para a semana corrente, a seleção cai em hoje
+      expect(diaAoTrocarSemana(DateTime(2026, 11, 21), -1, hoje), hoje);
+      expect(diaAoTrocarSemana(DateTime(2026, 11, 1), 1, hoje), hoje);
+    });
   });
 }

@@ -210,9 +210,14 @@ void main() {
       expect(find.byKey(const Key('dia_2026-11-21')), findsOneWidget);
       expect(find.byKey(const Key('dia_2026-11-14')), findsNothing);
       expect(textoDe(tester, 'contagem_2026-11-17'), '1');
+      // a seleção vai para o domingo da semana de destino (issue #87)
+      expect(dataSelecionada(tester), 'domingo, 15 de novembro de 2026');
 
       await tocar(tester, 'semana_anterior');
+      // de volta à semana corrente, a seleção cai em hoje
+      expect(dataSelecionada(tester), 'quarta-feira, 11 de novembro de 2026');
       await tocar(tester, 'semana_anterior');
+      expect(dataSelecionada(tester), 'domingo, 1 de novembro de 2026');
 
       expect(find.byKey(const Key('dia_2026-11-01')), findsOneWidget);
       expect(find.byKey(const Key('dia_2026-11-07')), findsOneWidget);
