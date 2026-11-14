@@ -63,6 +63,15 @@ class SupabaseService {
         .eq('id', atendimento.id!);
   }
 
+  // Marca ou desmarca "serviço feito" e "cliente pagou" (RF-014). Grava só a
+  // coluna pedida: os dois estados são independentes.
+  Future<void> marcarConclusao(String id, {bool? feito, bool? pago}) async {
+    await _supabase.from('atendimentos').update({
+      if (feito != null) 'feito': feito,
+      if (pago != null) 'pago': pago,
+    }).eq('id', id);
+  }
+
   // Cliente provisório (RF-005): só o nome, sem telefone nem endereço — a
   // exceção declarada ao RF-001. Devolve o cliente com o id gerado, para o
   // atendimento apontar para ele.

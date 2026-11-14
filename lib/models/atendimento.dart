@@ -27,6 +27,27 @@ class Atendimento {
   final double? valor;
   final DateTime? criadoEm;
 
+  // Estados de conclusão (RF-014): independentes — um não vale pelo outro.
+  final bool feito; // serviço feito
+  final bool pago; // cliente pagou
+
+  // Concluído somente com os dois marcados.
+  bool get concluido => feito && pago;
+
+  Atendimento copyWith({bool? feito, bool? pago}) => Atendimento(
+        id: id,
+        data: data,
+        periodo: periodo,
+        hora: hora,
+        clienteId: clienteId,
+        local: local,
+        pecas: pecas,
+        valor: valor,
+        criadoEm: criadoEm,
+        feito: feito ?? this.feito,
+        pago: pago ?? this.pago,
+      );
+
   Atendimento({
     this.id,
     required this.data,
@@ -37,6 +58,8 @@ class Atendimento {
     this.pecas = const [],
     this.valor,
     this.criadoEm,
+    this.feito = false,
+    this.pago = false,
   });
 
   factory Atendimento.fromMap(Map<String, dynamic> map) {
@@ -57,11 +80,14 @@ class Atendimento {
       pecas: _lerPecas(map['pecas']),
       valor: valor is num ? valor.toDouble() : null,
       criadoEm: criadoEm == null ? null : DateTime.tryParse(criadoEm),
+      feito: map['feito'] == true,
+      pago: map['pago'] == true,
     );
   }
 
-  // Mapa para escrita no banco; sem id (gerado pelo Supabase) e sem
-  // criado_em (default now() na tabela).
+  // Mapa para escrita no banco; sem id (gerado pelo Supabase), sem criado_em
+  // (default now() na tabela) e sem feito/pago: as marcas têm escrita própria
+  // (marcarConclusao), para salvar o formulário não apagar uma marca.
   Map<String, dynamic> toMap() => {
         'data': '${data.year}-${_dois(data.month)}-${_dois(data.day)}',
         'periodo': periodo.name,
