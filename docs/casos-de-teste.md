@@ -704,7 +704,7 @@
 ### CT-049 — Dois marcadores independentes
 - **Critério:** "Cada atendimento tem dois marcadores **independentes**:
   *serviço feito* e *cliente pagou*, cada um podendo ser ligado e desligado."
-- **Tipo:** Unitário + Widget · **Situação:** a implementar
+- **Tipo:** Unitário + Widget · **Situação:** implementado — `atendimento_test: lê feito e pago; ausentes valem falso` · `atendimento_test: toMap não leva feito nem pago` · `agenda_screen_test: marcar serviço feito não abre o formulário e não marca o pago` · `agenda_screen_test: desmarcar o pago desliga só ele`
 - **Pré-condições:** um atendimento sem marca e outro com as duas.
 - **Passos:**
   1. Ler uma linha do banco com e sem as colunas `feito` e `pago` (função pura).
@@ -715,7 +715,7 @@
 ### CT-050 — Concluído somente com os dois marcados
 - **Critério:** "Um atendimento é considerado **concluído** somente quando **os
   dois** estão marcados."
-- **Tipo:** Unitário + Widget · **Situação:** a implementar
+- **Tipo:** Unitário + Widget · **Situação:** implementado — `atendimento_test: concluído só com os dois marcados` · `agenda_screen_test: cartão distingue nada marcado, um dos dois e concluído`
 - **Pré-condições:** atendimentos nas quatro combinações de feito e pago.
 - **Passos:**
   1. Consultar `concluido` em cada combinação (função pura).
@@ -726,7 +726,7 @@
 ### CT-051 — Três situações distinguíveis na agenda
 - **Critério:** "A agenda distingue visualmente três situações: nada marcado, um
   dos dois marcado, e concluído."
-- **Tipo:** Widget · **Situação:** a implementar
+- **Tipo:** Widget · **Situação:** implementado — `agenda_screen_test: cartão distingue nada marcado, um dos dois e concluído`
 - **Pré-condições:** um dia com um atendimento sem marca, um só com "Feito" e
   um concluído.
 - **Passos:**
@@ -738,7 +738,7 @@
 ### CT-052 — Marcar sem abrir o formulário
 - **Critério:** "Marcar ou desmarcar não exige abrir o formulário de edição do
   atendimento."
-- **Tipo:** Widget · **Situação:** a implementar
+- **Tipo:** Widget · **Situação:** implementado — `agenda_screen_test: marcar serviço feito não abre o formulário e não marca o pago` · `agenda_screen_test: falha ao marcar desfaz a marca e avisa`
 - **Pré-condições:** um atendimento no dia.
 - **Passos:**
   1. Tocar na marca "Feito" do cartão.
@@ -787,3 +787,4 @@
 | 2026-11-13 | 1.13 | Wilson Gorosthides | CT-040 a CT-048 passam a "implementado" com os testes da entrega do RF-005 enxuto (issue #77): `atendimento_form_screen_test` (onze casos), mais os novos casos em `agenda_screen_test`, `home_screen_test`, `atendimento_test`, `agenda_test`, `client_model_test` e `validators_test`. |
 | 2026-11-13 | 1.14 | Wilson Gorosthides | CT-035 fixa qual dia fica selecionado ao trocar de semana: o domingo da semana de destino, ou hoje se ela for a corrente (bug #87); novo teste unitário associado. |
 | 2026-11-13 | 1.15 | Wilson Gorosthides | Casos do RF-014 (issue #79): CT-049 a CT-052 — dois marcadores independentes, concluído só com os dois, três situações distinguíveis na agenda, e marcar sem abrir o formulário. Todos "a implementar". |
+| 2026-11-13 | 1.16 | Wilson Gorosthides | CT-049 a CT-052 passam a "implementado" com os testes da entrega do RF-014 (issue #79), em `atendimento_test` e `agenda_screen_test`. |

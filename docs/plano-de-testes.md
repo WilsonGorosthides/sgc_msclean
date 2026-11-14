@@ -30,10 +30,11 @@ Este plano cobre os requisitos funcionais do **MVP**:
 | RF-008 | Exclusão de Cliente | Implementado |
 | RF-010 | Agenda por data (dia, semana e mês) | Implementado |
 | RF-005 | Registrar atendimento (entrega enxuta: valor digitado) | Implementado |
+| RF-014 | Estados de conclusão (serviço feito e cliente pagou) | Implementado |
 
 **Fora de escopo** deste plano: RF-006 (histórico de pagamento) e RF-007
 (autenticação), previstos para depois do MVP (ver README, seção Roadmap). Os
-demais RFs da agenda (RF-011, RF-013, RF-014) e o restante do RF-005 (valor
+demais RFs da agenda (RF-011, RF-013) e o restante do RF-005 (valor
 calculado e pré-preenchimento, RNF-006) entram neste plano à medida que são
 entregues, cada um com os seus CTs escritos antes do código.
 
@@ -310,3 +311,4 @@ verificação manual é feita em pilha, antes da instalação do APK.
 | 2026-10-06 | 1.6 | Wilson Gorosthides | §2.2: novo tipo "guarda de consistência", para testes que verificam regra do projeto lendo o código-fonte em vez de critério de requisito; primeiro caso é o `design_system_test` (nenhuma cor literal nas telas, `design-system.md` §6), deliberadamente sem CT por não haver critério de aceitação que ele rastreie. Issue #60. |
 | 2026-11-13 | 1.7 | Wilson Gorosthides | §1.2: RF-010 e RF-005 (enxuto) entram na tabela de escopo como "Implementado" (issues #75 e #77); o parágrafo de fora de escopo deixa de citar o RF-005 e passa a listar os RFs da agenda que entram à medida que são entregues. |
 | 2026-11-13 | 1.8 | Wilson Gorosthides | Replanejamento do fluxo de entrega: §5.2 passa o gate para o CI (a suíte local do desenvolvedor deixa de ser exigida) e registra os testes manuais em pilha, rodados antes do APK (#23), como dívida assumida; §9 reescreve os passos 4 a 6 (PR, pilha manual, merge com CI verde). |
+| 2026-11-13 | 1.9 | Wilson Gorosthides | §1.2: RF-014 entra na tabela de escopo como "Implementado" (issue #79). |

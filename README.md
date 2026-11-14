@@ -1,6 +1,6 @@
 # SGC para MSClean
 
-> **Status:** MVP em andamento. A gestão de clientes está entregue; a **agenda de atendimentos** está em construção — a visão por data (dia, semana e mês, RF-010) é a tela inicial do app e o registro de atendimentos (RF-005, valor digitado) já funciona a partir dela; marcas de feito/pago (RF-014) e histórico (RF-011) são as próximas entregas. As duas frentes fazem parte do MVP.
+> **Status:** MVP em andamento. A gestão de clientes está entregue; a **agenda de atendimentos** está em construção — a visão por data (dia, semana e mês, RF-010) é a tela inicial do app e o registro de atendimentos (RF-005, valor digitado) já funciona a partir dela; as marcas de serviço feito e cliente pagou (RF-014) ficam no próprio cartão. Histórico do cliente (RF-011) e uso sem internet são as próximas entregas. As duas frentes fazem parte do MVP.
 >
 > **Protótipo navegável:** **[wilsongorosthides.github.io/sgc_msclean](https://wilsongorosthides.github.io/sgc_msclean/)** — o fluxo da agenda, clicável, com dados fictícios. Não é o aplicativo: existe para validar as decisões de requisito com a usuária real antes de escrever código.
 

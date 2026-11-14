@@ -69,10 +69,10 @@ RF-005 que ficam para o RF-013 (valor calculado) e para o RNF-006
 | RF-010 | Tocar em um dia, na semana ou no mês, seleciona esse dia e exibe os seus atendimentos. | CT-037 — `agenda_screen_test: tocar num dia do mês seleciona e volta à visão do dia` |
 | RF-010 | O **dia de hoje** é identificável na semana e no mês, e um atalho volta a hoje a partir de qualquer data. | CT-038 — `agenda_screen_test: hoje tem marca própria na semana e no mês` · `agenda_screen_test: atalho volta a hoje a partir de outro mês` |
 | RF-010 | A lista de clientes (RF-003) continua acessível, deixando de ser a tela inicial. | CT-039 — `agenda_screen_test: lista de clientes abre pela agenda e volta ao mesmo dia` |
-| RF-014 | Cada atendimento tem dois marcadores **independentes**: *serviço feito* e *cliente pagou*, cada um podendo ser ligado e desligado. | CT-049 — a implementar |
-| RF-014 | Um atendimento é considerado **concluído** somente quando **os dois** estão marcados. | CT-050 — a implementar |
-| RF-014 | A agenda distingue visualmente três situações: nada marcado, um dos dois marcado, e concluído. | CT-051 — a implementar |
-| RF-014 | Marcar ou desmarcar não exige abrir o formulário de edição do atendimento. | CT-052 — a implementar |
+| RF-014 | Cada atendimento tem dois marcadores **independentes**: *serviço feito* e *cliente pagou*, cada um podendo ser ligado e desligado. | CT-049 — `atendimento_test: lê feito e pago; ausentes valem falso` · `atendimento_test: toMap não leva feito nem pago` · `agenda_screen_test: marcar serviço feito não abre o formulário e não marca o pago` · `agenda_screen_test: desmarcar o pago desliga só ele` |
+| RF-014 | Um atendimento é considerado **concluído** somente quando **os dois** estão marcados. | CT-050 — `atendimento_test: concluído só com os dois marcados` · `agenda_screen_test: cartão distingue nada marcado, um dos dois e concluído` |
+| RF-014 | A agenda distingue visualmente três situações: nada marcado, um dos dois marcado, e concluído. | CT-051 — `agenda_screen_test: cartão distingue nada marcado, um dos dois e concluído` |
+| RF-014 | Marcar ou desmarcar não exige abrir o formulário de edição do atendimento. | CT-052 — `agenda_screen_test: marcar serviço feito não abre o formulário e não marca o pago` · `agenda_screen_test: falha ao marcar desfaz a marca e avisa` |
 
 Os casos de teste de RF-003 e RF-004 estão **implementados e passando** — vivem em
 `test/unit/supabase_service_test.dart` e `test/widget/home_screen_test.dart`, com
@@ -103,3 +103,4 @@ descoberto.
 | 2026-11-13 | 1.16 | Wilson Gorosthides | RF-005 enxuto entregue (issue #77): as nove linhas trocam "a implementar" pelos nomes reais dos testes. |
 | 2026-11-13 | 1.17 | Wilson Gorosthides | CT-035 ganha o teste `agenda_test: trocar de semana seleciona o domingo, ou hoje se estiver na semana` (bug #87). |
 | 2026-11-13 | 1.18 | Wilson Gorosthides | RF-014 entra na matriz (issue #79): quatro linhas ↔ CT-049 a CT-052, todas "a implementar". |
+| 2026-11-13 | 1.19 | Wilson Gorosthides | RF-014 entregue (issue #79): as quatro linhas trocam "a implementar" pelos nomes reais dos testes. |

@@ -36,7 +36,14 @@
 Passos ainda não executados, por entrega, na ordem em que foram mergeadas.
 Rodar tudo antes de instalar o APK (issue #23).
 
-**SQL a aplicar no painel antes da rodada:** nenhum.
+**SQL a aplicar no painel antes da rodada** (RF-014, #79 — sem ele, tocar em
+"Feito"/"Pago" mostra "Não foi possível marcar"):
+
+```sql
+alter table public.atendimentos
+  add column feito boolean not null default false,
+  add column pago  boolean not null default false;
+```
 
 ### #87 — seleção ao trocar a semana pela seta
 
@@ -44,6 +51,16 @@ Rodar tudo antes de instalar o APK (issue #23).
 |---|---|---|---|
 | 1 | Selecionar um sábado e tocar na seta de próxima semana | A faixa mostra a semana seguinte e o dia selecionado é o **domingo** dela (não o sábado seguinte) | CT-035 |
 | 2 | Tocar na seta de semana anterior até voltar à semana de hoje | O dia selecionado passa a ser **hoje** e o título volta a "Hoje" | CT-035, CT-038 |
+
+### #79 — marcar serviço feito e cliente pagou (RF-014)
+
+| # | Passo | Resultado esperado | CT |
+|---|---|---|---|
+| 1 | Num cartão da agenda, tocar em **Feito** | A marca fica verde na hora, sem abrir o formulário; **Pago** continua vazio | CT-049, CT-052 |
+| 2 | Tocar em **Pago** no mesmo cartão | O cartão inteiro fica com fundo verde claro e aparece "Concluído" | CT-050, CT-051 |
+| 3 | Tocar de novo em **Pago** | A marca de pago apaga, "Concluído" some e **Feito** continua marcado | CT-049 |
+| 4 | Fechar e reabrir o app | As marcas continuam como ficaram | CT-049 |
+| 5 | Tocar no corpo do cartão (fora das marcas), mudar a hora e salvar | A edição funciona e as marcas não se perdem | CT-042, CT-049 |
 
 ## Execução 001 — Verificação manual do RF-001 (pré-merge do PR #44)
 
@@ -430,3 +447,4 @@ pelo próprio app.
 | 2026-11-13 | 1.8 | Wilson Gorosthides | Execução 009 (registro de atendimento, #77, PR #89): rodada única no Chrome e no celular; CT-040 a CT-048 aprovados, sem migração. Registra a falha de rede do celular na primeira abertura (bug #47) e os achados #87 e #88. |
 | 2026-11-13 | 1.9 | Wilson Gorosthides | Nova seção "Pilha de verificação manual (pendente)" e convenção correspondente: os passos manuais de cada entrega acumulam ali e são executados de uma vez antes do APK (replanejamento do fluxo; `plano-de-testes.md` 1.8). |
 | 2026-11-13 | 1.10 | Wilson Gorosthides | Pilha: entram os passos do fix #87 (seleção ao trocar a semana). |
+| 2026-11-13 | 1.11 | Wilson Gorosthides | Pilha: entram o SQL e os passos do RF-014 (#79, marcas de feito e pago). |
