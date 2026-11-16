@@ -6,6 +6,7 @@ import '../services/maps_launcher.dart';
 import '../models/client_model.dart';
 import '../models/endereco.dart';
 import 'client_form_screen.dart';
+import 'sem_conexao.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key, this.service, this.abrirMaps});
@@ -31,8 +32,16 @@ class _HomeScreenState extends State<HomeScreen> {
   late final _abrirMaps = widget.abrirMaps ?? abrirEnderecoNoMaps;
   String _searchQuery = ''; // Guarda o que o usuário digita
 
+  // Item só no aparelho (RNF-007, #94): editar ou excluir espera o envio.
+  void _avisarPendente() {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(const SnackBar(content: Text(avisoItemPendente)));
+  }
+
   // Abre o formulário (cadastro ou edição) e renova a stream ao voltar.
   Future<void> _abrirFormulario({ClientModel? cliente}) async {
+    if (cliente != null && cliente.pendente) return _avisarPendente();
     await Navigator.of(context).push(MaterialPageRoute(
       builder: (_) => ClientFormScreen(service: _service, cliente: cliente),
     ));
@@ -44,6 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
   // renovada no sucesso — o reflexo não depende do evento DELETE do
   // realtime (issue #57), garantindo remoção imediata na tela.
   Future<void> _excluirCliente(ClientModel cliente) async {
+    if (cliente.pendente) return _avisarPendente();
     final confirmado = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -86,6 +96,8 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(title: const Text('MSClean - Clientes')),
       body: Column(
         children: [
+          // SEM CONEXÃO (RNF-007, #94): a lista mostrada é a guardada
+          AvisoSemConexao(conectado: _service.conectado),
           // BARRA DE BUSCA (Requisito RF-004)
           Padding(
             padding: const EdgeInsets.all(AppSpacing.lg),
@@ -114,9 +126,19 @@ class _HomeScreenState extends State<HomeScreen> {
                 final clientes = SupabaseService.filtrarClientes(
                     snapshot.data ?? [], _searchQuery);
 
-                if (clientes.isEmpty) {
+                // Falha de conexão não se passa por lista vazia (bug #47).
+                if (snapshot.hasError) {
                   return const Center(
-                    child: Text('Nenhum cliente encontrado.'),
+                    child: Text('Não foi possível carregar os clientes.'),
+                  );
+                }
+                if (clientes.isEmpty) {
+                  final nadaGuardado = (snapshot.data ?? []).isEmpty &&
+                      !_service.conectado.value;
+                  return Center(
+                    child: Text(nadaGuardado
+                        ? 'Sem conexão e nenhum cliente guardado no aparelho.'
+                        : 'Nenhum cliente encontrado.'),
                   );
                 }
 
@@ -172,6 +194,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                         ?.copyWith(color: AppColors.tarde),
                                   ),
                                 ),
+                              ),
+                            // RNF-007: criado sem rede, ainda não enviado
+                            if (cliente.pendente)
+                              Padding(
+                                padding:
+                                    const EdgeInsets.only(left: AppSpacing.sm),
+                                child: SeloAguardandoEnvio(
+                                    key: Key('pendente_${cliente.id}')),
                               ),
                           ],
                         ),
