@@ -45,23 +45,6 @@ internet passou a valer no release).
 Nenhum SQL pendente: o do RF-014 (colunas `feito` e `pago`) foi aplicado no
 painel (confirmado pelo desenvolvedor em 2026-11-16).
 
-### #87 — seleção ao trocar a semana pela seta
-
-| # | Passo | Resultado esperado | CT |
-|---|---|---|---|
-| 1 | Selecionar um sábado e tocar na seta de próxima semana | A faixa mostra a semana seguinte e o dia selecionado é o **domingo** dela (não o sábado seguinte) | CT-035 |
-| 2 | Tocar na seta de semana anterior até voltar à semana de hoje | O dia selecionado passa a ser **hoje** e o título volta a "Hoje" | CT-035, CT-038 |
-
-### #79 — marcar serviço feito e cliente pagou (RF-014)
-
-| # | Passo | Resultado esperado | CT |
-|---|---|---|---|
-| 1 | Num cartão da agenda, tocar em **Feito** | A marca fica verde na hora, sem abrir o formulário; **Pago** continua vazio | CT-049, CT-052 |
-| 2 | Tocar em **Pago** no mesmo cartão | O cartão inteiro fica com fundo verde claro e aparece "Concluído" | CT-050, CT-051 |
-| 3 | Tocar de novo em **Pago** | A marca de pago apaga, "Concluído" some e **Feito** continua marcado | CT-049 |
-| 4 | Fechar e reabrir o app | As marcas continuam como ficaram | CT-049 |
-| 5 | Tocar no corpo do cartão (fora das marcas), mudar a hora e salvar | A edição funciona e as marcas não se perdem | CT-042, CT-049 |
-
 ### #94 — anotar sem internet (RNF-007)
 
 Sem SQL. Rodar no **celular** (no Chrome, o modo avião vira "Offline" nas
@@ -470,6 +453,35 @@ mesma tela.
 automatizada verde. A proprietária já consegue registrar e editar atendimentos
 pelo próprio app.
 
+## Execução 010 — Pilha: troca de semana e marcas de feito e pago (pós-merge, #87 e #79)
+
+- **Data:** 2026-11-16.
+- **Objeto:** os dois primeiros blocos da pilha de verificação manual — fix #87
+  (PR #92, seleção ao trocar a semana pela seta) e RF-014 (issue #79, PR #93,
+  marcas de serviço feito e cliente pagou). Rodada com o SQL do RF-014 já
+  aplicado no painel.
+- **Ambiente:** celular físico, contra o Supabase real do MVP.
+- **Executor:** o desenvolvedor (resultado informado em 2026-11-16).
+
+### Resultados
+
+| Bloco | Passo | O que verificou | CT(s) | Resultado |
+|---|---|---|---|---|
+| #87 | 1 | De um sábado, a seta de próxima semana seleciona o domingo da semana seguinte | CT-035 | Aprovado |
+| #87 | 2 | Voltando à semana de hoje, a seleção vai para hoje e o título volta a "Hoje" | CT-035, CT-038 | Aprovado |
+| #79 | 1 | "Feito" marca na hora, sem abrir o formulário; "Pago" segue vazio | CT-049, CT-052 | Aprovado |
+| #79 | 2 | Com "Pago" também, o cartão fica verde claro e mostra "Concluído" | CT-050, CT-051 | Aprovado |
+| #79 | 3 | Desmarcar "Pago" apaga só ele e tira o "Concluído" | CT-049 | Aprovado |
+| #79 | 4 | As marcas persistem ao fechar e reabrir o app | CT-049 | Aprovado |
+| #79 | 5 | Editar a hora pelo formulário não perde as marcas | CT-042, CT-049 | Aprovado |
+
+### Ocorrências
+- A proprietária viu as marcas na demonstração de 2026-11-16 e aprovou.
+
+### Veredicto
+**Aprovado.** Os dois blocos saem da pilha; seguem pendentes os blocos de
+#94, #96 e #95.
+
 ## Histórico de Versões
 
 | Data | Versão | Autor | Descrição da mudança |
@@ -491,3 +503,4 @@ pelo próprio app.
 | 2026-11-16 | 1.14 | Wilson Gorosthides | Pilha: entram os passos dos avisos no celular (#95, RF-015), sem SQL. |
 | 2026-11-16 | 1.15 | Wilson Gorosthides | Pilha: aviso de desinstalar o app antigo (identificador novo `br.com.msclean.agenda`) e de conferir a internet no APK de release (#23). |
 | 2026-11-16 | 1.16 | Wilson Gorosthides | Pilha: SQL do RF-014 confirmado como aplicado; sai o bloco "SQL a aplicar". |
+| 2026-11-16 | 1.17 | Wilson Gorosthides | Execução 010: blocos #87 e #79 da pilha aprovados no celular; saem da pilha. |
