@@ -22,6 +22,8 @@
   vieram antes, junto do requisito de semana e mês (`requisitos.md` 3.2). Os do
   RF-005 (CT-040 a CT-048) ficam antes dos do RF-010 no documento, na ordem dos
   RFs, embora numerados depois.
+- CT-053 a CT-058 cobrem o RNF-007 (anotar sem internet, issue #94); ficam
+  depois dos casos da agenda, antes do caso manual do RNF-001.
 - Critérios de aceitação são copiados literalmente da matriz.
 - Nos CTs automatizados, os "passos" descrevem o que o teste executa; nos
   manuais, o que a pessoa executa.
@@ -747,6 +749,80 @@
   formulário; se a gravação falha, a marca volta ao estado anterior e um aviso é
   exibido.
 
+## RNF-007 — Anotar sem internet
+
+Os casos usam o `EspelhoLocal` (`lib/services/espelho_local.dart`) com um banco
+falso, que pode estar "fora do ar", e um armazenamento em memória no lugar do
+`shared_preferences` — o que permite simular fechar e reabrir o app.
+
+### CT-053 — Sem rede, abre com os últimos dados guardados
+- **Critério:** "Sem rede, a agenda e a lista de clientes abrem com os últimos
+  dados guardados no aparelho, em vez de uma tela vazia."
+- **Tipo:** Unitário · **Situação:** a implementar
+- **Pré-condições:** uma leitura anterior com o banco no ar.
+- **Passos:**
+  1. Receber atendimentos e clientes do banco.
+  2. Abrir de novo com o banco fora do ar.
+- **Resultado esperado:** os dados recebidos ficam guardados; na segunda
+  abertura, a stream emite os dados guardados, sem erro.
+
+### CT-054 — Registro sem rede fica no aparelho e aparece aguardando envio
+- **Critério:** "Um atendimento novo — e o cliente provisório criado com ele —
+  registrado sem rede fica gravado no aparelho e aparece na agenda na hora com a
+  marca "aguardando envio"."
+- **Tipo:** Unitário + Widget · **Situação:** a implementar
+- **Pré-condições:** banco fora do ar.
+- **Passos:**
+  1. Registrar um cliente provisório e um atendimento para ele.
+  2. Exibir a agenda com um atendimento pendente.
+- **Resultado esperado:** os dois entram na fila (o cliente antes do
+  atendimento) e são emitidos nas streams com a marca de pendente; o cartão
+  mostra "aguardando envio".
+
+### CT-055 — Envio automático ao voltar a conexão, sem duplicar
+- **Critério:** "É enviado ao banco sozinho quando a conexão voltar, sem
+  duplicar."
+- **Tipo:** Unitário · **Situação:** a implementar
+- **Pré-condições:** dois itens na fila.
+- **Passos:**
+  1. O banco volta e a stream recebe dados.
+  2. Reenviar um item que o banco já tem.
+- **Resultado esperado:** a fila é enviada na ordem em que foi gravada e
+  esvaziada; cada envio leva o id gerado no app, e o reenvio não cria linha
+  nova.
+
+### CT-056 — Aviso de "sem conexão"; falha não vira lista vazia
+- **Critério:** "A agenda e a lista de clientes exibem um aviso discreto de
+  "sem conexão"; falha de conexão não aparece como lista vazia." (bug #47)
+- **Tipo:** Unitário + Widget · **Situação:** a implementar
+- **Pré-condições:** banco fora do ar.
+- **Passos:**
+  1. Abrir a stream com o banco fora do ar.
+  2. Exibir a agenda e a lista de clientes sem conexão.
+- **Resultado esperado:** a stream não emite erro e o estado de conexão passa a
+  falso; as duas telas mostram o aviso, e a lista de clientes não diz "Nenhum
+  cliente encontrado." por causa da falha.
+
+### CT-057 — Nada se perde ao fechar e reabrir
+- **Critério:** "Nada anotado sem rede se perde ao fechar e reabrir o app."
+- **Tipo:** Unitário · **Situação:** a implementar
+- **Pré-condições:** um atendimento registrado sem rede.
+- **Passos:**
+  1. Descartar o `EspelhoLocal` e criar outro sobre o mesmo armazenamento.
+- **Resultado esperado:** o atendimento continua na fila e é emitido como
+  pendente.
+
+### CT-058 — Item aguardando envio não se edita nem se marca
+- **Critério:** "Um item ainda aguardando envio também não se edita nem se marca
+  até ser enviado."
+- **Tipo:** Widget · **Situação:** a implementar
+- **Pré-condições:** um atendimento e um cliente pendentes.
+- **Passos:**
+  1. Tocar no cartão pendente e na marca "Feito".
+  2. Na lista de clientes, tocar no cliente pendente e na lixeira.
+- **Resultado esperado:** nada abre nem grava; um aviso explica que o item ainda
+  está aguardando envio.
+
 ## RNF-001 — Verificação manual de usabilidade
 
 ### CT-023 — Fluxo geral no dispositivo da cliente
@@ -788,3 +864,4 @@
 | 2026-11-13 | 1.14 | Wilson Gorosthides | CT-035 fixa qual dia fica selecionado ao trocar de semana: o domingo da semana de destino, ou hoje se ela for a corrente (bug #87); novo teste unitário associado. |
 | 2026-11-13 | 1.15 | Wilson Gorosthides | Casos do RF-014 (issue #79): CT-049 a CT-052 — dois marcadores independentes, concluído só com os dois, três situações distinguíveis na agenda, e marcar sem abrir o formulário. Todos "a implementar". |
 | 2026-11-13 | 1.16 | Wilson Gorosthides | CT-049 a CT-052 passam a "implementado" com os testes da entrega do RF-014 (issue #79), em `atendimento_test` e `agenda_screen_test`. |
+| 2026-11-16 | 1.17 | Wilson Gorosthides | Casos do RNF-007 ampliado (anotar sem internet, issue #94): CT-053 a CT-058 — abrir com os dados guardados, registro em fila com marca de aguardando envio, envio automático sem duplicar, aviso de sem conexão (bug #47), nada perdido ao reabrir, e item pendente sem edição nem marca. Todos "a implementar". |

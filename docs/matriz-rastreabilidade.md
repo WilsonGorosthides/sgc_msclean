@@ -73,6 +73,12 @@ RF-005 que ficam para o RF-013 (valor calculado) e para o RNF-006
 | RF-014 | Um atendimento é considerado **concluído** somente quando **os dois** estão marcados. | CT-050 — `atendimento_test: concluído só com os dois marcados` · `agenda_screen_test: cartão distingue nada marcado, um dos dois e concluído` |
 | RF-014 | A agenda distingue visualmente três situações: nada marcado, um dos dois marcado, e concluído. | CT-051 — `agenda_screen_test: cartão distingue nada marcado, um dos dois e concluído` |
 | RF-014 | Marcar ou desmarcar não exige abrir o formulário de edição do atendimento. | CT-052 — `agenda_screen_test: marcar serviço feito não abre o formulário e não marca o pago` · `agenda_screen_test: falha ao marcar desfaz a marca e avisa` |
+| RNF-007 | Sem rede, a agenda e a lista de clientes abrem com os **últimos dados guardados no aparelho**, em vez de uma tela vazia. | CT-053 — a implementar |
+| RNF-007 | Um atendimento novo — e o cliente provisório criado com ele — registrado sem rede fica **gravado no aparelho** e aparece na agenda na hora com a marca **"aguardando envio"**. | CT-054 — a implementar |
+| RNF-007 | É enviado ao banco **sozinho** quando a conexão voltar, **sem duplicar**. | CT-055 — a implementar |
+| RNF-007 | A agenda e a lista de clientes exibem um aviso discreto de **"sem conexão"**; falha de conexão não aparece como lista vazia. | CT-056 — a implementar |
+| RNF-007 | Nada anotado sem rede se perde ao fechar e reabrir o app. | CT-057 — a implementar |
+| RNF-007 | Um item ainda aguardando envio não se edita nem se marca até ser enviado. | CT-058 — a implementar |
 
 Os casos de teste de RF-003 e RF-004 estão **implementados e passando** — vivem em
 `test/unit/supabase_service_test.dart` e `test/widget/home_screen_test.dart`, com
@@ -104,3 +110,4 @@ descoberto.
 | 2026-11-13 | 1.17 | Wilson Gorosthides | CT-035 ganha o teste `agenda_test: trocar de semana seleciona o domingo, ou hoje se estiver na semana` (bug #87). |
 | 2026-11-13 | 1.18 | Wilson Gorosthides | RF-014 entra na matriz (issue #79): quatro linhas ↔ CT-049 a CT-052, todas "a implementar". |
 | 2026-11-13 | 1.19 | Wilson Gorosthides | RF-014 entregue (issue #79): as quatro linhas trocam "a implementar" pelos nomes reais dos testes. |
+| 2026-11-16 | 1.20 | Wilson Gorosthides | RNF-007 ampliado entra na matriz (anotar sem internet, issue #94): seis linhas ↔ CT-053 a CT-058, todas "a implementar". |
