@@ -569,7 +569,7 @@
 
 ### CT-067 — Trocar o dia na edição
 - **Critério:** "Na edição, o dia do atendimento pode ser trocado por um calendário (adiar ou corrigir o dia anotado errado); salvo, o atendimento passa para o dia novo, com peças, valor e marcas, e a agenda passa a mostrar esse dia."
-- **Tipo:** Widget · **Situação:** a implementar
+- **Tipo:** Widget · **Situação:** implementado — `atendimento_form_screen_test: na edição, trocar o dia leva a data nova ao update` · `atendimento_form_screen_test: no registro novo, a data não abre o calendário` · `agenda_screen_test: salvo com outro dia, a agenda vai para o dia novo`
 - **Pré-condições:** um atendimento existente.
 - **Passos:**
   1. Abrir a edição e tocar na data.
@@ -581,7 +581,7 @@
 
 ### CT-068 — Excluir atendimento com confirmação
 - **Critério:** "Na edição, o atendimento pode ser excluído, após confirmação (cliente que desmarcou ou anotação errada); sem internet, a exclusão avisa e não acontece."
-- **Tipo:** Widget · **Situação:** a implementar
+- **Tipo:** Widget · **Situação:** implementado — `atendimento_form_screen_test: excluir pede confirmação; cancelar não apaga, confirmar apaga` · `atendimento_form_screen_test: falha ao excluir avisa e mantém o formulário` · `atendimento_form_screen_test: registro novo não mostra o excluir`
 - **Pré-condições:** um atendimento existente.
 - **Passos:**
   1. Na edição, tocar em excluir e cancelar.
@@ -985,3 +985,4 @@ falso, que pode estar "fora do ar", e um armazenamento em memória no lugar do
 | 2026-11-16 | 1.24 | Wilson Gorosthides | CT-066 passa a "implementado" com `bateria_test` (issue #101). |
 | 2026-11-16 | 1.25 | Wilson Gorosthides | CT-062 ganha o teste do instante do aviso em qualquer fuso (defeito achado no celular: aviso uma hora atrasado em aparelho com horário de Brasília). |
 | 2026-11-16 | 1.26 | Wilson Gorosthides | CT-067 (trocar o dia na edição) e CT-068 (excluir com confirmação) do RF-005, issue #106. "A implementar". |
+| 2026-11-16 | 1.27 | Wilson Gorosthides | CT-067 e CT-068 passam a "implementado" (issue #106). |

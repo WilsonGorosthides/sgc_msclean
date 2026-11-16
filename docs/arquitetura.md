@@ -255,6 +255,7 @@ A auditoria registrou cobertura real de 0% — o único teste era o template pad
 | 2026-11-16 | 2.17 | Wilson Gorosthides | §10: três riscos novos — item recusado pelo banco travando a fila do aparelho (RNF-007), economia de bateria segurando os avisos (RF-015) e dados sem cópia fora do Supabase. |
 | 2026-11-16 | 2.18 | Wilson Gorosthides | Liberação da economia de bateria (#101): `lib/services/bateria.dart` na árvore §5, canal `msclean/bateria` na `MainActivity` (sem plugin), permissão `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`; risco da bateria em §10 passa a mitigado no app. |
 | 2026-11-16 | 2.19 | Wilson Gorosthides | §7: o aviso é agendado pelo instante do relógio do aparelho (`instanteDoAviso`), corrigindo o atraso de uma hora fora do fuso de Campo Grande. |
+| 2026-11-16 | 2.20 | Wilson Gorosthides | Trocar o dia e excluir atendimento (#106): `SupabaseService.deleteAtendimento` (direto ao banco, fora da fila do aparelho: sem internet, avisa); o formulário devolve o dia novo à agenda; app com localização pt-BR (`flutter_localizations`) para o calendário. Sem mudança de schema. |
 
 ## 12. Ambiente de Desenvolvimento
 Os seguintes softwares e configurações são necessários para iniciar o desenvolvimento:
