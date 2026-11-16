@@ -25,7 +25,7 @@
 - CT-053 a CT-058 cobrem o RNF-007 (anotar sem internet, issue #94); ficam
   depois dos casos da agenda, antes do caso manual do RNF-001. CT-059 cobre o
   RNF-008 (identidade visual, issue #96) e vem logo depois deles.
-- CT-060 a CT-065 cobrem o RF-015 (avisos no celular, issue #95) e ficam
+- CT-060 a CT-066 cobrem o RF-015 (avisos no celular, issue #95) e ficam
   depois dos casos do RF-014, na ordem dos RFs da agenda.
 - Critérios de aceitação são copiados literalmente da matriz.
 - Nos CTs automatizados, os "passos" descrevem o que o teste executa; nos
@@ -807,6 +807,17 @@ Android (`flutter_local_notifications`) só se verifica no aparelho (pilha manua
   1. Tocar em um aviso do dia 20/11.
 - **Resultado esperado:** a agenda seleciona 20/11 e mostra os atendimentos dele.
 
+### CT-066 — Pedido de liberação da economia de bateria
+- **Critério:** "Na primeira abertura, o app pede ao sistema, em um toque, para ficar fora da economia de bateria; se ela negar, só volta a pedir depois de 30 dias; se já estiver liberado, não pede."
+- **Tipo:** Unitário + Manual (aparelho) · **Situação:** a implementar
+- **Pré-condições:** uma liberação de bateria falsa e um armazenamento em memória.
+- **Passos:**
+  1. Abrir sem pedido anterior e sem liberação.
+  2. Abrir com a bateria já liberada.
+  3. Abrir 10 dias e depois 31 dias após um pedido negado.
+- **Resultado esperado:** pede no passo 1 e grava a data do pedido; não pede
+  no passo 2; no passo 3, não pede aos 10 dias e pede de novo aos 31.
+
 ## RNF-007 — Anotar sem internet
 
 Os casos usam o `EspelhoLocal` (`lib/services/espelho_local.dart`) com um banco
@@ -947,3 +958,4 @@ falso, que pode estar "fora do ar", e um armazenamento em memória no lugar do
 | 2026-11-16 | 1.20 | Wilson Gorosthides | CT-059 passa a "implementado" na guarda `marca_test` (issue #96); a verificação no aparelho vai para a pilha manual. |
 | 2026-11-16 | 1.21 | Wilson Gorosthides | Casos do RF-015 (avisos no celular, issue #95): CT-060 a CT-065 — resumo da véspera e do dia, aviso uma hora antes, lembrete de feito e não pago, avisos que acompanham a agenda e toque que abre o dia. Todos "a implementar". |
 | 2026-11-16 | 1.22 | Wilson Gorosthides | CT-060 a CT-065 passam a "implementado" com os testes da entrega do RF-015 (issue #95): `avisos_test` (seis casos da função pura `planejarAvisos`) e três casos novos em `agenda_screen_test` com o agendador falso; a chegada real dos avisos vai para a pilha manual. |
+| 2026-11-16 | 1.23 | Wilson Gorosthides | CT-066 do RF-015: pedido de liberação da economia de bateria (issue #101). "A implementar". |
