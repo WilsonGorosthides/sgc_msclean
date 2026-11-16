@@ -1,11 +1,11 @@
 {
-    "name": "sgc_msclean",
-    "short_name": "sgc_msclean",
+    "name": "MS Clean",
+    "short_name": "MS Clean",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#252C67",
+    "theme_color": "#252C67",
+    "description": "Agenda de atendimentos da MS Clean - higienização e impermeabilização.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
