@@ -23,7 +23,8 @@
   RF-005 (CT-040 a CT-048) ficam antes dos do RF-010 no documento, na ordem dos
   RFs, embora numerados depois.
 - CT-053 a CT-058 cobrem o RNF-007 (anotar sem internet, issue #94); ficam
-  depois dos casos da agenda, antes do caso manual do RNF-001.
+  depois dos casos da agenda, antes do caso manual do RNF-001. CT-059 cobre o
+  RNF-008 (identidade visual, issue #96) e vem logo depois deles.
 - Critérios de aceitação são copiados literalmente da matriz.
 - Nos CTs automatizados, os "passos" descrevem o que o teste executa; nos
   manuais, o que a pessoa executa.
@@ -823,6 +824,25 @@ falso, que pode estar "fora do ar", e um armazenamento em memória no lugar do
 - **Resultado esperado:** nada abre nem grava; um aviso explica que o item ainda
   está aguardando envio.
 
+## RNF-008 — Identidade visual
+
+### CT-059 — Ícone, nome e abertura com a marca
+- **Critério:** "Na gaveta de apps, o ícone é o símbolo da marca sobre o
+  azul-marinho, e o nome exibido é "MS Clean". Ao abrir, aparece o logo
+  completo sobre o mesmo azul-marinho. Na web, a aba e o atalho usam o mesmo
+  símbolo e o mesmo nome."
+- **Tipo:** Unitário (guarda sobre os arquivos de plataforma) + Manual (aparelho)
+  · **Situação:** a implementar
+- **Pré-condições:** ícones e abertura gerados a partir de `assets/marca/`.
+- **Passos:**
+  1. Ler o `AndroidManifest.xml`, o `web/manifest.json`, o `web/index.html` e
+     os recursos gerados.
+  2. No aparelho, instalar o app, olhar a gaveta e abrir o app.
+- **Resultado esperado:** o nome é "MS Clean" nas três origens; o ícone
+  adaptativo do Android usa o símbolo sobre o azul-marinho `#252C67`; a
+  abertura usa o mesmo fundo; no aparelho, a gota com o sofá aparece na gaveta
+  e o logo completo na abertura.
+
 ## RNF-001 — Verificação manual de usabilidade
 
 ### CT-023 — Fluxo geral no dispositivo da cliente
@@ -866,3 +886,4 @@ falso, que pode estar "fora do ar", e um armazenamento em memória no lugar do
 | 2026-11-13 | 1.16 | Wilson Gorosthides | CT-049 a CT-052 passam a "implementado" com os testes da entrega do RF-014 (issue #79), em `atendimento_test` e `agenda_screen_test`. |
 | 2026-11-16 | 1.17 | Wilson Gorosthides | Casos do RNF-007 ampliado (anotar sem internet, issue #94): CT-053 a CT-058 — abrir com os dados guardados, registro em fila com marca de aguardando envio, envio automático sem duplicar, aviso de sem conexão (bug #47), nada perdido ao reabrir, e item pendente sem edição nem marca. Todos "a implementar". |
 | 2026-11-16 | 1.18 | Wilson Gorosthides | CT-053 a CT-058 passam a "implementado" com os testes da entrega do RNF-007 ampliado (issue #94): `espelho_local_test` (oito casos, banco falso e armazenamento em memória), mais os novos casos em `agenda_screen_test` e `home_screen_test`. |
+| 2026-11-16 | 1.19 | Wilson Gorosthides | CT-059 do RNF-008 (identidade visual, issue #96): guarda sobre os arquivos de plataforma (nome, ícone adaptativo, cor da abertura) e verificação no aparelho. "A implementar". |
