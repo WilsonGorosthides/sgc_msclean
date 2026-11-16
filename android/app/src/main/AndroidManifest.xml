@@ -2,6 +2,9 @@
     <!-- Avisos no celular (RF-015): reagendar depois de reiniciar o aparelho.
          POST_NOTIFICATIONS vem do próprio plugin. -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <!-- Supabase: sem esta linha o APK de release não tem internet (só os
+         manifestos de debug e profile a declaravam). -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:label="MS Clean"
         android:name="${applicationName}"
