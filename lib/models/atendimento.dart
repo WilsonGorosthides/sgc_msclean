@@ -34,6 +34,10 @@ class Atendimento {
   // Concluído somente com os dois marcados.
   bool get concluido => feito && pago;
 
+  // Gravado no aparelho e ainda não enviado ao banco (RNF-007, #94). Não é
+  // coluna: vem da fila do EspelhoLocal.
+  final bool pendente;
+
   Atendimento copyWith({bool? feito, bool? pago}) => Atendimento(
         id: id,
         data: data,
@@ -46,6 +50,7 @@ class Atendimento {
         criadoEm: criadoEm,
         feito: feito ?? this.feito,
         pago: pago ?? this.pago,
+        pendente: pendente,
       );
 
   Atendimento({
@@ -60,9 +65,11 @@ class Atendimento {
     this.criadoEm,
     this.feito = false,
     this.pago = false,
+    this.pendente = false,
   });
 
-  factory Atendimento.fromMap(Map<String, dynamic> map) {
+  factory Atendimento.fromMap(Map<String, dynamic> map,
+      {bool pendente = false}) {
     final data = DateTime.parse(map['data'].toString());
     final hora = map['hora']?.toString();
     final valor = map['valor'];
@@ -82,6 +89,7 @@ class Atendimento {
       criadoEm: criadoEm == null ? null : DateTime.tryParse(criadoEm),
       feito: map['feito'] == true,
       pago: map['pago'] == true,
+      pendente: pendente,
     );
   }
 

@@ -11,6 +11,7 @@ import '../theme/app_typography.dart';
 import '../utils/agenda.dart';
 import 'atendimento_form_screen.dart';
 import 'home_screen.dart';
+import 'sem_conexao.dart';
 
 // Tela inicial do app (RF-010): a agenda virtual. Mostra o dia selecionado
 // agrupado por período, com a semana sempre à vista e o mês a um toque. A
@@ -87,6 +88,7 @@ class _AgendaScreenState extends State<AgendaScreen> {
   // Marca/desmarca feito ou pago (RF-014) direto no cartão. A tela muda na
   // hora e a gravação segue em paralelo; se falhar, a marca volta e avisa.
   Future<void> _marcar(Atendimento a, {bool? feito, bool? pago}) async {
+    if (a.pendente) return _avisarPendente();
     final novo = a.copyWith(feito: feito, pago: pago);
     _trocar(novo);
     try {
@@ -99,6 +101,13 @@ class _AgendaScreenState extends State<AgendaScreen> {
             content: Text('Não foi possível marcar. Tente novamente.')),
       );
     }
+  }
+
+  // Item só no aparelho (RNF-007): editar ou marcar espera o envio.
+  void _avisarPendente() {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(const SnackBar(content: Text(avisoItemPendente)));
   }
 
   void _trocar(Atendimento para) => setState(() {
@@ -164,7 +173,12 @@ class _AgendaScreenState extends State<AgendaScreen> {
           ),
         ],
       ),
-      body: _corpo(hoje),
+      body: Column(
+        children: [
+          AvisoSemConexao(conectado: _service.conectado),
+          Expanded(child: _corpo(hoje)),
+        ],
+      ),
       // NOVO ATENDIMENTO (RF-005): parte do dia selecionado.
       floatingActionButton: _verMes
           ? null
@@ -216,7 +230,9 @@ class _AgendaScreenState extends State<AgendaScreen> {
             hoje: hoje,
             atendimentos: atendimentosDoDia(atendimentos, _selecionado),
             clientes: clientes,
-            aoTocar: (a) => _abrirFormulario(atendimento: a),
+            aoTocar: (a) => a.pendente
+                ? _avisarPendente()
+                : _abrirFormulario(atendimento: a),
             aoMarcar: _marcar,
           ),
         ),
@@ -743,6 +759,8 @@ class _CartaoAtendimento extends StatelessWidget {
                           aoTocar: aoMarcarPago,
                         ),
                         const Spacer(),
+                        if (a.pendente)
+                          SeloAguardandoEnvio(key: Key('pendente_${a.id}')),
                         if (a.concluido)
                           Text(
                             'Concluído',

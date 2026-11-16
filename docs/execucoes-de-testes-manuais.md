@@ -62,6 +62,19 @@ alter table public.atendimentos
 | 4 | Fechar e reabrir o app | As marcas continuam como ficaram | CT-049 |
 | 5 | Tocar no corpo do cartão (fora das marcas), mudar a hora e salvar | A edição funciona e as marcas não se perdem | CT-042, CT-049 |
 
+### #94 — anotar sem internet (RNF-007)
+
+Sem SQL. Rodar no **celular** (no Chrome, o modo avião vira "Offline" nas
+ferramentas do desenvolvedor).
+
+| # | Passo | Resultado esperado | CT |
+|---|---|---|---|
+| 1 | Com internet, abrir o app e a lista de clientes; fechar o app, ligar o modo avião e abrir de novo | Agenda e clientes abrem com os dados de antes, com a faixa âmbar "Sem conexão" no topo; a lista não diz "Nenhum cliente encontrado." | CT-053, CT-056 |
+| 2 | Ainda sem rede, registrar um atendimento para um cliente **novo** (anotar só o nome) | O formulário fecha na hora; o cartão aparece no dia com o selo "aguardando envio" e o nome do cliente | CT-054 |
+| 3 | Tocar no cartão pendente e na marca "Feito" | Nada abre nem marca; aparece o aviso "Ainda aguardando envio..." | CT-058 |
+| 4 | Fechar o app, reabrir ainda sem rede | O atendimento continua lá, aguardando envio | CT-057 |
+| 5 | Desligar o modo avião e esperar até ~20 s (ou reabrir o app) | A faixa some, o selo some, e o atendimento e o cliente aparecem **uma vez só** no painel do Supabase | CT-055 |
+
 ## Execução 001 — Verificação manual do RF-001 (pré-merge do PR #44)
 
 - **Data:** 2026-07-16
@@ -448,3 +461,4 @@ pelo próprio app.
 | 2026-11-13 | 1.9 | Wilson Gorosthides | Nova seção "Pilha de verificação manual (pendente)" e convenção correspondente: os passos manuais de cada entrega acumulam ali e são executados de uma vez antes do APK (replanejamento do fluxo; `plano-de-testes.md` 1.8). |
 | 2026-11-13 | 1.10 | Wilson Gorosthides | Pilha: entram os passos do fix #87 (seleção ao trocar a semana). |
 | 2026-11-13 | 1.11 | Wilson Gorosthides | Pilha: entram o SQL e os passos do RF-014 (#79, marcas de feito e pago). |
+| 2026-11-16 | 1.12 | Wilson Gorosthides | Pilha: entram os passos do anotar sem internet (#94, RNF-007), sem SQL. |

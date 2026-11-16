@@ -6,19 +6,26 @@ class ClientModel {
   final Endereco endereco;
   final List<String> telefones;
 
+  // Gravado no aparelho e ainda não enviado ao banco (RNF-007, #94). Não é
+  // coluna: vem da fila do EspelhoLocal.
+  final bool pendente;
+
   ClientModel({
     this.id,
     required this.nome,
     this.endereco = const Endereco(),
     required this.telefones,
+    this.pendente = false,
   });
 
-  factory ClientModel.fromMap(Map<String, dynamic> map) {
+  factory ClientModel.fromMap(Map<String, dynamic> map,
+      {bool pendente = false}) {
     return ClientModel(
-      id: map['id'],
-      nome: map['nome'] ?? '',
+      id: map['id']?.toString(),
+      nome: (map['nome'] ?? '').toString(),
       endereco: _lerEndereco(map['endereco']),
       telefones: _lerTelefones(map),
+      pendente: pendente,
     );
   }
 
