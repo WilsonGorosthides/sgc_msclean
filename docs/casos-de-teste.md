@@ -567,6 +567,29 @@
 - **Resultado esperado:** a agenda continua no mesmo dia e o cartão aparece na
   seção Tarde, sem recarregar o app.
 
+### CT-067 — Trocar o dia na edição
+- **Critério:** "Na edição, o dia do atendimento pode ser trocado por um calendário (adiar ou corrigir o dia anotado errado); salvo, o atendimento passa para o dia novo, com peças, valor e marcas, e a agenda passa a mostrar esse dia."
+- **Tipo:** Widget · **Situação:** a implementar
+- **Pré-condições:** um atendimento existente.
+- **Passos:**
+  1. Abrir a edição e tocar na data.
+  2. Escolher outro dia no calendário e salvar.
+  3. Abrir um registro novo e tocar na data.
+- **Resultado esperado:** o update leva a data nova e mantém o resto; a agenda
+  passa a mostrar o dia novo; no registro novo a data não abre o calendário
+  (CT-040).
+
+### CT-068 — Excluir atendimento com confirmação
+- **Critério:** "Na edição, o atendimento pode ser excluído, após confirmação (cliente que desmarcou ou anotação errada); sem internet, a exclusão avisa e não acontece."
+- **Tipo:** Widget · **Situação:** a implementar
+- **Pré-condições:** um atendimento existente.
+- **Passos:**
+  1. Na edição, tocar em excluir e cancelar.
+  2. Tocar em excluir e confirmar.
+  3. Repetir com a exclusão falhando.
+- **Resultado esperado:** cancelar não apaga; confirmar apaga pelo id e volta à
+  agenda; a falha avisa e mantém o formulário aberto.
+
 ## RF-010 — Agenda por Data
 
 > Os testes automatizados da agenda recebem a data de "hoje" por injeção (relógio
@@ -961,3 +984,4 @@ falso, que pode estar "fora do ar", e um armazenamento em memória no lugar do
 | 2026-11-16 | 1.23 | Wilson Gorosthides | CT-066 do RF-015: pedido de liberação da economia de bateria (issue #101). "A implementar". |
 | 2026-11-16 | 1.24 | Wilson Gorosthides | CT-066 passa a "implementado" com `bateria_test` (issue #101). |
 | 2026-11-16 | 1.25 | Wilson Gorosthides | CT-062 ganha o teste do instante do aviso em qualquer fuso (defeito achado no celular: aviso uma hora atrasado em aparelho com horário de Brasília). |
+| 2026-11-16 | 1.26 | Wilson Gorosthides | CT-067 (trocar o dia na edição) e CT-068 (excluir com confirmação) do RF-005, issue #106. "A implementar". |
