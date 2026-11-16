@@ -45,55 +45,8 @@ internet passou a valer no release).
 Nenhum SQL pendente: o do RF-014 (colunas `feito` e `pago`) foi aplicado no
 painel (confirmado pelo desenvolvedor em 2026-11-16).
 
-### #94 — anotar sem internet (RNF-007)
-
-Sem SQL. Rodar no **celular** (no Chrome, o modo avião vira "Offline" nas
-ferramentas do desenvolvedor).
-
-| # | Passo | Resultado esperado | CT |
-|---|---|---|---|
-| 1 | Com internet, abrir o app e a lista de clientes; fechar o app, ligar o modo avião e abrir de novo | Agenda e clientes abrem com os dados de antes, com a faixa âmbar "Sem conexão" no topo; a lista não diz "Nenhum cliente encontrado." | CT-053, CT-056 |
-| 2 | Ainda sem rede, registrar um atendimento para um cliente **novo** (anotar só o nome) | O formulário fecha na hora; o cartão aparece no dia com o selo "aguardando envio" e o nome do cliente | CT-054 |
-| 3 | Tocar no cartão pendente e na marca "Feito" | Nada abre nem marca; aparece o aviso "Ainda aguardando envio..." | CT-058 |
-| 4 | Fechar o app, reabrir ainda sem rede | O atendimento continua lá, aguardando envio | CT-057 |
-| 5 | Desligar o modo avião e esperar até ~20 s (ou reabrir o app) | A faixa some, o selo some, e o atendimento e o cliente aparecem **uma vez só** no painel do Supabase | CT-055 |
-
-### #96 — ícone, nome e abertura com a marca (RNF-008)
-
-Sem SQL. Só no **celular** (instalar o APK de novo: o ícone antigo pode ficar
-em cache até reinstalar).
-
-| # | Passo | Resultado esperado | CT |
-|---|---|---|---|
-| 1 | Abrir a gaveta de apps | O ícone é a gota com o sofá sobre o azul-marinho, sem cortes, e o nome embaixo é "MS Clean" | CT-059 |
-| 2 | Abrir o app | Durante o carregamento aparece o fundo azul-marinho com a marca, em vez de tela branca; depois, a agenda | CT-059 |
-| 3 | Abrir a troca de tarefas (botão de apps recentes) | O app aparece como "MS Clean" | CT-059 |
-| 4 | No Chrome do computador, abrir o app pela web | A aba mostra a gota e o título "MS Clean"; a abertura é azul-marinho com o logo | CT-059 |
-
-### #95 — avisos no celular (RF-015)
-
-Sem SQL. Só no **celular**, com o APK novo. Para não esperar as 19h, anotar um
-atendimento **com hora** daqui a ~1h10 e conferir o aviso de "1 hora antes".
-
-| # | Passo | Resultado esperado | CT |
-|---|---|---|---|
-| 1 | Abrir o app pela primeira vez depois de instalar | No **Android 13 ou mais**, o Android pergunta se o MS Clean pode enviar notificações; aceitar (até o Android 12 não há essa pergunta: as notificações já vêm liberadas). Logo depois, pergunta se o app pode ser executado em segundo plano (#101); aceitar. Em Configurações > Apps > MS Clean > Bateria, deve constar "Sem restrições" | CT-066 |
-| 2 | Registrar um atendimento para hoje, com hora daqui a ~1h10 e local; fechar o app | Uns 10 minutos depois chega "Em 1 hora: <cliente>" com a hora e o local, com o ícone da gota | CT-062 |
-| 3 | Tocar no aviso | O app abre na agenda, no dia do atendimento | CT-065 |
-| 4 | Com atendimentos amanhã, esperar as 19h (ou deixar para o dia seguinte, 7h) | Chega "Amanhã: N atendimentos" às 19h e "Hoje: N atendimentos" às 7h, com períodos e nomes | CT-060, CT-061 |
-| 5 | Mudar a hora do atendimento do passo 2 para mais tarde, antes do aviso | O aviso chega na hora nova, não na antiga | CT-064 |
-
-### #106 — trocar o dia e excluir atendimento (RF-005)
-
-Sem SQL. Com internet.
-
-| # | Passo | Resultado esperado | CT |
-|---|---|---|---|
-| 1 | Tocar num cartão, tocar na data do topo da edição | Abre o calendário **em português** | CT-067 |
-| 2 | Escolher outro dia e salvar | A agenda vai para o dia novo, e o cartão está lá com peças, valor e marcas; no dia antigo, sumiu | CT-067 |
-| 3 | Em "Novo atendimento", tocar na data | Nada abre: a data é a do dia selecionado | CT-067, CT-040 |
-| 4 | Na edição, tocar na lixeira e depois em "Cancelar" | O atendimento continua | CT-068 |
-| 5 | Tocar na lixeira e em "Excluir" | Volta à agenda e o cartão sumiu; o aviso dele também não chega | CT-068, CT-064 |
+Nenhum passo pendente: os blocos de #94, #96, #95 e #106 foram aprovados na
+Execução 011. As próximas entregas acrescentam os seus blocos aqui.
 
 ## Execução 001 — Verificação manual do RF-001 (pré-merge do PR #44)
 
@@ -494,6 +447,53 @@ pelo próprio app.
 **Aprovado.** Os dois blocos saem da pilha; seguem pendentes os blocos de
 #94, #96 e #95.
 
+## Execução 011 — Pilha: offline, marca, avisos e trocar o dia ou excluir (pós-merge, #94, #96, #95 e #106)
+
+- **Data:** 2026-11-16.
+- **Objeto:** os quatro blocos restantes da pilha — anotar sem internet (#94,
+  PR #97), ícone, nome e abertura com a marca (#96, PR #98), avisos no celular
+  (#95, PR #99, com o pedido de bateria #101 e o fix do fuso #105) e trocar o
+  dia e excluir atendimento (#106, PR #107). Sem SQL.
+- **Ambiente:** celular físico com Android 11, APK gerado da `main`, contra o
+  Supabase real do MVP; o passo web do #96 no Chrome do computador.
+- **Executor:** o desenvolvedor (resultado informado em 2026-11-16).
+
+### Resultados
+
+| Bloco | Passo | O que verificou | CT(s) | Resultado |
+|---|---|---|---|---|
+| #94 | 1 | Sem rede, agenda e clientes abrem do aparelho com a faixa "Sem conexão" | CT-053, CT-056 | Aprovado |
+| #94 | 2 | Atendimento com cliente novo registrado sem rede, com o selo "aguardando envio" | CT-054 | Aprovado |
+| #94 | 3 | Cartão pendente não abre nem marca; mostra o aviso | CT-058 | Aprovado |
+| #94 | 4 | O pendente sobrevive a fechar e reabrir sem rede | CT-057 | Aprovado |
+| #94 | 5 | Com a rede de volta, o selo some e o registro chega uma vez só ao banco | CT-055 | Aprovado |
+| #96 | 1 | Ícone da gota sobre o azul-marinho e nome "MS Clean" na gaveta | CT-059 | Aprovado |
+| #96 | 2 | Abertura azul-marinho com a marca, sem tela branca | CT-059 | Aprovado |
+| #96 | 3 | "MS Clean" na troca de tarefas | CT-059 | Aprovado |
+| #96 | 4 | Na web, aba com a gota e abertura com o logo | CT-059 | Aprovado |
+| #95 | 1 | Pedido de bateria na primeira abertura (no Android 11 não há pedido de notificação) | CT-066 | Aprovado |
+| #95 | 2 | Aviso "Em 1 hora" chega com hora, local e o ícone da gota | CT-062 | Aprovado |
+| #95 | 3 | Tocar no aviso abre a agenda no dia do atendimento | CT-065 | Aprovado |
+| #95 | 4 | Resumos da véspera (19h) e do dia (7h) | CT-060, CT-061 | Aprovado |
+| #95 | 5 | Mudar a hora reagenda o aviso | CT-064 | Aprovado |
+| #106 | 1 | A data da edição abre o calendário em português | CT-067 | Aprovado |
+| #106 | 2 | Trocar o dia leva o atendimento e a agenda ao dia novo | CT-067 | Aprovado |
+| #106 | 3 | Em "Novo atendimento", a data não abre o calendário | CT-067, CT-040 | Aprovado |
+| #106 | 4 | Cancelar a exclusão mantém o atendimento | CT-068 | Aprovado |
+| #106 | 5 | Confirmar a exclusão tira o cartão e o aviso dele | CT-068, CT-064 | Aprovado |
+
+### Ocorrências
+- Na primeira tentativa do #95, o aviso de "1 hora antes" não chegou. Causa: o
+  horário era remontado no fuso fixo de Campo Grande (UTC-4) e, num aparelho
+  em UTC-3, o aviso saía uma hora depois. Corrigido no PR #105; com o APK novo,
+  o aviso chegou.
+- O pedido de notificação não apareceu no Android 11: esperado, ele só existe
+  a partir do Android 13.
+
+### Veredicto
+**Aprovado.** Os quatro blocos saem da pilha, que fica vazia antes da
+preparação do APK de release (#23).
+
 ## Histórico de Versões
 
 | Data | Versão | Autor | Descrição da mudança |
@@ -519,3 +519,4 @@ pelo próprio app.
 | 2026-11-16 | 1.18 | Wilson Gorosthides | Pilha: o passo 1 dos avisos (#95) passa a conferir também o pedido de bateria (#101). |
 | 2026-11-16 | 1.19 | Wilson Gorosthides | Pilha: o pedido de notificação só aparece no Android 13+ (no 11 do desenvolvedor veio só o de bateria); passo dos avisos a repetir com o fix do fuso. |
 | 2026-11-16 | 1.20 | Wilson Gorosthides | Pilha: entram os passos de trocar o dia e excluir atendimento (#106), sem SQL. |
+| 2026-11-16 | 1.21 | Wilson Gorosthides | Execução 011: blocos #94, #96, #95 e #106 da pilha aprovados no celular (Android 11), com a ocorrência do fuso corrigida no PR #105; a pilha fica vazia. |
