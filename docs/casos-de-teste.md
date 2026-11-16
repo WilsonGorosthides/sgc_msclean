@@ -760,7 +760,7 @@ Android (`flutter_local_notifications`) só se verifica no aparelho (pilha manua
 
 ### CT-060 — Resumo da véspera às 19h
 - **Critério:** "Às 19h da véspera de um dia com atendimentos, o celular avisa quantos são no dia seguinte, por período, com os nomes dos clientes."
-- **Tipo:** Unitário · **Situação:** a implementar
+- **Tipo:** Unitário · **Situação:** implementado — `avisos_test: resumo da véspera às 19h com os períodos e os nomes` · `avisos_test: um atendimento só usa o singular e omite o período vazio`
 - **Pré-condições:** atendimentos em 17/11 (dois de manhã, um à tarde); agora 16/11 às 10h.
 - **Passos:**
   1. Planejar os avisos.
@@ -768,7 +768,7 @@ Android (`flutter_local_notifications`) só se verifica no aparelho (pilha manua
 
 ### CT-061 — Resumo do dia às 7h
 - **Critério:** "Às 7h de um dia com atendimentos, o celular avisa quantos são hoje, por período, com os nomes dos clientes."
-- **Tipo:** Unitário · **Situação:** a implementar
+- **Tipo:** Unitário · **Situação:** implementado — `avisos_test: resumo do dia às 7h`
 - **Pré-condições:** os mesmos atendimentos de 17/11.
 - **Passos:**
   1. Planejar os avisos.
@@ -776,7 +776,7 @@ Android (`flutter_local_notifications`) só se verifica no aparelho (pilha manua
 
 ### CT-062 — Aviso 1 hora antes do atendimento com hora
 - **Critério:** "Um atendimento com hora gera um aviso 1 hora antes, com o cliente, a hora e o local."
-- **Tipo:** Unitário · **Situação:** a implementar
+- **Tipo:** Unitário · **Situação:** implementado — `avisos_test: aviso 1 hora antes só para atendimento com hora`
 - **Pré-condições:** um atendimento em 17/11 às 14:00 com local, e um sem hora.
 - **Passos:**
   1. Planejar os avisos.
@@ -784,7 +784,7 @@ Android (`flutter_local_notifications`) só se verifica no aparelho (pilha manua
 
 ### CT-063 — Lembrete de feito e não pago no terceiro dia
 - **Critério:** "Um atendimento com serviço feito e sem pagamento gera um lembrete de cobrança às 10h do terceiro dia depois da data do atendimento; marcar o pago antes disso cancela o lembrete."
-- **Tipo:** Unitário · **Situação:** a implementar
+- **Tipo:** Unitário · **Situação:** implementado — `avisos_test: lembrete de cobrança só para feito e não pago, no terceiro dia às 10h`
 - **Pré-condições:** atendimentos de 14/11: um feito e não pago, um feito e pago, um não feito.
 - **Passos:**
   1. Planejar os avisos.
@@ -792,7 +792,7 @@ Android (`flutter_local_notifications`) só se verifica no aparelho (pilha manua
 
 ### CT-064 — Avisos acompanham a agenda e não ficam no passado
 - **Critério:** "Os avisos acompanham a agenda: registrar, mudar a hora, marcar o pago ou excluir um atendimento refaz os avisos; avisos de horário que já passou não são agendados."
-- **Tipo:** Unitário + Widget · **Situação:** a implementar
+- **Tipo:** Unitário + Widget · **Situação:** implementado — `avisos_test: avisos com horário que já passou não entram` · `agenda_screen_test: a agenda refaz os avisos a cada nova lista de atendimentos`
 - **Pré-condições:** agora 16/11 às 20h; agenda com atendimentos.
 - **Passos:**
   1. Planejar os avisos com horários já passados.
@@ -801,7 +801,7 @@ Android (`flutter_local_notifications`) só se verifica no aparelho (pilha manua
 
 ### CT-065 — Tocar no aviso abre o dia
 - **Critério:** "Tocar no aviso abre a agenda no dia a que ele se refere."
-- **Tipo:** Widget · **Situação:** a implementar
+- **Tipo:** Widget · **Situação:** implementado — `agenda_screen_test: tocar num aviso abre o dia dele` · `agenda_screen_test: aberta por um aviso, a agenda começa no dia dele`
 - **Pré-condições:** agenda aberta em outro dia.
 - **Passos:**
   1. Tocar em um aviso do dia 20/11.
@@ -946,3 +946,4 @@ falso, que pode estar "fora do ar", e um armazenamento em memória no lugar do
 | 2026-11-16 | 1.19 | Wilson Gorosthides | CT-059 do RNF-008 (identidade visual, issue #96): guarda sobre os arquivos de plataforma (nome, ícone adaptativo, cor da abertura) e verificação no aparelho. "A implementar". |
 | 2026-11-16 | 1.20 | Wilson Gorosthides | CT-059 passa a "implementado" na guarda `marca_test` (issue #96); a verificação no aparelho vai para a pilha manual. |
 | 2026-11-16 | 1.21 | Wilson Gorosthides | Casos do RF-015 (avisos no celular, issue #95): CT-060 a CT-065 — resumo da véspera e do dia, aviso uma hora antes, lembrete de feito e não pago, avisos que acompanham a agenda e toque que abre o dia. Todos "a implementar". |
+| 2026-11-16 | 1.22 | Wilson Gorosthides | CT-060 a CT-065 passam a "implementado" com os testes da entrega do RF-015 (issue #95): `avisos_test` (seis casos da função pura `planejarAvisos`) e três casos novos em `agenda_screen_test` com o agendador falso; a chegada real dos avisos vai para a pilha manual. |

@@ -231,6 +231,10 @@ azul-marinho**, a de maior contraste (RNF-008, issue #96).
   gaveta; os três brilhos em volta da gota também saem do símbolo isolado e
   ficam só no logo completo.
 - **Nome exibido: "MS Clean"** (gaveta, troca de tarefas, aba da web).
+- **Ícone dos avisos** (RF-015): silhueta branca da gota com o sofá,
+  `ic_aviso.png` em `android/app/src/main/res/drawable-*/` — o Android pinta só
+  o canal alfa do ícone pequeno da notificação. Gerado pelo mesmo script, com a
+  pasta `res/` como terceiro argumento.
 - **Regerar:** `tool/marca/extrair_marca.py` produz os PNGs a partir do PDF
   (precisa de PyMuPDF e Pillow, fora do app); depois `fvm dart run
   flutter_launcher_icons` e `fvm dart run flutter_native_splash:create`, com a
@@ -244,3 +248,4 @@ azul-marinho**, a de maior contraste (RNF-008, issue #96).
 | 1.0 | 2026-09-23 | Wilson Gorosthides | Versão inicial: tokens de cor, tipografia, espaçamento e raio extraídos do protótipo da agenda e corrigidos para WCAG 2.1 AA. Regra de fonte da verdade (Dart canônico). Issue #60. |
 | 1.1 | 2026-10-06 | Wilson Gorosthides | Tokens implementados em `lib/theme/` e aplicados: §6 registra a guarda automatizada da regra de "nenhuma cor na tela" (`design_system_test.dart`); §8 deixa de listar componentes como pendência e passa a documentar os doze temas de componente do `AppTheme`, com as justificativas de `ColorScheme` explícito, `surfaceTint` desligado e separação por borda em vez de sombra. Widgets de domínio passam a ser a única pendência de componente. Issue #60. |
 | 1.2 | 2026-11-16 | Wilson Gorosthides | Nova seção 9, Marca (RNF-008, issue #96): arquivos de `assets/marca/` extraídos do PDF, azul-marinho `#252C67` fora dos tokens das telas, só o símbolo no ícone, nome "MS Clean" e como regerar. Histórico passa a ser a seção 10. |
+| 1.3 | 2026-11-16 | Wilson Gorosthides | Seção 9: ícone pequeno dos avisos no celular (`ic_aviso`, silhueta branca da gota), RF-015, issue #95. |
