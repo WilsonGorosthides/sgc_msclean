@@ -25,9 +25,16 @@ abstract class AgendadorDeAvisos {
   Future<DateTime?> diaDeAbertura();
 }
 
-// A área de atendimento é Campo Grande - MS (docs/arquitetura.md §4): o fuso é
-// fixo, sem plugin para descobrir o do aparelho.
+// O plugin exige um fuso; o de Campo Grande - MS (área de atendimento). Ele
+// não decide a hora do aviso: instanteDoAviso converte pelo instante, então o
+// aviso sai na hora do relógio do aparelho, em qualquer fuso.
 const fusoDaAgenda = 'America/Campo_Grande';
+
+// O mesmo instante de [quando] (hora local do aparelho) no fuso [fuso].
+// Remontar hora e minuto no fuso fixo atrasava o aviso em uma hora num
+// aparelho com horário de Brasília (2026-11-16).
+tz.TZDateTime instanteDoAviso(DateTime quando, tz.Location fuso) =>
+    tz.TZDateTime.from(quando, fuso);
 
 // Ícone pequeno da notificação: silhueta branca da gota, gerada por
 // tool/marca/extrair_marca.py em android/app/src/main/res/drawable-*/.
@@ -135,8 +142,7 @@ class AvisosDoAparelho implements AgendadorDeAvisos {
         id: a.id,
         title: a.titulo,
         body: a.corpo,
-        scheduledDate:
-            tz.TZDateTime(tz.local, q.year, q.month, q.day, q.hour, q.minute),
+        scheduledDate: instanteDoAviso(q, tz.local),
         notificationDetails: _detalhes,
         androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
         payload: chaveDoDia(a.dia),

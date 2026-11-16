@@ -76,7 +76,7 @@ RF-005 que ficam para o RF-013 (valor calculado) e para o RNF-006
 | RF-014 | Marcar ou desmarcar não exige abrir o formulário de edição do atendimento. | CT-052 — `agenda_screen_test: marcar serviço feito não abre o formulário e não marca o pago` · `agenda_screen_test: falha ao marcar desfaz a marca e avisa` |
 | RF-015 | Às **19h** da véspera de um dia com atendimentos, o celular avisa quantos são no dia seguinte, por período, com os nomes dos clientes. | CT-060 — `avisos_test: resumo da véspera às 19h com os períodos e os nomes` · `avisos_test: um atendimento só usa o singular e omite o período vazio` |
 | RF-015 | Às **7h** de um dia com atendimentos, o celular avisa quantos são hoje, por período, com os nomes dos clientes. | CT-061 — `avisos_test: resumo do dia às 7h` |
-| RF-015 | Um atendimento **com hora** gera um aviso **1 hora antes**, com o cliente, a hora e o local. | CT-062 — `avisos_test: aviso 1 hora antes só para atendimento com hora` |
+| RF-015 | Um atendimento **com hora** gera um aviso **1 hora antes**, com o cliente, a hora e o local. | CT-062 — `avisos_test: aviso 1 hora antes só para atendimento com hora` · `avisos_do_aparelho_test: o aviso é agendado no mesmo instante, qualquer que seja o fuso` |
 | RF-015 | Um atendimento com **serviço feito** e **sem pagamento** gera **um** lembrete de cobrança às 10h do **terceiro dia** depois da data do atendimento; marcar o pago antes disso cancela o lembrete. | CT-063 — `avisos_test: lembrete de cobrança só para feito e não pago, no terceiro dia às 10h` |
 | RF-015 | Os avisos **acompanham a agenda**: registrar, mudar a hora, marcar o pago ou excluir um atendimento refaz os avisos; avisos de horário que já passou não são agendados. | CT-064 — `avisos_test: avisos com horário que já passou não entram` · `agenda_screen_test: a agenda refaz os avisos a cada nova lista de atendimentos` |
 | RF-015 | Tocar no aviso abre a agenda no **dia** a que ele se refere. | CT-065 — `agenda_screen_test: tocar num aviso abre o dia dele` · `agenda_screen_test: aberta por um aviso, a agenda começa no dia dele` |
@@ -127,3 +127,4 @@ descoberto.
 | 2026-11-16 | 1.25 | Wilson Gorosthides | RF-015 entregue (issue #95): as seis linhas trocam "a implementar" pelos nomes reais dos testes. |
 | 2026-11-16 | 1.26 | Wilson Gorosthides | RF-015 ganha a linha do pedido de liberação de bateria ↔ CT-066, "a implementar" (issue #101). |
 | 2026-11-16 | 1.27 | Wilson Gorosthides | CT-066 entregue (issue #101): nomes reais dos testes. |
+| 2026-11-16 | 1.28 | Wilson Gorosthides | CT-062 ganha o teste do instante do aviso em qualquer fuso. |

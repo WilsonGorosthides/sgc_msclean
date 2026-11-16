@@ -77,7 +77,7 @@ atendimento **com hora** daqui a ~1h10 e conferir o aviso de "1 hora antes".
 
 | # | Passo | Resultado esperado | CT |
 |---|---|---|---|
-| 1 | Abrir o app pela primeira vez depois de instalar | O Android pergunta se o MS Clean pode enviar notificações; aceitar. Logo depois, pergunta se o app pode ser executado em segundo plano (#101); aceitar. Em Configurações > Apps > MS Clean > Bateria, deve constar "Sem restrições" | CT-066 |
+| 1 | Abrir o app pela primeira vez depois de instalar | No **Android 13 ou mais**, o Android pergunta se o MS Clean pode enviar notificações; aceitar (até o Android 12 não há essa pergunta: as notificações já vêm liberadas). Logo depois, pergunta se o app pode ser executado em segundo plano (#101); aceitar. Em Configurações > Apps > MS Clean > Bateria, deve constar "Sem restrições" | CT-066 |
 | 2 | Registrar um atendimento para hoje, com hora daqui a ~1h10 e local; fechar o app | Uns 10 minutos depois chega "Em 1 hora: <cliente>" com a hora e o local, com o ícone da gota | CT-062 |
 | 3 | Tocar no aviso | O app abre na agenda, no dia do atendimento | CT-065 |
 | 4 | Com atendimentos amanhã, esperar as 19h (ou deixar para o dia seguinte, 7h) | Chega "Amanhã: N atendimentos" às 19h e "Hoje: N atendimentos" às 7h, com períodos e nomes | CT-060, CT-061 |
@@ -505,3 +505,4 @@ pelo próprio app.
 | 2026-11-16 | 1.16 | Wilson Gorosthides | Pilha: SQL do RF-014 confirmado como aplicado; sai o bloco "SQL a aplicar". |
 | 2026-11-16 | 1.17 | Wilson Gorosthides | Execução 010: blocos #87 e #79 da pilha aprovados no celular; saem da pilha. |
 | 2026-11-16 | 1.18 | Wilson Gorosthides | Pilha: o passo 1 dos avisos (#95) passa a conferir também o pedido de bateria (#101). |
+| 2026-11-16 | 1.19 | Wilson Gorosthides | Pilha: o pedido de notificação só aparece no Android 13+ (no 11 do desenvolvedor veio só o de bateria); passo dos avisos a repetir com o fix do fuso. |
