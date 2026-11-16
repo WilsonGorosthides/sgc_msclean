@@ -247,6 +247,7 @@ A auditoria registrou cobertura real de 0% — o único teste era o template pad
 | 2026-11-16 | 2.13 | Wilson Gorosthides | Anotar sem internet (RNF-007 ampliado, issue #94): §4 registra o id e o `criado_em` gerados no app e o envio por `upsert` sem sobrescrever, sem mudança de schema; árvore §5 com `espelho_local`, `armazem_local` e `sem_conexao`; §7 com a decisão do espelho atrás do service (`shared_preferences`, só o registro novo na fila, fila em ordem); §9 reavalia a dívida "sem camada de repository". |
 | 2026-11-16 | 2.14 | Wilson Gorosthides | Identidade visual (RNF-008, issue #96): §5 registra `assets/marca/`, `tool/marca/` e os ícones e a abertura gerados em `android/` e `web/` pelos geradores do `pubspec.yaml`. |
 | 2026-11-16 | 2.15 | Wilson Gorosthides | Avisos no celular (RF-015, issue #95): árvore §5 com `avisos_do_aparelho.dart` e `utils/avisos.dart`; §7 com a decisão de avisos locais, refeitos inteiros a cada mudança, alarme inexato e fuso fixo. Android: desugaring no Gradle, `RECEIVE_BOOT_COMPLETED` e receivers do plugin no manifesto. |
+| 2026-11-16 | 2.16 | Wilson Gorosthides | Preparação do APK (#23): permissão `INTERNET` no manifesto principal (antes só em debug e profile, o release sairia sem rede) e `applicationId` `br.com.msclean.agenda`; o `namespace` do código Kotlin continua `com.example.sgc_msclean`. Guarda `test/unit/plataforma_test.dart`. |
 
 ## 12. Ambiente de Desenvolvimento
 Os seguintes softwares e configurações são necessários para iniciar o desenvolvimento:
