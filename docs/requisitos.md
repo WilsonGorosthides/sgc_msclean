@@ -224,6 +224,7 @@ O celular avisa a proprietária da agenda, sem ela precisar abrir o app.
   - Um atendimento com **serviço feito** e **sem pagamento** gera **um** lembrete de cobrança às 10h do **terceiro dia** depois da data do atendimento; marcar o pago antes disso cancela o lembrete.
   - Os avisos **acompanham a agenda**: registrar, mudar a hora, marcar o pago ou excluir um atendimento refaz os avisos; avisos de horário que já passou não são agendados.
   - Tocar no aviso abre a agenda no **dia** a que ele se refere.
+  - Na primeira abertura, o app pede ao sistema, em **um toque**, para ficar **fora da economia de bateria**; se ela negar, só volta a pedir depois de **30 dias**; se já estiver liberado, não pede. (Sem isso, Samsung, Xiaomi e Motorola seguram os alarmes do app parado; issue #101.)
 
 ### 2.3 Pagamentos e Acesso
 
@@ -339,3 +340,4 @@ O sistema deve ter um mecanismo de login para o único usuário (a proprietária
 | 2026-11-16 | 3.3 | Wilson Gorosthides | **RNF-007 ampliado para uso sem internet** (issue #94): leitura dos últimos dados guardados no aparelho, registro de atendimento e de cliente provisório em fila com envio automático e sem duplicar, aviso de "sem conexão" e nada perdido ao reabrir; edição, exclusão e marcas sem rede ficam fora, avisando. Substitui "sinal fraco, não ausente". |
 | 2026-11-16 | 3.4 | Wilson Gorosthides | Novo **RNF-008 - Identidade Visual** (issue #96): ícone com o símbolo da marca sobre o azul-marinho, nome "MS Clean" na gaveta, logo completo na abertura e o mesmo na web; a paleta das telas não muda. |
 | 2026-11-16 | 3.5 | Wilson Gorosthides | Novo **RF-015 - Avisos no Celular** (issue #95, pedido da proprietária na demonstração): resumo da véspera às 19h, resumo do dia às 7h, aviso 1 hora antes do atendimento com hora, lembrete único de feito e não pago no terceiro dia, avisos que acompanham a agenda e toque que abre o dia. Avisos locais, só no Android. |
+| 2026-11-16 | 3.6 | Wilson Gorosthides | RF-015 ganha o critério do pedido de liberação da economia de bateria na primeira abertura, com nova tentativa só após 30 dias (issue #101). |

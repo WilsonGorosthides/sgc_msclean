@@ -6,6 +6,8 @@ import 'package:timezone/data/latest.dart' as fusos;
 import 'package:timezone/timezone.dart' as tz;
 
 import '../utils/agenda.dart';
+import 'armazem_local.dart';
+import 'bateria.dart';
 import '../utils/avisos.dart';
 
 // Entrega dos avisos no celular (RF-015, issue #95). A regra de quais avisos
@@ -81,6 +83,15 @@ class AvisosDoAparelho implements AgendadorDeAvisos {
           .resolvePlatformSpecificImplementation<
               AndroidFlutterLocalNotificationsPlugin>()
           ?.requestNotificationsPermission();
+      // logo depois: fora da economia de bateria, para os alarmes não serem
+      // segurados (#101); negado, só pede de novo em 30 dias
+      try {
+        await pedirLiberacaoDeBateria(
+          bateria: BateriaDoAparelho(),
+          armazem: ArmazemPreferencias(),
+          agora: DateTime.now(),
+        );
+      } catch (_) {}
       return true;
     } catch (_) {
       // sem o plugin (testes, plataforma sem suporte): a agenda segue sem avisos

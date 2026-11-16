@@ -112,6 +112,7 @@ lib/
 │   ├── supabase_service.dart       # acesso ao Supabase (streams de clientes e atendimentos + escrita de clientes e atendimentos)
 │   ├── espelho_local.dart          # anotar sem internet (RNF-007): cópia no aparelho, fila de envios, estado de conexão
 │   ├── avisos_do_aparelho.dart     # avisos no celular (RF-015): agenda no Android via flutter_local_notifications
+│   ├── bateria.dart                # pedido de liberação da economia de bateria (RF-015, #101): regra + canal com a MainActivity
 │   ├── armazem_local.dart          # onde o espelho grava: shared_preferences (produção) ou memória (testes)
 │   └── maps_launcher.dart          # abre o endereco no Google Maps (RF-009, url_launcher)
 ├── theme/
@@ -226,7 +227,7 @@ A auditoria registrou cobertura real de 0% — o único teste era o template pad
 | Cobertura zero permitir regressões silenciosas | Alta (hoje) | Alto | Substituir template de teste; plano de testes precede cada feature do MVP (ver seção 8) |
 | Projeto Supabase (plano gratuito) pausar por inatividade | Alta em períodos sem desenvolvimento (aconteceu em 2026-07 e em 2026-10/11) | Médio: o app abre sem dados até a retomada manual pelo painel; os dados não se perdem (restaurável por meses) | Workflow `keep-alive.yml` faz uma leitura mínima na API REST todo dia (issue #72); credenciais em secrets do repositório. Quando a usuária estiver em uso diário, o próprio uso mantém o projeto ativo |
 | Item da fila do aparelho **recusado pelo banco** (não por falta de rede: dado inválido, coluna inexistente, RLS) trava a fila de envios (RNF-007, #94) | Baixa | Alto: o item e os seguintes ficam só no celular, com o selo "aguardando envio" que não some | Sintoma: selo que não some com internet boa. Diagnóstico: o envio para no primeiro erro (`EspelhoLocal._enviarFila`); ver o erro do `upsert` no log. Correção possível: tirar o item da fila e avisar, em vez de travar. **Antes de qualquer mudança de schema, conferir se a fila do aparelho da usuária está vazia** |
-| Android economizar bateria e segurar os avisos (RF-015, #95) | Alta em Samsung, Xiaomi e Motorola | Médio: aviso atrasado ou perdido | Hoje é manual: no celular dela, Bateria do app em "Sem restrições". Pedido automático da permissão na primeira abertura: issue própria |
+| Android economizar bateria e segurar os avisos (RF-015, #95) | Alta em Samsung, Xiaomi e Motorola | Médio: aviso atrasado ou perdido | O app pede a liberação ao Android na primeira abertura, logo depois da permissão de notificação (#101, canal `msclean/bateria` na `MainActivity`); negado, pede de novo após 30 dias. Em Xiaomi, o "início automático" continua manual |
 | Dados só no Supabase gratuito, sem cópia | Média | Alto | Exportar o CSV antes da entrega e com regularidade (#22) |
 
 ## 11. Histórico de Versões
@@ -252,6 +253,7 @@ A auditoria registrou cobertura real de 0% — o único teste era o template pad
 | 2026-11-16 | 2.15 | Wilson Gorosthides | Avisos no celular (RF-015, issue #95): árvore §5 com `avisos_do_aparelho.dart` e `utils/avisos.dart`; §7 com a decisão de avisos locais, refeitos inteiros a cada mudança, alarme inexato e fuso fixo. Android: desugaring no Gradle, `RECEIVE_BOOT_COMPLETED` e receivers do plugin no manifesto. |
 | 2026-11-16 | 2.16 | Wilson Gorosthides | Preparação do APK (#23): permissão `INTERNET` no manifesto principal (antes só em debug e profile, o release sairia sem rede) e `applicationId` `br.com.msclean.agenda`; o `namespace` do código Kotlin continua `com.example.sgc_msclean`. Guarda `test/unit/plataforma_test.dart`. |
 | 2026-11-16 | 2.17 | Wilson Gorosthides | §10: três riscos novos — item recusado pelo banco travando a fila do aparelho (RNF-007), economia de bateria segurando os avisos (RF-015) e dados sem cópia fora do Supabase. |
+| 2026-11-16 | 2.18 | Wilson Gorosthides | Liberação da economia de bateria (#101): `lib/services/bateria.dart` na árvore §5, canal `msclean/bateria` na `MainActivity` (sem plugin), permissão `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`; risco da bateria em §10 passa a mitigado no app. |
 
 ## 12. Ambiente de Desenvolvimento
 Os seguintes softwares e configurações são necessários para iniciar o desenvolvimento:
