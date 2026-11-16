@@ -5,6 +5,9 @@
     <!-- Supabase: sem esta linha o APK de release não tem internet (só os
          manifestos de debug e profile a declaravam). -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Avisos (RF-015, #101): pedir para ficar fora da economia de bateria.
+         Permitido fora da Play Store; o app não vai para a loja. -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
     <application
         android:label="MS Clean"
         android:name="${applicationName}"
