@@ -17,5 +17,24 @@ void main() {
       final gradle = File('android/app/build.gradle.kts').readAsStringSync();
       expect(gradle, contains('applicationId = "br.com.msclean.agenda"'));
     });
+
+    // Assinatura do release (#109): com a chave de debug, que é de cada
+    // máquina, nenhuma atualização instalaria por cima do app da usuária
+    // depois de trocar de computador.
+    test('o release é assinado com a chave própria, não com a de debug', () {
+      final gradle = File('android/app/build.gradle.kts').readAsStringSync();
+      expect(gradle, contains('key.properties'));
+      expect(gradle, isNot(contains('signingConfigs.getByName("debug")')));
+    });
+
+    test('a chave e as senhas ficam fora do git, com um exemplo versionado',
+        () {
+      final ignorados = File('android/.gitignore').readAsStringSync();
+      expect(ignorados, contains('key.properties'));
+      expect(ignorados, contains('**/*.jks'));
+      final exemplo = File('android/key.properties.example');
+      expect(exemplo.existsSync(), isTrue);
+      expect(exemplo.readAsStringSync(), contains('storeFile='));
+    });
   });
 }
