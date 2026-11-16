@@ -550,7 +550,7 @@ void main() {
       verifyNever(() => service.marcarConclusao(any(),
           feito: any(named: 'feito'), pago: any(named: 'pago')));
       expect(marcada('feito_p'), findsNothing);
-      expect(find.text('%s'), findsWidgets);
+      expect(find.text('Ainda aguardando envio: dá para mudar depois que for enviado.'), findsWidgets);
     });
 
     // ---- RF-015: avisos no celular ----
