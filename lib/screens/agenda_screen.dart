@@ -108,7 +108,7 @@ class _AgendaScreenState extends State<AgendaScreen> {
   // Abre o formulário de atendimento (RF-005): novo, no dia selecionado, ou
   // edição de um cartão. Ao voltar, renova a stream.
   Future<void> _abrirFormulario({Atendimento? atendimento}) async {
-    await Navigator.of(context).push(MaterialPageRoute(
+    final novoDia = await Navigator.of(context).push<DateTime>(MaterialPageRoute(
       builder: (_) => AtendimentoFormScreen(
         service: _service,
         data: atendimento?.data ?? _selecionado,
@@ -117,6 +117,8 @@ class _AgendaScreenState extends State<AgendaScreen> {
       ),
     ));
     if (!mounted) return;
+    // dia trocado na edição (#106): a agenda acompanha o atendimento
+    if (novoDia != null) _selecionar(novoDia);
     _assinarAtendimentos();
   }
 
