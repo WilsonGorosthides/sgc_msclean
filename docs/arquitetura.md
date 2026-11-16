@@ -122,7 +122,7 @@ lib/
     ├── agenda.dart                 # funções puras da agenda: semana, grade do mês, contagem, ordem do dia, nomes em PT-BR, valor em reais
     └── validators.dart             # validações puras dos formulários (obrigatório, telefone, hora)
 ```
-Fora de `lib/`: `docs/` (esta documentação e os requisitos) e `test/` (testes).
+Fora de `lib/`: `docs/` (esta documentação, os requisitos e a arte da marca em `Logo_MS_Clean.pdf`), `test/` (testes), `assets/marca/` (PNGs mestres do ícone e da abertura, RNF-008) e `tool/marca/` (script que extrai esses PNGs do PDF; roda fora do app). Os ícones e a abertura em `android/` e `web/` são **gerados** por `flutter_launcher_icons` e `flutter_native_splash` (dev dependencies, configuração no `pubspec.yaml`) — não se editam à mão.
 
 ## 6. Diagrama de Componentes
 Relação entre as camadas do app e o backend:
@@ -241,6 +241,7 @@ A auditoria registrou cobertura real de 0% — o único teste era o template pad
 | 2026-11-13 | 2.12 | Wilson Gorosthides | Estados de conclusão (RF-014, issue #79): §4 registra as colunas `feito` e `pago` (SQL de `alter table`), a escrita própria das marcas fora do `toMap` e o "concluído" derivado no app. Requer migração no Supabase. |
 | 2026-11-13 | 2.10 | Wilson Gorosthides | Agenda como tela inicial (RF-010, issue #75): tabela `atendimentos` na §4 (colunas, FK com cascade, `pecas` em jsonb, SQL com RLS e publicação de realtime); árvore §5 com `agenda_screen`, `atendimento`, `peca` e `utils/agenda`; diagrama §6 com a `AgendaScreen` inicial e as duas tabelas; §7 reavalia e mantém o `setState` e registra a decisão de calcular semana, mês e ordem no app; §12 cita a nova tabela. |
 | 2026-11-16 | 2.13 | Wilson Gorosthides | Anotar sem internet (RNF-007 ampliado, issue #94): §4 registra o id e o `criado_em` gerados no app e o envio por `upsert` sem sobrescrever, sem mudança de schema; árvore §5 com `espelho_local`, `armazem_local` e `sem_conexao`; §7 com a decisão do espelho atrás do service (`shared_preferences`, só o registro novo na fila, fila em ordem); §9 reavalia a dívida "sem camada de repository". |
+| 2026-11-16 | 2.14 | Wilson Gorosthides | Identidade visual (RNF-008, issue #96): §5 registra `assets/marca/`, `tool/marca/` e os ícones e a abertura gerados em `android/` e `web/` pelos geradores do `pubspec.yaml`. |
 
 ## 12. Ambiente de Desenvolvimento
 Os seguintes softwares e configurações são necessários para iniciar o desenvolvimento:

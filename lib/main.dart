@@ -25,7 +25,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'MSClean SGC',
+      // nome do app na troca de tarefas do Android e na aba da web (RNF-008)
+      title: 'MS Clean',
       // O tema vem inteiro do design system (docs/design-system.md); nenhuma
       // cor ou fonte e declarada aqui.
       theme: AppTheme.claro,

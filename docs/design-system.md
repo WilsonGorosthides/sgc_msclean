@@ -210,9 +210,37 @@ principal em vez de um verde que mentiria sobre o estado do atendimento.
   tema escuro exigiria medir a paleta inteira de novo, e não há demanda da usuária.
 - **Figma.** Fora do escopo do projeto, com a justificativa registrada em `arquitetura.md` §7.
 
-## 9. Histórico de Versões
+## 9. Marca
+
+A arte da empresa está em `docs/Logo_MS_Clean.pdf` (vetorial, quatro versões:
+fundo claro, azul-marinho, degradê e ciano). O app usa a versão de **fundo
+azul-marinho**, a de maior contraste (RNF-008, issue #96).
+
+| Arquivo (`assets/marca/`) | O que é | Onde aparece |
+|---|---|---|
+| `simbolo_fundo.png` | a gota com o sofá sobre o azul-marinho, 1024 px | ícone legado do Android, favicon e ícones da web |
+| `simbolo_frente.png` | a gota com o sofá em fundo transparente, ocupando 56% do quadrado (zona segura do ícone adaptativo é 66/108) | frente do ícone adaptativo do Android |
+| `simbolo_abertura.png` | a gota em 1152 px, dentro do círculo visível de 768 px | abertura do Android 12+ |
+| `logo_completo.png` | "MS CLEAN" com a gota e a linha "Higienização & Impermeabilização", fundo transparente, 960 px (240 dp na abertura) | abertura do Android até 11 e da web |
+
+- **Azul-marinho da marca: `#252C67`**, medido no PDF. É o fundo do ícone
+  adaptativo e da abertura. **Não** é um token de `AppColors`: as telas seguem
+  a paleta da seção 2 (decisão de 2026-11-16 — a marca entra no ícone e na
+  abertura; trocar a paleta exigiria medir de novo todos os contrastes).
+- **Só o símbolo no ícone.** O texto "MS CLEAN" fica ilegível no tamanho da
+  gaveta; os três brilhos em volta da gota também saem do símbolo isolado e
+  ficam só no logo completo.
+- **Nome exibido: "MS Clean"** (gaveta, troca de tarefas, aba da web).
+- **Regerar:** `tool/marca/extrair_marca.py` produz os PNGs a partir do PDF
+  (precisa de PyMuPDF e Pillow, fora do app); depois `fvm dart run
+  flutter_launcher_icons` e `fvm dart run flutter_native_splash:create`, com a
+  configuração no `pubspec.yaml`. A guarda `test/unit/marca_test.dart` falha se
+  uma regeração voltar ao padrão do Flutter.
+
+## 10. Histórico de Versões
 
 | Versão | Data | Autor | Alterações |
 |---|---|---|---|
 | 1.0 | 2026-09-23 | Wilson Gorosthides | Versão inicial: tokens de cor, tipografia, espaçamento e raio extraídos do protótipo da agenda e corrigidos para WCAG 2.1 AA. Regra de fonte da verdade (Dart canônico). Issue #60. |
 | 1.1 | 2026-10-06 | Wilson Gorosthides | Tokens implementados em `lib/theme/` e aplicados: §6 registra a guarda automatizada da regra de "nenhuma cor na tela" (`design_system_test.dart`); §8 deixa de listar componentes como pendência e passa a documentar os doze temas de componente do `AppTheme`, com as justificativas de `ColorScheme` explícito, `surfaceTint` desligado e separação por borda em vez de sombra. Widgets de domínio passam a ser a única pendência de componente. Issue #60. |
+| 1.2 | 2026-11-16 | Wilson Gorosthides | Nova seção 9, Marca (RNF-008, issue #96): arquivos de `assets/marca/` extraídos do PDF, azul-marinho `#252C67` fora dos tokens das telas, só o símbolo no ícone, nome "MS Clean" e como regerar. Histórico passa a ser a seção 10. |

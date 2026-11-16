@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="sgc_msclean"
+        android:label="MS Clean"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

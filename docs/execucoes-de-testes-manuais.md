@@ -75,6 +75,18 @@ ferramentas do desenvolvedor).
 | 4 | Fechar o app, reabrir ainda sem rede | O atendimento continua lá, aguardando envio | CT-057 |
 | 5 | Desligar o modo avião e esperar até ~20 s (ou reabrir o app) | A faixa some, o selo some, e o atendimento e o cliente aparecem **uma vez só** no painel do Supabase | CT-055 |
 
+### #96 — ícone, nome e abertura com a marca (RNF-008)
+
+Sem SQL. Só no **celular** (instalar o APK de novo: o ícone antigo pode ficar
+em cache até reinstalar).
+
+| # | Passo | Resultado esperado | CT |
+|---|---|---|---|
+| 1 | Abrir a gaveta de apps | O ícone é a gota com o sofá sobre o azul-marinho, sem cortes, e o nome embaixo é "MS Clean" | CT-059 |
+| 2 | Abrir o app | Durante o carregamento aparece o fundo azul-marinho com a marca, em vez de tela branca; depois, a agenda | CT-059 |
+| 3 | Abrir a troca de tarefas (botão de apps recentes) | O app aparece como "MS Clean" | CT-059 |
+| 4 | No Chrome do computador, abrir o app pela web | A aba mostra a gota e o título "MS Clean"; a abertura é azul-marinho com o logo | CT-059 |
+
 ## Execução 001 — Verificação manual do RF-001 (pré-merge do PR #44)
 
 - **Data:** 2026-07-16
@@ -462,3 +474,4 @@ pelo próprio app.
 | 2026-11-13 | 1.10 | Wilson Gorosthides | Pilha: entram os passos do fix #87 (seleção ao trocar a semana). |
 | 2026-11-13 | 1.11 | Wilson Gorosthides | Pilha: entram o SQL e os passos do RF-014 (#79, marcas de feito e pago). |
 | 2026-11-16 | 1.12 | Wilson Gorosthides | Pilha: entram os passos do anotar sem internet (#94, RNF-007), sem SQL. |
+| 2026-11-16 | 1.13 | Wilson Gorosthides | Pilha: entram os passos da identidade visual (#96, RNF-008), sem SQL. |
