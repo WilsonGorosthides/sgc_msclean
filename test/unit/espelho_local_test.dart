@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sgc_msclean/models/atendimento.dart';
-import 'package:sgc_msclean/models/client_model.dart';
 import 'package:sgc_msclean/services/armazem_local.dart';
 import 'package:sgc_msclean/services/espelho_local.dart';
 
