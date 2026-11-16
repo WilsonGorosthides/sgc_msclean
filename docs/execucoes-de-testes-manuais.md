@@ -42,14 +42,8 @@ como **outro app**: desinstalar o antigo primeiro, para não ficarem dois ícone
 Conferir também que o APK novo abre a agenda **com dados** (a permissão de
 internet passou a valer no release).
 
-**SQL a aplicar no painel antes da rodada** (RF-014, #79 — sem ele, tocar em
-"Feito"/"Pago" mostra "Não foi possível marcar"):
-
-```sql
-alter table public.atendimentos
-  add column feito boolean not null default false,
-  add column pago  boolean not null default false;
-```
+Nenhum SQL pendente: o do RF-014 (colunas `feito` e `pago`) foi aplicado no
+painel (confirmado pelo desenvolvedor em 2026-11-16).
 
 ### #87 — seleção ao trocar a semana pela seta
 
@@ -496,3 +490,4 @@ pelo próprio app.
 | 2026-11-16 | 1.13 | Wilson Gorosthides | Pilha: entram os passos da identidade visual (#96, RNF-008), sem SQL. |
 | 2026-11-16 | 1.14 | Wilson Gorosthides | Pilha: entram os passos dos avisos no celular (#95, RF-015), sem SQL. |
 | 2026-11-16 | 1.15 | Wilson Gorosthides | Pilha: aviso de desinstalar o app antigo (identificador novo `br.com.msclean.agenda`) e de conferir a internet no APK de release (#23). |
+| 2026-11-16 | 1.16 | Wilson Gorosthides | Pilha: SQL do RF-014 confirmado como aplicado; sai o bloco "SQL a aplicar". |

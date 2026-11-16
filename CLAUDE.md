@@ -65,6 +65,12 @@ Usuária única: a proprietária. Desenvolvedor solo.
 - O projeto Supabase (plano gratuito) **pausa após cerca de uma semana sem
   uso**; a retomada é manual, pelo painel. Se o app não carregar dados depois de
   um período parado, conferir isso antes de procurar bug no código.
+- **Fila do aparelho (RNF-007, #94)**: atendimento e cliente provisório
+  criados no celular ficam numa fila local até o `upsert` passar. Um item que o
+  banco **recuse** (não por falta de rede) trava a fila, e o selo "aguardando
+  envio" não some. Antes de mudar schema ou RLS de `atendimentos`/`clientes`,
+  lembrar que a fila pode ter linhas no formato antigo; se a usuária relatar
+  selo que não some, começar por aqui (`docs/arquitetura.md` §10).
 - Commits `test:` vermelhos quebram a build de propósito — é o rastro do
   teste-antes no histórico (plano de testes §9), não descuido. Se um dia um
   `git bisect` cair num commit vermelho, usar `git bisect skip` e seguir a busca.
