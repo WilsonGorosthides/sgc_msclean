@@ -580,6 +580,25 @@ void main() {
       expect(avisos.substituicoes.last, isEmpty);
     });
 
+    testWidgets('salvo com outro dia, a agenda vai para o dia novo',
+        (tester) async {
+      when(() => service.updateAtendimento(any())).thenAnswer((_) async {});
+      await bombear(tester, [at('a', hoje, Periodo.manha, '1')]);
+
+      await tester.tap(find.text('Ana Souza'));
+      await tester.pumpAndSettle();
+      await tocar(tester, 'data_atendimento');
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('20').last);
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+      await tocar(tester, 'botao_salvar');
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AtendimentoFormScreen), findsNothing);
+      expect(dataSelecionada(tester), 'sexta-feira, 20 de novembro de 2026');
+    });
+
     testWidgets('tocar num aviso abre o dia dele', (tester) async {
       await bombear(tester, [at('a', DateTime(2026, 11, 20), Periodo.manha, '1')]);
 
