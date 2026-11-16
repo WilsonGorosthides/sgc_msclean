@@ -155,3 +155,19 @@ largura = 960
 logo_t = logo_t.resize((largura, round(logo_t.height * largura / logo_t.width)), Image.LANCZOS)
 logo_t.save(f'{saida}/logo_completo.png')
 print('fundo', cor, 'gota', gota.size, 'logo', logo.size)
+
+# Ícone pequeno da notificação (RF-015): o Android pinta só o canal alfa, então
+# vai a silhueta branca da gota com o sofá, nas cinco densidades. Só roda com
+# o terceiro argumento: a pasta res/ do Android.
+if len(sys.argv) > 3:
+    res = sys.argv[3]
+    alfa = gota_t.getchannel('A')
+    alfa = alfa.crop(alfa.getbbox())
+    lado = round(max(alfa.size) * 1.15)
+    base = Image.new('L', (lado, lado), 0)
+    base.paste(alfa, ((lado - alfa.width) // 2, (lado - alfa.height) // 2))
+    for pasta, px in {'mdpi': 24, 'hdpi': 36, 'xhdpi': 48, 'xxhdpi': 72, 'xxxhdpi': 96}.items():
+        a = base.resize((px, px), Image.LANCZOS)
+        icone = Image.new('RGBA', (px, px), (255, 255, 255, 0))
+        icone.putalpha(a)
+        icone.save(f'{res}/drawable-{pasta}/ic_aviso.png')

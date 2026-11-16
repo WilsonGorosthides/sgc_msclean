@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -5,8 +7,27 @@ import 'package:sgc_msclean/models/atendimento.dart';
 import 'package:sgc_msclean/models/client_model.dart';
 import 'package:sgc_msclean/screens/agenda_screen.dart';
 import 'package:sgc_msclean/screens/atendimento_form_screen.dart';
+import 'package:sgc_msclean/services/avisos_do_aparelho.dart';
+import 'package:sgc_msclean/utils/avisos.dart';
 
 import '../mocks/mock_supabase_client.dart';
+
+// Agendador falso dos avisos no celular (RF-015): guarda cada substituição e
+// deixa o teste simular o toque num aviso e a abertura do app por um aviso.
+class AvisosFalsos implements AgendadorDeAvisos {
+  final substituicoes = <List<Aviso>>[];
+  final toques = StreamController<DateTime>.broadcast();
+  DateTime? abertura;
+
+  @override
+  Future<void> substituir(List<Aviso> avisos) async => substituicoes.add(avisos);
+
+  @override
+  Stream<DateTime> get diasTocados => toques.stream;
+
+  @override
+  Future<DateTime?> diaDeAbertura() async => abertura;
+}
 
 // Testes de widget da AgendaScreen (RF-010). O "hoje" é injetado: quarta-feira,
 // 11/11/2026 — a semana corrente vai de domingo 08/11 a sábado 14/11.
@@ -49,9 +70,11 @@ void main() {
 
   // Estado de conexão do service (RNF-007, #94): no ar por padrão.
   late ValueNotifier<bool> conectado;
+  late AvisosFalsos avisos;
 
   setUp(() {
     service = MockSupabaseService();
+    avisos = AvisosFalsos();
     ordem = 0;
     conectado = ValueNotifier(true);
     when(() => service.conectado).thenReturn(conectado);
@@ -68,7 +91,8 @@ void main() {
     when(() => service.getAtendimentosStream())
         .thenAnswer((_) => Stream.value(atendimentos));
     await tester.pumpWidget(MaterialApp(
-      home: AgendaScreen(service: service, agora: () => agora ?? hoje),
+      home: AgendaScreen(
+          service: service, agora: () => agora ?? hoje, avisos: avisos),
     ));
     await tester.pump();
   }
@@ -527,6 +551,52 @@ void main() {
           feito: any(named: 'feito'), pago: any(named: 'pago')));
       expect(marcada('feito_p'), findsNothing);
       expect(find.text('Ainda aguardando envio: dá para mudar depois que for enviado.'), findsWidgets);
+    });
+
+    // ---- RF-015: avisos no celular ----
+
+    testWidgets('a agenda refaz os avisos a cada nova lista de atendimentos',
+        (tester) async {
+      final lista = StreamController<List<Atendimento>>();
+      addTearDown(lista.close);
+      when(() => service.getAtendimentosStream())
+          .thenAnswer((_) => lista.stream);
+      await tester.pumpWidget(MaterialApp(
+        home: AgendaScreen(service: service, agora: () => hoje, avisos: avisos),
+      ));
+
+      final quinta = DateTime(2026, 11, 12);
+      lista.add([at('a', quinta, Periodo.manha, '1')]);
+      await tester.pump();
+      final vespera = avisos.substituicoes.last
+          .where((a) => a.tipo == TipoAviso.vespera)
+          .single;
+      expect(vespera.dia, quinta);
+      expect(vespera.corpo, contains('Ana Souza'));
+
+      // o atendimento saiu da agenda: o aviso sai junto
+      lista.add([]);
+      await tester.pump();
+      expect(avisos.substituicoes.last, isEmpty);
+    });
+
+    testWidgets('tocar num aviso abre o dia dele', (tester) async {
+      await bombear(tester, [at('a', DateTime(2026, 11, 20), Periodo.manha, '1')]);
+
+      avisos.toques.add(DateTime(2026, 11, 20));
+      await tester.pump();
+
+      expect(dataSelecionada(tester), 'sexta-feira, 20 de novembro de 2026');
+      expect(find.text('Ana Souza'), findsOneWidget);
+    });
+
+    testWidgets('aberta por um aviso, a agenda começa no dia dele',
+        (tester) async {
+      avisos.abertura = DateTime(2026, 11, 20);
+      await bombear(tester, [at('a', DateTime(2026, 11, 20), Periodo.manha, '1')]);
+      await tester.pump();
+
+      expect(dataSelecionada(tester), 'sexta-feira, 20 de novembro de 2026');
     });
   });
 }

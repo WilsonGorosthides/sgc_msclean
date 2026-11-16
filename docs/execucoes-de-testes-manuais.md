@@ -87,6 +87,19 @@ em cache até reinstalar).
 | 3 | Abrir a troca de tarefas (botão de apps recentes) | O app aparece como "MS Clean" | CT-059 |
 | 4 | No Chrome do computador, abrir o app pela web | A aba mostra a gota e o título "MS Clean"; a abertura é azul-marinho com o logo | CT-059 |
 
+### #95 — avisos no celular (RF-015)
+
+Sem SQL. Só no **celular**, com o APK novo. Para não esperar as 19h, anotar um
+atendimento **com hora** daqui a ~1h10 e conferir o aviso de "1 hora antes".
+
+| # | Passo | Resultado esperado | CT |
+|---|---|---|---|
+| 1 | Abrir o app pela primeira vez depois de instalar | O Android pergunta se o MS Clean pode enviar notificações; aceitar | — |
+| 2 | Registrar um atendimento para hoje, com hora daqui a ~1h10 e local; fechar o app | Uns 10 minutos depois chega "Em 1 hora: <cliente>" com a hora e o local, com o ícone da gota | CT-062 |
+| 3 | Tocar no aviso | O app abre na agenda, no dia do atendimento | CT-065 |
+| 4 | Com atendimentos amanhã, esperar as 19h (ou deixar para o dia seguinte, 7h) | Chega "Amanhã: N atendimentos" às 19h e "Hoje: N atendimentos" às 7h, com períodos e nomes | CT-060, CT-061 |
+| 5 | Mudar a hora do atendimento do passo 2 para mais tarde, antes do aviso | O aviso chega na hora nova, não na antiga | CT-064 |
+
 ## Execução 001 — Verificação manual do RF-001 (pré-merge do PR #44)
 
 - **Data:** 2026-07-16
@@ -475,3 +488,4 @@ pelo próprio app.
 | 2026-11-13 | 1.11 | Wilson Gorosthides | Pilha: entram o SQL e os passos do RF-014 (#79, marcas de feito e pago). |
 | 2026-11-16 | 1.12 | Wilson Gorosthides | Pilha: entram os passos do anotar sem internet (#94, RNF-007), sem SQL. |
 | 2026-11-16 | 1.13 | Wilson Gorosthides | Pilha: entram os passos da identidade visual (#96, RNF-008), sem SQL. |
+| 2026-11-16 | 1.14 | Wilson Gorosthides | Pilha: entram os passos dos avisos no celular (#95, RF-015), sem SQL. |

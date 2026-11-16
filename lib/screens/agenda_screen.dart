@@ -4,11 +4,13 @@ import 'package:flutter/material.dart';
 
 import '../models/atendimento.dart';
 import '../models/client_model.dart';
+import '../services/avisos_do_aparelho.dart';
 import '../services/supabase_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
 import '../utils/agenda.dart';
+import '../utils/avisos.dart';
 import 'atendimento_form_screen.dart';
 import 'home_screen.dart';
 import 'sem_conexao.dart';
@@ -17,10 +19,13 @@ import 'sem_conexao.dart';
 // agrupado por período, com a semana sempre à vista e o mês a um toque. A
 // lista de clientes (RF-003) fica a um toque, na barra do topo.
 class AgendaScreen extends StatefulWidget {
-  const AgendaScreen({super.key, this.service, this.agora});
+  const AgendaScreen({super.key, this.service, this.agora, this.avisos});
 
   // Nos testes injeta-se um service falso; em produção usa o real.
   final SupabaseService? service;
+
+  // Avisos no celular (RF-015); nos testes, um agendador falso.
+  final AgendadorDeAvisos? avisos;
 
   // Relógio injetável: a agenda nunca lê DateTime.now() direto (CT-029).
   final DateTime Function()? agora;
@@ -32,6 +37,9 @@ class AgendaScreen extends StatefulWidget {
 class _AgendaScreenState extends State<AgendaScreen> {
   late final _service = widget.service ?? SupabaseService();
   late final DateTime Function() _agora = widget.agora ?? DateTime.now;
+  late final AgendadorDeAvisos _avisos =
+      widget.avisos ?? AvisosDoAparelho.instancia;
+  StreamSubscription<DateTime>? _assinaturaToques;
 
   // Duas assinaturas únicas, abertas junto da tela: assim o primeiro quadro
   // com dados já traz atendimentos e nomes dos clientes, sem dois carregamentos
@@ -51,9 +59,33 @@ class _AgendaScreenState extends State<AgendaScreen> {
     super.initState();
     _assinarAtendimentos();
     _assinaturaClientes = _service.getClientsStream().listen(
-          (dados) => setState(() => _clientes = dados),
+          (dados) {
+            setState(() => _clientes = dados);
+            _reagendarAvisos();
+          },
           onError: (Object erro) => setState(() => _erro = erro),
         );
+    // Tocar num aviso (RF-015) abre a agenda no dia dele, com o app aberto ou
+    // quando foi o aviso que abriu o app.
+    _assinaturaToques = _avisos.diasTocados.listen(_irParaDia);
+    _avisos.diaDeAbertura().then((dia) {
+      if (dia != null) _irParaDia(dia);
+    });
+  }
+
+  void _irParaDia(DateTime dia) {
+    if (!mounted) return;
+    _selecionar(soData(dia));
+  }
+
+  // Os avisos acompanham a agenda (RF-015, CT-064): a cada lista nova — do
+  // banco, do aparelho ou de uma marca de feito/pago —, a lista inteira de
+  // avisos é refeita a partir dela.
+  void _reagendarAvisos() {
+    final atendimentos = _atendimentos;
+    final clientes = _clientes;
+    if (atendimentos == null || clientes == null) return;
+    _avisos.substituir(planejarAvisos(atendimentos, clientes, _agora()));
   }
 
   // (Re)abre a assinatura de atendimentos. Renovada ao voltar do formulário:
@@ -62,10 +94,13 @@ class _AgendaScreenState extends State<AgendaScreen> {
   void _assinarAtendimentos() {
     _assinaturaAtendimentos?.cancel();
     _assinaturaAtendimentos = _service.getAtendimentosStream().listen(
-          (dados) => setState(() {
-            _atendimentos = dados;
-            _erro = null;
-          }),
+          (dados) {
+            setState(() {
+              _atendimentos = dados;
+              _erro = null;
+            });
+            _reagendarAvisos();
+          },
           onError: (Object erro) => setState(() => _erro = erro),
         );
   }
@@ -110,17 +145,21 @@ class _AgendaScreenState extends State<AgendaScreen> {
       ..showSnackBar(const SnackBar(content: Text(avisoItemPendente)));
   }
 
-  void _trocar(Atendimento para) => setState(() {
-        _atendimentos = [
-          for (final x in _atendimentos ?? const <Atendimento>[])
-            x.id == para.id ? para : x,
-        ];
-      });
+  void _trocar(Atendimento para) {
+    setState(() {
+      _atendimentos = [
+        for (final x in _atendimentos ?? const <Atendimento>[])
+          x.id == para.id ? para : x,
+      ];
+    });
+    _reagendarAvisos();
+  }
 
   @override
   void dispose() {
     _assinaturaAtendimentos?.cancel();
     _assinaturaClientes?.cancel();
+    _assinaturaToques?.cancel();
     super.dispose();
   }
 

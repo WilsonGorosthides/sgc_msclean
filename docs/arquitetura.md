@@ -111,6 +111,7 @@ lib/
 ├── services/
 │   ├── supabase_service.dart       # acesso ao Supabase (streams de clientes e atendimentos + escrita de clientes e atendimentos)
 │   ├── espelho_local.dart          # anotar sem internet (RNF-007): cópia no aparelho, fila de envios, estado de conexão
+│   ├── avisos_do_aparelho.dart     # avisos no celular (RF-015): agenda no Android via flutter_local_notifications
 │   ├── armazem_local.dart          # onde o espelho grava: shared_preferences (produção) ou memória (testes)
 │   └── maps_launcher.dart          # abre o endereco no Google Maps (RF-009, url_launcher)
 ├── theme/
@@ -119,6 +120,7 @@ lib/
 │   ├── app_typography.dart         # TextTheme em Archivo, os seis tokens de texto
 │   └── app_theme.dart              # ColorScheme explícito + ThemeData (AppTheme.claro)
 └── utils/
+    ├── avisos.dart                 # função pura planejarAvisos (RF-015): quais avisos e quando
     ├── agenda.dart                 # funções puras da agenda: semana, grade do mês, contagem, ordem do dia, nomes em PT-BR, valor em reais
     └── validators.dart             # validações puras dos formulários (obrigatório, telefone, hora)
 ```
@@ -185,6 +187,8 @@ Em texto: a **AgendaScreen** é a tela inicial e consome as duas streams do **se
 
 * **Por que o offline é um espelho atrás do service, e não um banco local (RNF-007, #94).** O volume é pequeno (uma prestadora, dezenas de atendimentos por mês), então a cópia no aparelho é o JSON cru das duas últimas leituras, mais uma fila de envios, em `shared_preferences` (arquivo no Android, `localStorage` na web). Um banco local (sqflite, drift) traria schema duplicado e migração para guardar o que cabe em três chaves. O `EspelhoLocal` (`lib/services/espelho_local.dart`) fica **atrás** do `SupabaseService`: as telas continuam chamando `getAtendimentosStream`, `addAtendimento` e `addClienteProvisorio`, e o formulário não mudou. Só o **registro novo** entra na fila; editar, excluir e marcar feito/pago continuam indo direto ao banco e, sem rede, falham com aviso — fazer isso offline exigiria resolver conflito entre o aparelho e o banco, o que a usuária única não justifica por enquanto. Um item ainda na fila não se edita nem se marca: o `update` iria a uma linha que o banco ainda não tem. A fila é enviada na ordem e para no primeiro erro, porque um atendimento não pode chegar antes do seu cliente provisório (FK). Risco aceito: um item que o banco **recuse** (e não por falta de rede) trava a fila; ele continua visível com o selo "aguardando envio", o que denuncia o problema.
 
+* **Por que avisos locais, refeitos inteiros a cada mudança (RF-015, #95).** Os avisos são agendados **no próprio aparelho** (`flutter_local_notifications`), não enviados por um servidor de push: funcionam sem internet, não exigem backend novo nem conta no Firebase, e a única usuária usa um único celular. A regra fica numa função pura (`planejarAvisos`, em `lib/utils/avisos.dart`) que recebe a agenda e o "agora" e devolve a lista inteira de avisos futuros; a `AgendaScreen` chama `substituir` a cada lista nova, e o serviço cancela tudo e agenda de novo (pulando quando nada mudou). Refazer tudo é mais simples que rastrear o aviso de cada atendimento e não deixa aviso órfão de atendimento apagado ou já pago. Alarme **inexato** (`inexactAllowWhileIdle`): o Android pode atrasar alguns minutos, o que basta para resumo e para "1 hora antes", e dispensa a permissão de alarme exato, que o Android 14 restringe. O fuso é fixo em `America/Campo_Grande` (área de atendimento), sem plugin para lê-lo do aparelho. Limitação aceita: os avisos são refeitos quando a agenda abre; um atendimento registrado em outro aparelho só gera aviso aqui depois que o app abrir. Na web, nada é agendado.
+
 * **Por que sem camada de repository.** Com uma única fonte de dados (Supabase) e operações CRUD diretas, uma camada de `repositories/` adicionaria indireção sem benefício no escopo do MVP. O `SupabaseService` já isola o acesso ao backend. A camada pode ser introduzida se surgirem múltiplas fontes de dados, cache local ou necessidade de trocar o backend sem tocar nas telas.
 
 ## 8. Estratégia de Testes
@@ -242,6 +246,7 @@ A auditoria registrou cobertura real de 0% — o único teste era o template pad
 | 2026-11-13 | 2.10 | Wilson Gorosthides | Agenda como tela inicial (RF-010, issue #75): tabela `atendimentos` na §4 (colunas, FK com cascade, `pecas` em jsonb, SQL com RLS e publicação de realtime); árvore §5 com `agenda_screen`, `atendimento`, `peca` e `utils/agenda`; diagrama §6 com a `AgendaScreen` inicial e as duas tabelas; §7 reavalia e mantém o `setState` e registra a decisão de calcular semana, mês e ordem no app; §12 cita a nova tabela. |
 | 2026-11-16 | 2.13 | Wilson Gorosthides | Anotar sem internet (RNF-007 ampliado, issue #94): §4 registra o id e o `criado_em` gerados no app e o envio por `upsert` sem sobrescrever, sem mudança de schema; árvore §5 com `espelho_local`, `armazem_local` e `sem_conexao`; §7 com a decisão do espelho atrás do service (`shared_preferences`, só o registro novo na fila, fila em ordem); §9 reavalia a dívida "sem camada de repository". |
 | 2026-11-16 | 2.14 | Wilson Gorosthides | Identidade visual (RNF-008, issue #96): §5 registra `assets/marca/`, `tool/marca/` e os ícones e a abertura gerados em `android/` e `web/` pelos geradores do `pubspec.yaml`. |
+| 2026-11-16 | 2.15 | Wilson Gorosthides | Avisos no celular (RF-015, issue #95): árvore §5 com `avisos_do_aparelho.dart` e `utils/avisos.dart`; §7 com a decisão de avisos locais, refeitos inteiros a cada mudança, alarme inexato e fuso fixo. Android: desugaring no Gradle, `RECEIVE_BOOT_COMPLETED` e receivers do plugin no manifesto. |
 
 ## 12. Ambiente de Desenvolvimento
 Os seguintes softwares e configurações são necessários para iniciar o desenvolvimento:
