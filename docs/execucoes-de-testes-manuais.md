@@ -36,6 +36,12 @@
 Passos ainda não executados, por entrega, na ordem em que foram mergeadas.
 Rodar tudo antes de instalar o APK (issue #23).
 
+**Antes de instalar:** o identificador do app mudou para `br.com.msclean.agenda`
+(PR da preparação do APK). Um APK antigo (`com.example.sgc_msclean`) aparece
+como **outro app**: desinstalar o antigo primeiro, para não ficarem dois ícones.
+Conferir também que o APK novo abre a agenda **com dados** (a permissão de
+internet passou a valer no release).
+
 **SQL a aplicar no painel antes da rodada** (RF-014, #79 — sem ele, tocar em
 "Feito"/"Pago" mostra "Não foi possível marcar"):
 
@@ -489,3 +495,4 @@ pelo próprio app.
 | 2026-11-16 | 1.12 | Wilson Gorosthides | Pilha: entram os passos do anotar sem internet (#94, RNF-007), sem SQL. |
 | 2026-11-16 | 1.13 | Wilson Gorosthides | Pilha: entram os passos da identidade visual (#96, RNF-008), sem SQL. |
 | 2026-11-16 | 1.14 | Wilson Gorosthides | Pilha: entram os passos dos avisos no celular (#95, RF-015), sem SQL. |
+| 2026-11-16 | 1.15 | Wilson Gorosthides | Pilha: aviso de desinstalar o app antigo (identificador novo `br.com.msclean.agenda`) e de conferir a internet no APK de release (#23). |

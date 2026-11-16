@@ -23,8 +23,10 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.sgc_msclean"
+        // Identificador do app instalado (#23). O namespace (pacote do código
+        // Kotlin) continua com.example.sgc_msclean: não aparece para a usuária.
+        // Trocar o applicationId depois de instalado exige desinstalar.
+        applicationId = "br.com.msclean.agenda"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
