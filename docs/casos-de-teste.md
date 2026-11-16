@@ -809,7 +809,7 @@ Android (`flutter_local_notifications`) só se verifica no aparelho (pilha manua
 
 ### CT-066 — Pedido de liberação da economia de bateria
 - **Critério:** "Na primeira abertura, o app pede ao sistema, em um toque, para ficar fora da economia de bateria; se ela negar, só volta a pedir depois de 30 dias; se já estiver liberado, não pede."
-- **Tipo:** Unitário + Manual (aparelho) · **Situação:** a implementar
+- **Tipo:** Unitário + Manual (aparelho) · **Situação:** implementado — `bateria_test: pede a liberação quando ainda não foi liberada nem pedida` · `bateria_test: não pede se a bateria já está liberada` · `bateria_test: negado, não pede de novo antes de 30 dias` · `bateria_test: negado há mais de 30 dias, pede de novo`; o diálogo real, na pilha
 - **Pré-condições:** uma liberação de bateria falsa e um armazenamento em memória.
 - **Passos:**
   1. Abrir sem pedido anterior e sem liberação.
@@ -959,3 +959,4 @@ falso, que pode estar "fora do ar", e um armazenamento em memória no lugar do
 | 2026-11-16 | 1.21 | Wilson Gorosthides | Casos do RF-015 (avisos no celular, issue #95): CT-060 a CT-065 — resumo da véspera e do dia, aviso uma hora antes, lembrete de feito e não pago, avisos que acompanham a agenda e toque que abre o dia. Todos "a implementar". |
 | 2026-11-16 | 1.22 | Wilson Gorosthides | CT-060 a CT-065 passam a "implementado" com os testes da entrega do RF-015 (issue #95): `avisos_test` (seis casos da função pura `planejarAvisos`) e três casos novos em `agenda_screen_test` com o agendador falso; a chegada real dos avisos vai para a pilha manual. |
 | 2026-11-16 | 1.23 | Wilson Gorosthides | CT-066 do RF-015: pedido de liberação da economia de bateria (issue #101). "A implementar". |
+| 2026-11-16 | 1.24 | Wilson Gorosthides | CT-066 passa a "implementado" com `bateria_test` (issue #101). |
