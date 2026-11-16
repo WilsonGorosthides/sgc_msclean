@@ -74,6 +74,12 @@ RF-005 que ficam para o RF-013 (valor calculado) e para o RNF-006
 | RF-014 | Um atendimento é considerado **concluído** somente quando **os dois** estão marcados. | CT-050 — `atendimento_test: concluído só com os dois marcados` · `agenda_screen_test: cartão distingue nada marcado, um dos dois e concluído` |
 | RF-014 | A agenda distingue visualmente três situações: nada marcado, um dos dois marcado, e concluído. | CT-051 — `agenda_screen_test: cartão distingue nada marcado, um dos dois e concluído` |
 | RF-014 | Marcar ou desmarcar não exige abrir o formulário de edição do atendimento. | CT-052 — `agenda_screen_test: marcar serviço feito não abre o formulário e não marca o pago` · `agenda_screen_test: falha ao marcar desfaz a marca e avisa` |
+| RF-015 | Às **19h** da véspera de um dia com atendimentos, o celular avisa quantos são no dia seguinte, por período, com os nomes dos clientes. | CT-060 — a implementar |
+| RF-015 | Às **7h** de um dia com atendimentos, o celular avisa quantos são hoje, por período, com os nomes dos clientes. | CT-061 — a implementar |
+| RF-015 | Um atendimento **com hora** gera um aviso **1 hora antes**, com o cliente, a hora e o local. | CT-062 — a implementar |
+| RF-015 | Um atendimento com **serviço feito** e **sem pagamento** gera **um** lembrete de cobrança às 10h do **terceiro dia** depois da data do atendimento; marcar o pago antes disso cancela o lembrete. | CT-063 — a implementar |
+| RF-015 | Os avisos **acompanham a agenda**: registrar, mudar a hora, marcar o pago ou excluir um atendimento refaz os avisos; avisos de horário que já passou não são agendados. | CT-064 — a implementar |
+| RF-015 | Tocar no aviso abre a agenda no **dia** a que ele se refere. | CT-065 — a implementar |
 | RNF-007 | Sem rede, a agenda e a lista de clientes abrem com os **últimos dados guardados no aparelho**, em vez de uma tela vazia. | CT-053 — `espelho_local_test: guarda no aparelho o que chega do banco` · `espelho_local_test: sem conexão, abre com o que está guardado no aparelho` |
 | RNF-007 | Um atendimento novo — e o cliente provisório criado com ele — registrado sem rede fica **gravado no aparelho** e aparece na agenda na hora com a marca **"aguardando envio"**. | CT-054 — `espelho_local_test: registrar sem conexão guarda na fila e aparece como aguardando envio` · `espelho_local_test: cliente provisório sem conexão entra na fila antes do atendimento` · `agenda_screen_test: atendimento aguardando envio aparece marcado` |
 | RNF-007 | É enviado ao banco **sozinho** quando a conexão voltar, **sem duplicar**. | CT-055 — `espelho_local_test: ao voltar a conexão envia a fila na ordem e esvazia` · `espelho_local_test: o id é gerado no app: o envio leva o id e reenviar não duplica` |
@@ -116,3 +122,4 @@ descoberto.
 | 2026-11-16 | 1.21 | Wilson Gorosthides | RNF-007 entregue (issue #94): as seis linhas trocam "a implementar" pelos nomes reais dos testes. |
 | 2026-11-16 | 1.22 | Wilson Gorosthides | RNF-008 entra na matriz (identidade visual, issue #96): uma linha ↔ CT-059, "a implementar". |
 | 2026-11-16 | 1.23 | Wilson Gorosthides | RNF-008 entregue (issue #96): a linha troca "a implementar" pelos testes da guarda `marca_test`. |
+| 2026-11-16 | 1.24 | Wilson Gorosthides | RF-015 entra na matriz (avisos no celular, issue #95): seis linhas ↔ CT-060 a CT-065, todas "a implementar". |

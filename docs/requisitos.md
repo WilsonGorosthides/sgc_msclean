@@ -209,6 +209,22 @@ Um atendimento tem dois estados independentes: **serviço feito** e **cliente pa
   - A agenda distingue visualmente três situações: nada marcado, um dos dois marcado, e concluído.
   - Marcar ou desmarcar não exige abrir o formulário de edição do atendimento.
 
+#### RF-015 - Avisos no Celular
+O celular avisa a proprietária da agenda, sem ela precisar abrir o app.
+
+> Pedido da proprietária na demonstração de 2026-11-16, ao aprovar o app: "não
+> basta anotar, o bom seria o celular avisar". É a primeira coisa que o app faz
+> e o caderno não faz. Os avisos são do próprio aparelho: funcionam sem
+> internet e sem servidor, e valem só no Android (issue #95).
+
+* **Critérios de aceitação:**
+  - Às **19h** da véspera de um dia com atendimentos, o celular avisa quantos são no dia seguinte, por período, com os nomes dos clientes.
+  - Às **7h** de um dia com atendimentos, o celular avisa quantos são hoje, por período, com os nomes dos clientes.
+  - Um atendimento **com hora** gera um aviso **1 hora antes**, com o cliente, a hora e o local.
+  - Um atendimento com **serviço feito** e **sem pagamento** gera **um** lembrete de cobrança às 10h do **terceiro dia** depois da data do atendimento; marcar o pago antes disso cancela o lembrete.
+  - Os avisos **acompanham a agenda**: registrar, mudar a hora, marcar o pago ou excluir um atendimento refaz os avisos; avisos de horário que já passou não são agendados.
+  - Tocar no aviso abre a agenda no **dia** a que ele se refere.
+
 ### 2.3 Pagamentos e Acesso
 
 #### RF-006 - Adicionar Histórico de Pagamento
@@ -322,3 +338,4 @@ O sistema deve ter um mecanismo de login para o único usuário (a proprietária
 | 2026-11-12 | 3.2 | Wilson Gorosthides | **A agenda é o produto: visões de semana e mês.** §1 passa a declarar o produto como agenda virtual (controle diário, semanal e mensal de clientes e serviços), com clientes, preços e histórico como apoio a ela. RF-010 ganha quatro critérios: semana do dia selecionado sempre visível, com a quantidade de atendimentos por dia e navegação por semana; mês em calendário a um toque, com a quantidade por dia e navegação por mês; tocar em um dia (na semana ou no mês) seleciona e exibe; hoje identificável e com atalho de retorno. Nota de fora do escopo: semana e mês não exibem totais de valor (RF-006 segue não priorizado). História 6 e UC-002 (passo 2 e Cenário C) ajustados. |
 | 2026-11-16 | 3.3 | Wilson Gorosthides | **RNF-007 ampliado para uso sem internet** (issue #94): leitura dos últimos dados guardados no aparelho, registro de atendimento e de cliente provisório em fila com envio automático e sem duplicar, aviso de "sem conexão" e nada perdido ao reabrir; edição, exclusão e marcas sem rede ficam fora, avisando. Substitui "sinal fraco, não ausente". |
 | 2026-11-16 | 3.4 | Wilson Gorosthides | Novo **RNF-008 - Identidade Visual** (issue #96): ícone com o símbolo da marca sobre o azul-marinho, nome "MS Clean" na gaveta, logo completo na abertura e o mesmo na web; a paleta das telas não muda. |
+| 2026-11-16 | 3.5 | Wilson Gorosthides | Novo **RF-015 - Avisos no Celular** (issue #95, pedido da proprietária na demonstração): resumo da véspera às 19h, resumo do dia às 7h, aviso 1 hora antes do atendimento com hora, lembrete único de feito e não pago no terceiro dia, avisos que acompanham a agenda e toque que abre o dia. Avisos locais, só no Android. |
