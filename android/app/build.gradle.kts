@@ -1,9 +1,21 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
+
+// Chave do release (#109): lida de android/key.properties, fora do git (modelo
+// em key.properties.example). A mesma chave tem de assinar todas as versões:
+// o Android só instala uma atualização por cima se a assinatura for igual.
+val chaveDoRelease = Properties().apply {
+    val arquivo = rootProject.file("key.properties")
+    if (arquivo.exists()) FileInputStream(arquivo).use { load(it) }
+}
+val temChaveDoRelease = chaveDoRelease.getProperty("storeFile") != null
 
 android {
     namespace = "com.example.sgc_msclean"
@@ -35,17 +47,38 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        create("release") {
+            if (temChaveDoRelease) {
+                storeFile = file(chaveDoRelease.getProperty("storeFile"))
+                storePassword = chaveDoRelease.getProperty("storePassword")
+                keyAlias = chaveDoRelease.getProperty("keyAlias")
+                keyPassword = chaveDoRelease.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 }
 
 flutter {
     source = "../.."
+}
+
+// Sem a chave, o release falha em vez de sair assinado com a de debug, que
+// seria recusada na próxima atualização. Debug e testes seguem sem chave.
+gradle.taskGraph.whenReady {
+    val pedeRelease = allTasks.any { it.project == project && it.name.contains("Release") }
+    if (pedeRelease && !temChaveDoRelease) {
+        throw GradleException(
+            "Falta android/key.properties com a chave do release " +
+                "(modelo em android/key.properties.example; ver docs/arquitetura.md §12).",
+        )
+    }
 }
 
 dependencies {

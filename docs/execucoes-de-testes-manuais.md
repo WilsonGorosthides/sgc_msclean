@@ -45,8 +45,16 @@ internet passou a valer no release).
 Nenhum SQL pendente: o do RF-014 (colunas `feito` e `pago`) foi aplicado no
 painel (confirmado pelo desenvolvedor em 2026-11-16).
 
-Nenhum passo pendente: os blocos de #94, #96, #95 e #106 foram aprovados na
-Execução 011. As próximas entregas acrescentam os seus blocos aqui.
+### #109 — APK de release assinado com a chave própria
+
+Sem SQL. No computador e no celular.
+
+| # | Passo | Resultado esperado | CT |
+|---|---|---|---|
+| 1 | Sem `android/key.properties`, rodar `fvm flutter build apk --release` | O build falha com "Falta android/key.properties com a chave do release" | — |
+| 2 | Gerar a keystore (`docs/arquitetura.md` §12), criar o `key.properties` e rodar o build de novo | Sai `build/app/outputs/flutter-apk/app-release.apk`; `git status` não mostra o `key.properties` nem o `.jks` | — |
+| 3 | Desinstalar o app antigo do celular e instalar o `app-release.apk` | Abre a agenda **com dados**, com o ícone e o nome "MS Clean" | — |
+| 4 | Gerar o APK de novo (mesma chave) e instalar **por cima**, sem desinstalar | Instala como atualização, sem pedir para desinstalar, e os dados continuam | — |
 
 ## Execução 001 — Verificação manual do RF-001 (pré-merge do PR #44)
 
@@ -520,3 +528,4 @@ preparação do APK de release (#23).
 | 2026-11-16 | 1.19 | Wilson Gorosthides | Pilha: o pedido de notificação só aparece no Android 13+ (no 11 do desenvolvedor veio só o de bateria); passo dos avisos a repetir com o fix do fuso. |
 | 2026-11-16 | 1.20 | Wilson Gorosthides | Pilha: entram os passos de trocar o dia e excluir atendimento (#106), sem SQL. |
 | 2026-11-16 | 1.21 | Wilson Gorosthides | Execução 011: blocos #94, #96, #95 e #106 da pilha aprovados no celular (Android 11), com a ocorrência do fuso corrigida no PR #105; a pilha fica vazia. |
+| 2026-11-16 | 1.22 | Wilson Gorosthides | Pilha: entram os passos do APK de release assinado com a chave própria (#109), sem SQL. |

@@ -1,0 +1,7 @@
+# Modelo do android/key.properties (#109). O arquivo de verdade fica fora do
+# git, como o .env; a keystore (.jks) fica fora do repositório, com cópia de
+# segurança. Perder a chave ou as senhas impede atualizar o app instalado.
+storeFile=C:/Users/voce/chaves/msclean-release.jks
+storePassword=senha-ficticia
+keyAlias=msclean
+keyPassword=senha-ficticia
