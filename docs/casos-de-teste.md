@@ -758,7 +758,7 @@ falso, que pode estar "fora do ar", e um armazenamento em memória no lugar do
 ### CT-053 — Sem rede, abre com os últimos dados guardados
 - **Critério:** "Sem rede, a agenda e a lista de clientes abrem com os últimos
   dados guardados no aparelho, em vez de uma tela vazia."
-- **Tipo:** Unitário · **Situação:** a implementar
+- **Tipo:** Unitário · **Situação:** implementado — `espelho_local_test: guarda no aparelho o que chega do banco` · `espelho_local_test: sem conexão, abre com o que está guardado no aparelho`
 - **Pré-condições:** uma leitura anterior com o banco no ar.
 - **Passos:**
   1. Receber atendimentos e clientes do banco.
@@ -770,7 +770,7 @@ falso, que pode estar "fora do ar", e um armazenamento em memória no lugar do
 - **Critério:** "Um atendimento novo — e o cliente provisório criado com ele —
   registrado sem rede fica gravado no aparelho e aparece na agenda na hora com a
   marca "aguardando envio"."
-- **Tipo:** Unitário + Widget · **Situação:** a implementar
+- **Tipo:** Unitário + Widget · **Situação:** implementado — `espelho_local_test: registrar sem conexão guarda na fila e aparece como aguardando envio` · `espelho_local_test: cliente provisório sem conexão entra na fila antes do atendimento` · `agenda_screen_test: atendimento aguardando envio aparece marcado`
 - **Pré-condições:** banco fora do ar.
 - **Passos:**
   1. Registrar um cliente provisório e um atendimento para ele.
@@ -782,7 +782,7 @@ falso, que pode estar "fora do ar", e um armazenamento em memória no lugar do
 ### CT-055 — Envio automático ao voltar a conexão, sem duplicar
 - **Critério:** "É enviado ao banco sozinho quando a conexão voltar, sem
   duplicar."
-- **Tipo:** Unitário · **Situação:** a implementar
+- **Tipo:** Unitário · **Situação:** implementado — `espelho_local_test: ao voltar a conexão envia a fila na ordem e esvazia` · `espelho_local_test: o id é gerado no app: o envio leva o id e reenviar não duplica`
 - **Pré-condições:** dois itens na fila.
 - **Passos:**
   1. O banco volta e a stream recebe dados.
@@ -794,7 +794,7 @@ falso, que pode estar "fora do ar", e um armazenamento em memória no lugar do
 ### CT-056 — Aviso de "sem conexão"; falha não vira lista vazia
 - **Critério:** "A agenda e a lista de clientes exibem um aviso discreto de
   "sem conexão"; falha de conexão não aparece como lista vazia." (bug #47)
-- **Tipo:** Unitário + Widget · **Situação:** a implementar
+- **Tipo:** Unitário + Widget · **Situação:** implementado — `espelho_local_test: falha de conexão vira aviso, não erro na stream` · `agenda_screen_test: sem conexão mostra o aviso na agenda` · `home_screen_test: sem conexão mostra o aviso e não diz que não há clientes`
 - **Pré-condições:** banco fora do ar.
 - **Passos:**
   1. Abrir a stream com o banco fora do ar.
@@ -805,7 +805,7 @@ falso, que pode estar "fora do ar", e um armazenamento em memória no lugar do
 
 ### CT-057 — Nada se perde ao fechar e reabrir
 - **Critério:** "Nada anotado sem rede se perde ao fechar e reabrir o app."
-- **Tipo:** Unitário · **Situação:** a implementar
+- **Tipo:** Unitário · **Situação:** implementado — `espelho_local_test: a fila sobrevive a fechar e reabrir o app`
 - **Pré-condições:** um atendimento registrado sem rede.
 - **Passos:**
   1. Descartar o `EspelhoLocal` e criar outro sobre o mesmo armazenamento.
@@ -815,7 +815,7 @@ falso, que pode estar "fora do ar", e um armazenamento em memória no lugar do
 ### CT-058 — Item aguardando envio não se edita nem se marca
 - **Critério:** "Um item ainda aguardando envio também não se edita nem se marca
   até ser enviado."
-- **Tipo:** Widget · **Situação:** a implementar
+- **Tipo:** Widget · **Situação:** implementado — `agenda_screen_test: atendimento aguardando envio não abre o formulário nem marca` · `home_screen_test: cliente aguardando envio não abre a edição nem exclui`
 - **Pré-condições:** um atendimento e um cliente pendentes.
 - **Passos:**
   1. Tocar no cartão pendente e na marca "Feito".
@@ -865,3 +865,4 @@ falso, que pode estar "fora do ar", e um armazenamento em memória no lugar do
 | 2026-11-13 | 1.15 | Wilson Gorosthides | Casos do RF-014 (issue #79): CT-049 a CT-052 — dois marcadores independentes, concluído só com os dois, três situações distinguíveis na agenda, e marcar sem abrir o formulário. Todos "a implementar". |
 | 2026-11-13 | 1.16 | Wilson Gorosthides | CT-049 a CT-052 passam a "implementado" com os testes da entrega do RF-014 (issue #79), em `atendimento_test` e `agenda_screen_test`. |
 | 2026-11-16 | 1.17 | Wilson Gorosthides | Casos do RNF-007 ampliado (anotar sem internet, issue #94): CT-053 a CT-058 — abrir com os dados guardados, registro em fila com marca de aguardando envio, envio automático sem duplicar, aviso de sem conexão (bug #47), nada perdido ao reabrir, e item pendente sem edição nem marca. Todos "a implementar". |
+| 2026-11-16 | 1.18 | Wilson Gorosthides | CT-053 a CT-058 passam a "implementado" com os testes da entrega do RNF-007 ampliado (issue #94): `espelho_local_test` (oito casos, banco falso e armazenamento em memória), mais os novos casos em `agenda_screen_test` e `home_screen_test`. |

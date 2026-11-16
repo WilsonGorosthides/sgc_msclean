@@ -60,6 +60,8 @@ alter table public.atendimentos
   add column pago  boolean not null default false;
 ```
 
+**Anotar sem internet (RNF-007, issue #94) sem mudança de schema.** O id de um atendimento novo e o de um cliente provisório passam a ser gerados **no app** (uuid v4), e o `criado_em` do atendimento vai do aparelho (a hora em que foi anotado, não a do envio). As colunas mantêm os `default`; o app só os preenche. O envio é `upsert(..., onConflict: 'id', ignoreDuplicates: true)` — `insert ... on conflict do nothing`: reenviar um item que o banco já gravou (resposta perdida no caminho) não duplica nem sobrescreve. A política `mvp_acesso_total_anon` já cobre o comando.
+
 **Cliente provisório (RF-005) sem coluna nova.** O registro pela agenda pode criar um cliente só com o nome; como o cadastro (RF-001) exige ao menos um telefone, a marca de provisório é `telefones` vazio (`ClientModel.provisorio`). Completar o cadastro pela edição, que continua exigindo telefone, é o que apaga a marca. A alternativa (coluna `provisorio boolean`) exigiria migração e um segundo lugar para manter coerente.
 
 SQL aplicado no painel do Supabase (não há pasta de migrations — ver `CLAUDE.md`):
@@ -104,9 +106,12 @@ lib/
 │   ├── agenda_screen.dart          # tela inicial (RF-010): dia por período, faixa da semana, mês em calendário
 │   ├── atendimento_form_screen.dart # registro e edição de atendimento a partir do dia (RF-005)
 │   ├── home_screen.dart            # lista de clientes + barra de busca (aberta a partir da agenda)
+│   ├── sem_conexao.dart            # aviso de "sem conexão" e selo "aguardando envio" (RNF-007)
 │   └── client_form_screen.dart     # formulário de cadastro (RF-001; reusável na edição)
 ├── services/
 │   ├── supabase_service.dart       # acesso ao Supabase (streams de clientes e atendimentos + escrita de clientes e atendimentos)
+│   ├── espelho_local.dart          # anotar sem internet (RNF-007): cópia no aparelho, fila de envios, estado de conexão
+│   ├── armazem_local.dart          # onde o espelho grava: shared_preferences (produção) ou memória (testes)
 │   └── maps_launcher.dart          # abre o endereco no Google Maps (RF-009, url_launcher)
 ├── theme/
 │   ├── app_colors.dart             # paleta (contrastes WCAG medidos em comentário)
@@ -178,6 +183,8 @@ Em texto: a **AgendaScreen** é a tela inicial e consome as duas streams do **se
 
 * **Por que Figma fica fora do projeto.** A especificação visual vive no repositório, em `docs/design-system.md` e em `lib/theme/`, versionada junto do código e revisada no mesmo PR. Uma ferramenta de design externa acrescentaria uma terceira definição dos mesmos tokens, fora do controle de versão do projeto e sem ninguém para mantê-la sincronizada — o projeto tem desenvolvedor solo e usuária única.
 
+* **Por que o offline é um espelho atrás do service, e não um banco local (RNF-007, #94).** O volume é pequeno (uma prestadora, dezenas de atendimentos por mês), então a cópia no aparelho é o JSON cru das duas últimas leituras, mais uma fila de envios, em `shared_preferences` (arquivo no Android, `localStorage` na web). Um banco local (sqflite, drift) traria schema duplicado e migração para guardar o que cabe em três chaves. O `EspelhoLocal` (`lib/services/espelho_local.dart`) fica **atrás** do `SupabaseService`: as telas continuam chamando `getAtendimentosStream`, `addAtendimento` e `addClienteProvisorio`, e o formulário não mudou. Só o **registro novo** entra na fila; editar, excluir e marcar feito/pago continuam indo direto ao banco e, sem rede, falham com aviso — fazer isso offline exigiria resolver conflito entre o aparelho e o banco, o que a usuária única não justifica por enquanto. Um item ainda na fila não se edita nem se marca: o `update` iria a uma linha que o banco ainda não tem. A fila é enviada na ordem e para no primeiro erro, porque um atendimento não pode chegar antes do seu cliente provisório (FK). Risco aceito: um item que o banco **recuse** (e não por falta de rede) trava a fila; ele continua visível com o selo "aguardando envio", o que denuncia o problema.
+
 * **Por que sem camada de repository.** Com uma única fonte de dados (Supabase) e operações CRUD diretas, uma camada de `repositories/` adicionaria indireção sem benefício no escopo do MVP. O `SupabaseService` já isola o acesso ao backend. A camada pode ser introduzida se surgirem múltiplas fontes de dados, cache local ou necessidade de trocar o backend sem tocar nas telas.
 
 ## 8. Estratégia de Testes
@@ -197,7 +204,7 @@ A auditoria registrou cobertura real de 0% — o único teste era o template pad
 |---|---|---|
 | Sem autenticação no MVP | Usuária única no próprio dispositivo; RLS é o controle de segurança | Quando houver mais de um usuário ou necessidade de auditoria |
 | Busca client-side | Volume pequeno justifica filtrar em memória; UX em tempo real sem ida ao servidor | Quando a base ultrapassar ~500 clientes ou latência incomodar |
-| Sem camada de repository | Escopo MVP com fonte única (Supabase) não justifica indireção | Quando surgir cache local, múltiplas fontes ou troca de backend |
+| Sem camada de repository | Escopo MVP com fonte única (Supabase) não justifica indireção. Reavaliado com o cache local do RNF-007 (#94): o espelho ficou atrás do `SupabaseService`, que segue como porta única, sem camada nova | Quando surgir uma segunda fonte remota ou troca de backend |
 | Tabela `clientes` em português | Decisão histórica do código atual; refactor envolve renomear tabela, ajustar service e migrar dados | Em refactor futuro com padronização para inglês |
 | RLS deliberadamente permissiva | Política `mvp_acesso_total_anon` dá acesso total à role `anon` (`USING/WITH CHECK (true)`); aceitável só enquanto o app tem usuária única e não é distribuído | Ao implementar o RF-007 (autenticação): trocar por políticas restritivas por usuário |
 | `.env.example` ausente | Quem clona o repositório não sabe quais chaves preencher | Próximo passo imediato (já listado na auditoria) |
@@ -233,6 +240,7 @@ A auditoria registrou cobertura real de 0% — o único teste era o template pad
 | 2026-11-13 | 2.11 | Wilson Gorosthides | Registro de atendimento (RF-005 enxuto, issue #77): §4 registra a escrita em `atendimentos` sem mudança de schema e a decisão do cliente provisório sem coluna nova (`telefones` vazio); árvore §5 com `atendimento_form_screen.dart`; diagrama §6 com o formulário e as escritas pelo service. |
 | 2026-11-13 | 2.12 | Wilson Gorosthides | Estados de conclusão (RF-014, issue #79): §4 registra as colunas `feito` e `pago` (SQL de `alter table`), a escrita própria das marcas fora do `toMap` e o "concluído" derivado no app. Requer migração no Supabase. |
 | 2026-11-13 | 2.10 | Wilson Gorosthides | Agenda como tela inicial (RF-010, issue #75): tabela `atendimentos` na §4 (colunas, FK com cascade, `pecas` em jsonb, SQL com RLS e publicação de realtime); árvore §5 com `agenda_screen`, `atendimento`, `peca` e `utils/agenda`; diagrama §6 com a `AgendaScreen` inicial e as duas tabelas; §7 reavalia e mantém o `setState` e registra a decisão de calcular semana, mês e ordem no app; §12 cita a nova tabela. |
+| 2026-11-16 | 2.13 | Wilson Gorosthides | Anotar sem internet (RNF-007 ampliado, issue #94): §4 registra o id e o `criado_em` gerados no app e o envio por `upsert` sem sobrescrever, sem mudança de schema; árvore §5 com `espelho_local`, `armazem_local` e `sem_conexao`; §7 com a decisão do espelho atrás do service (`shared_preferences`, só o registro novo na fila, fila em ordem); §9 reavalia a dívida "sem camada de repository". |
 
 ## 12. Ambiente de Desenvolvimento
 Os seguintes softwares e configurações são necessários para iniciar o desenvolvimento:
