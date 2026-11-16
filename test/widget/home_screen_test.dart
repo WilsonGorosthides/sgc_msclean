@@ -36,8 +36,13 @@ void main() {
     registerFallbackValue(ClientModel(nome: '', telefones: const []));
   });
 
+  // Estado de conexão do service (RNF-007, #94): no ar por padrão.
+  late ValueNotifier<bool> conectado;
+
   setUp(() {
     service = MockSupabaseService();
+    conectado = ValueNotifier(true);
+    when(() => service.conectado).thenReturn(conectado);
   });
 
   // Viewport mais alto: os testes que abrem o formulário (endereço
@@ -432,6 +437,43 @@ void main() {
       expect(find.byKey(const Key('provisorio_9')), findsOneWidget);
       expect(find.text('provisório'), findsOneWidget);
       expect(find.byKey(const Key('provisorio_1')), findsNothing);
+    });
+
+    // ---- RNF-007: anotar sem internet (e bug #47) ----
+
+    testWidgets('sem conexão mostra o aviso e não diz que não há clientes',
+        (tester) async {
+      conectado.value = false;
+      when(() => service.getClientsStream())
+          .thenAnswer((_) => Stream.value(<ClientModel>[]));
+      await bombearTela(tester);
+
+      expect(find.byKey(const Key('aviso_sem_conexao')), findsOneWidget);
+      expect(find.text('Nenhum cliente encontrado.'), findsNothing);
+      expect(find.text('Sem conexão e nenhum cliente guardado no aparelho.'),
+          findsOneWidget);
+    });
+
+    testWidgets('cliente aguardando envio não abre a edição nem exclui',
+        (tester) async {
+      final ivete = ClientModel(
+          id: '9', nome: 'Dona Ivete', telefones: const [], pendente: true);
+      when(() => service.getClientsStream())
+          .thenAnswer((_) => Stream.value([ana, ivete]));
+      await bombearTela(tester);
+
+      expect(find.byKey(const Key('pendente_9')), findsOneWidget);
+      expect(find.byKey(const Key('pendente_1')), findsNothing);
+
+      await tester.tap(find.text('Dona Ivete'));
+      await tester.pumpAndSettle();
+      expect(find.byType(ClientFormScreen), findsNothing);
+
+      await tester.tap(find.byKey(const Key('excluir_9')));
+      await tester.pumpAndSettle();
+      expect(find.text('Confirmar exclusão?'), findsNothing);
+      verifyNever(() => service.deleteClient(any()));
+      expect(find.text('Ainda aguardando envio: dá para mudar depois que for enviado.'), findsWidgets);
     });
   });
 }

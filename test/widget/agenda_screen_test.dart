@@ -47,9 +47,14 @@ void main() {
     ));
   });
 
+  // Estado de conexão do service (RNF-007, #94): no ar por padrão.
+  late ValueNotifier<bool> conectado;
+
   setUp(() {
     service = MockSupabaseService();
     ordem = 0;
+    conectado = ValueNotifier(true);
+    when(() => service.conectado).thenReturn(conectado);
     when(() => service.getClientsStream())
         .thenAnswer((_) => Stream.value(clientes));
   });
@@ -471,6 +476,57 @@ void main() {
       expect(marcada('feito_a'), findsNothing);
       expect(find.text('Não foi possível marcar. Tente novamente.'),
           findsOneWidget);
+    });
+
+    // ---- RNF-007: anotar sem internet ----
+
+    testWidgets('sem conexão mostra o aviso na agenda', (tester) async {
+      await bombear(tester, [at('a', hoje, Periodo.manha, '1')]);
+      expect(find.byKey(const Key('aviso_sem_conexao')), findsNothing);
+
+      conectado.value = false;
+      await tester.pump();
+
+      expect(find.byKey(const Key('aviso_sem_conexao')), findsOneWidget);
+      // a agenda guardada continua à vista
+      expect(find.text('Ana Souza'), findsOneWidget);
+    });
+
+    Atendimento pendente(String id, String clienteId) => Atendimento(
+          id: id,
+          data: hoje,
+          periodo: Periodo.manha,
+          clienteId: clienteId,
+          pendente: true,
+        );
+
+    testWidgets('atendimento aguardando envio aparece marcado',
+        (tester) async {
+      await bombear(tester, [
+        pendente('p', '1'),
+        at('a', hoje, Periodo.tarde, '2'),
+      ]);
+
+      expect(find.byKey(const Key('pendente_p')), findsOneWidget);
+      expect(find.text('aguardando envio'), findsOneWidget);
+      expect(find.byKey(const Key('pendente_a')), findsNothing);
+    });
+
+    testWidgets('atendimento aguardando envio não abre o formulário nem marca',
+        (tester) async {
+      aceitarMarcas();
+      await bombear(tester, [pendente('p', '1')]);
+
+      await tester.tap(find.text('Ana Souza'));
+      await tester.pumpAndSettle();
+      expect(find.byType(AtendimentoFormScreen), findsNothing);
+
+      await tocar(tester, 'feito_p');
+      await tester.pump();
+      verifyNever(() => service.marcarConclusao(any(),
+          feito: any(named: 'feito'), pago: any(named: 'pago')));
+      expect(marcada('feito_p'), findsNothing);
+      expect(find.text('Ainda aguardando envio: dá para mudar depois que for enviado.'), findsWidgets);
     });
   });
 }
