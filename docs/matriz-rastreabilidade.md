@@ -80,7 +80,7 @@ RF-005 que ficam para o RF-013 (valor calculado) e para o RNF-006
 | RNF-007 | A agenda e a lista de clientes exibem um aviso discreto de **"sem conexão"**; falha de conexão não aparece como lista vazia. | CT-056 — `espelho_local_test: falha de conexão vira aviso, não erro na stream` · `agenda_screen_test: sem conexão mostra o aviso na agenda` · `home_screen_test: sem conexão mostra o aviso e não diz que não há clientes` |
 | RNF-007 | Nada anotado sem rede se perde ao fechar e reabrir o app. | CT-057 — `espelho_local_test: a fila sobrevive a fechar e reabrir o app` |
 | RNF-007 | Um item ainda aguardando envio não se edita nem se marca até ser enviado. | CT-058 — `agenda_screen_test: atendimento aguardando envio não abre o formulário nem marca` · `home_screen_test: cliente aguardando envio não abre a edição nem exclui` |
-| RNF-008 | Na gaveta de apps, o ícone é o **símbolo da marca** sobre o **azul-marinho**, e o nome exibido é **"MS Clean"**; ao abrir, aparece o **logo completo** sobre o mesmo azul-marinho; na web, a aba e o atalho usam o mesmo símbolo e nome. | CT-059 — a implementar |
+| RNF-008 | Na gaveta de apps, o ícone é o **símbolo da marca** sobre o **azul-marinho**, e o nome exibido é **"MS Clean"**; ao abrir, aparece o **logo completo** sobre o mesmo azul-marinho; na web, a aba e o atalho usam o mesmo símbolo e nome. | CT-059 — `marca_test: nome MS Clean no Android e na web` · `marca_test: ícone adaptativo com o símbolo sobre o azul-marinho` · `marca_test: abertura com o logo sobre o azul-marinho` |
 
 Os casos de teste de RF-003 e RF-004 estão **implementados e passando** — vivem em
 `test/unit/supabase_service_test.dart` e `test/widget/home_screen_test.dart`, com
@@ -115,3 +115,4 @@ descoberto.
 | 2026-11-16 | 1.20 | Wilson Gorosthides | RNF-007 ampliado entra na matriz (anotar sem internet, issue #94): seis linhas ↔ CT-053 a CT-058, todas "a implementar". |
 | 2026-11-16 | 1.21 | Wilson Gorosthides | RNF-007 entregue (issue #94): as seis linhas trocam "a implementar" pelos nomes reais dos testes. |
 | 2026-11-16 | 1.22 | Wilson Gorosthides | RNF-008 entra na matriz (identidade visual, issue #96): uma linha ↔ CT-059, "a implementar". |
+| 2026-11-16 | 1.23 | Wilson Gorosthides | RNF-008 entregue (issue #96): a linha troca "a implementar" pelos testes da guarda `marca_test`. |

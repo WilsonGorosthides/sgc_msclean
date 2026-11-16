@@ -832,7 +832,7 @@ falso, que pode estar "fora do ar", e um armazenamento em memória no lugar do
   completo sobre o mesmo azul-marinho. Na web, a aba e o atalho usam o mesmo
   símbolo e o mesmo nome."
 - **Tipo:** Unitário (guarda sobre os arquivos de plataforma) + Manual (aparelho)
-  · **Situação:** a implementar
+  · **Situação:** implementado (guarda) — `marca_test: nome MS Clean no Android e na web` · `marca_test: ícone adaptativo com o símbolo sobre o azul-marinho` · `marca_test: abertura com o logo sobre o azul-marinho`; parte manual na pilha
 - **Pré-condições:** ícones e abertura gerados a partir de `assets/marca/`.
 - **Passos:**
   1. Ler o `AndroidManifest.xml`, o `web/manifest.json`, o `web/index.html` e
@@ -887,3 +887,4 @@ falso, que pode estar "fora do ar", e um armazenamento em memória no lugar do
 | 2026-11-16 | 1.17 | Wilson Gorosthides | Casos do RNF-007 ampliado (anotar sem internet, issue #94): CT-053 a CT-058 — abrir com os dados guardados, registro em fila com marca de aguardando envio, envio automático sem duplicar, aviso de sem conexão (bug #47), nada perdido ao reabrir, e item pendente sem edição nem marca. Todos "a implementar". |
 | 2026-11-16 | 1.18 | Wilson Gorosthides | CT-053 a CT-058 passam a "implementado" com os testes da entrega do RNF-007 ampliado (issue #94): `espelho_local_test` (oito casos, banco falso e armazenamento em memória), mais os novos casos em `agenda_screen_test` e `home_screen_test`. |
 | 2026-11-16 | 1.19 | Wilson Gorosthides | CT-059 do RNF-008 (identidade visual, issue #96): guarda sobre os arquivos de plataforma (nome, ícone adaptativo, cor da abertura) e verificação no aparelho. "A implementar". |
+| 2026-11-16 | 1.20 | Wilson Gorosthides | CT-059 passa a "implementado" na guarda `marca_test` (issue #96); a verificação no aparelho vai para a pilha manual. |
