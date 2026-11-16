@@ -776,7 +776,7 @@ Android (`flutter_local_notifications`) só se verifica no aparelho (pilha manua
 
 ### CT-062 — Aviso 1 hora antes do atendimento com hora
 - **Critério:** "Um atendimento com hora gera um aviso 1 hora antes, com o cliente, a hora e o local."
-- **Tipo:** Unitário · **Situação:** implementado — `avisos_test: aviso 1 hora antes só para atendimento com hora`
+- **Tipo:** Unitário · **Situação:** implementado — `avisos_test: aviso 1 hora antes só para atendimento com hora` · `avisos_do_aparelho_test: o aviso é agendado no mesmo instante, qualquer que seja o fuso`
 - **Pré-condições:** um atendimento em 17/11 às 14:00 com local, e um sem hora.
 - **Passos:**
   1. Planejar os avisos.
@@ -960,3 +960,4 @@ falso, que pode estar "fora do ar", e um armazenamento em memória no lugar do
 | 2026-11-16 | 1.22 | Wilson Gorosthides | CT-060 a CT-065 passam a "implementado" com os testes da entrega do RF-015 (issue #95): `avisos_test` (seis casos da função pura `planejarAvisos`) e três casos novos em `agenda_screen_test` com o agendador falso; a chegada real dos avisos vai para a pilha manual. |
 | 2026-11-16 | 1.23 | Wilson Gorosthides | CT-066 do RF-015: pedido de liberação da economia de bateria (issue #101). "A implementar". |
 | 2026-11-16 | 1.24 | Wilson Gorosthides | CT-066 passa a "implementado" com `bateria_test` (issue #101). |
+| 2026-11-16 | 1.25 | Wilson Gorosthides | CT-062 ganha o teste do instante do aviso em qualquer fuso (defeito achado no celular: aviso uma hora atrasado em aparelho com horário de Brasília). |
