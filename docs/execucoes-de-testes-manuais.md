@@ -83,6 +83,18 @@ atendimento **com hora** daqui a ~1h10 e conferir o aviso de "1 hora antes".
 | 4 | Com atendimentos amanhã, esperar as 19h (ou deixar para o dia seguinte, 7h) | Chega "Amanhã: N atendimentos" às 19h e "Hoje: N atendimentos" às 7h, com períodos e nomes | CT-060, CT-061 |
 | 5 | Mudar a hora do atendimento do passo 2 para mais tarde, antes do aviso | O aviso chega na hora nova, não na antiga | CT-064 |
 
+### #106 — trocar o dia e excluir atendimento (RF-005)
+
+Sem SQL. Com internet.
+
+| # | Passo | Resultado esperado | CT |
+|---|---|---|---|
+| 1 | Tocar num cartão, tocar na data do topo da edição | Abre o calendário **em português** | CT-067 |
+| 2 | Escolher outro dia e salvar | A agenda vai para o dia novo, e o cartão está lá com peças, valor e marcas; no dia antigo, sumiu | CT-067 |
+| 3 | Em "Novo atendimento", tocar na data | Nada abre: a data é a do dia selecionado | CT-067, CT-040 |
+| 4 | Na edição, tocar na lixeira e depois em "Cancelar" | O atendimento continua | CT-068 |
+| 5 | Tocar na lixeira e em "Excluir" | Volta à agenda e o cartão sumiu; o aviso dele também não chega | CT-068, CT-064 |
+
 ## Execução 001 — Verificação manual do RF-001 (pré-merge do PR #44)
 
 - **Data:** 2026-07-16
@@ -506,3 +518,4 @@ pelo próprio app.
 | 2026-11-16 | 1.17 | Wilson Gorosthides | Execução 010: blocos #87 e #79 da pilha aprovados no celular; saem da pilha. |
 | 2026-11-16 | 1.18 | Wilson Gorosthides | Pilha: o passo 1 dos avisos (#95) passa a conferir também o pedido de bateria (#101). |
 | 2026-11-16 | 1.19 | Wilson Gorosthides | Pilha: o pedido de notificação só aparece no Android 13+ (no 11 do desenvolvedor veio só o de bateria); passo dos avisos a repetir com o fix do fuso. |
+| 2026-11-16 | 1.20 | Wilson Gorosthides | Pilha: entram os passos de trocar o dia e excluir atendimento (#106), sem SQL. |

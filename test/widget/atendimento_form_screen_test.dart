@@ -289,6 +289,95 @@ void main() {
       expect(find.text('Erro ao salvar. Tente novamente.'), findsOneWidget);
       expect(find.byType(AtendimentoFormScreen), findsOneWidget);
     });
+
+    // ---- #106: trocar o dia e excluir, na edição ----
+
+    Atendimento existente() => Atendimento(
+          id: 'a1',
+          data: dia,
+          periodo: Periodo.manha,
+          clienteId: '1',
+          pecas: const [Peca(tipo: 'sofá', quantidade: 1)],
+          valor: 200,
+          feito: true,
+        );
+
+    testWidgets('na edição, trocar o dia leva a data nova ao update',
+        (tester) async {
+      when(() => service.updateAtendimento(any())).thenAnswer((_) async {});
+      await bombear(tester, atendimento: existente());
+
+      await tocar(tester, 'data_atendimento');
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('20').last);
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+      expect(textoDe(tester, 'data_atendimento'),
+          'sexta-feira, 20 de novembro de 2026');
+
+      await tocar(tester, 'botao_salvar');
+      await tester.pump();
+
+      final gravado =
+          verify(() => service.updateAtendimento(captureAny())).captured.single
+              as Atendimento;
+      expect(gravado.id, 'a1');
+      expect(gravado.data, DateTime(2026, 11, 20));
+      expect(gravado.pecas.single.tipo, 'sofá');
+      expect(gravado.valor, 200);
+    });
+
+    testWidgets('no registro novo, a data não abre o calendário',
+        (tester) async {
+      await bombear(tester);
+
+      await tocar(tester, 'data_atendimento');
+      await tester.pumpAndSettle();
+
+      expect(find.byType(DatePickerDialog), findsNothing);
+    });
+
+    testWidgets('excluir pede confirmação; cancelar não apaga, confirmar apaga',
+        (tester) async {
+      when(() => service.deleteAtendimento(any())).thenAnswer((_) async {});
+      await bombear(tester, atendimento: existente());
+
+      await tocar(tester, 'excluir_atendimento');
+      await tester.pumpAndSettle();
+      expect(find.text('Excluir atendimento?'), findsOneWidget);
+      await tester.tap(find.text('Cancelar'));
+      await tester.pumpAndSettle();
+      verifyNever(() => service.deleteAtendimento(any()));
+      expect(find.byType(AtendimentoFormScreen), findsOneWidget);
+
+      await tocar(tester, 'excluir_atendimento');
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Excluir'));
+      await tester.pumpAndSettle();
+
+      verify(() => service.deleteAtendimento('a1')).called(1);
+      expect(find.byType(AtendimentoFormScreen), findsNothing);
+    });
+
+    testWidgets('falha ao excluir avisa e mantém o formulário',
+        (tester) async {
+      when(() => service.deleteAtendimento(any()))
+          .thenThrow(Exception('rede'));
+      await bombear(tester, atendimento: existente());
+
+      await tocar(tester, 'excluir_atendimento');
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Excluir'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Erro ao excluir. Tente novamente.'), findsOneWidget);
+      expect(find.byType(AtendimentoFormScreen), findsOneWidget);
+    });
+
+    testWidgets('registro novo não mostra o excluir', (tester) async {
+      await bombear(tester);
+      expect(find.byKey(const Key('excluir_atendimento')), findsNothing);
+    });
   });
 }
 

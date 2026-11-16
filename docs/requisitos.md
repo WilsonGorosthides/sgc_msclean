@@ -138,6 +138,8 @@ O sistema deve permitir registrar um atendimento em uma data da agenda.
   - Quando o Cliente escolhido **já tem atendimento anterior**, as Peças e a Observação vêm pré-preenchidas com as do atendimento mais recente daquele cliente, e podem ser alteradas antes de salvar.
   - Quando o Cliente tem endereço cadastrado, o Local vem pré-preenchido com o resumo do endereço (mesmo resumo do RF-003), e pode ser alterado.
   - Ao salvar, o atendimento passa a constar no dia e no período correspondentes da agenda.
+  - Na **edição**, o dia do atendimento pode ser **trocado** por um calendário (adiar ou corrigir o dia anotado errado); salvo, o atendimento passa para o dia novo, com peças, valor e marcas, e a agenda passa a mostrar esse dia.
+  - Na **edição**, o atendimento pode ser **excluído**, após confirmação (cliente que desmarcou ou anotação errada); sem internet, a exclusão avisa e não acontece.
 
 #### RF-010 - Agenda por Data
 O sistema deve exibir os atendimentos organizados por dia, abrir nessa visão, e permitir enxergar a **semana** e o **mês**.
@@ -341,3 +343,4 @@ O sistema deve ter um mecanismo de login para o único usuário (a proprietária
 | 2026-11-16 | 3.4 | Wilson Gorosthides | Novo **RNF-008 - Identidade Visual** (issue #96): ícone com o símbolo da marca sobre o azul-marinho, nome "MS Clean" na gaveta, logo completo na abertura e o mesmo na web; a paleta das telas não muda. |
 | 2026-11-16 | 3.5 | Wilson Gorosthides | Novo **RF-015 - Avisos no Celular** (issue #95, pedido da proprietária na demonstração): resumo da véspera às 19h, resumo do dia às 7h, aviso 1 hora antes do atendimento com hora, lembrete único de feito e não pago no terceiro dia, avisos que acompanham a agenda e toque que abre o dia. Avisos locais, só no Android. |
 | 2026-11-16 | 3.6 | Wilson Gorosthides | RF-015 ganha o critério do pedido de liberação da economia de bateria na primeira abertura, com nova tentativa só após 30 dias (issue #101). |
+| 2026-11-16 | 3.7 | Wilson Gorosthides | RF-005 ganha dois critérios: trocar o dia na edição (adiar ou corrigir) e excluir o atendimento com confirmação — cancelar é excluir, sem marca de cancelado (decisão de 2026-11-16, issue #106). |

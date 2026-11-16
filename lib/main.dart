@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -30,6 +31,14 @@ class MyApp extends StatelessWidget {
       // O tema vem inteiro do design system (docs/design-system.md); nenhuma
       // cor ou fonte e declarada aqui.
       theme: AppTheme.claro,
+      // Calendário, diálogos e textos do sistema em português (#106)
+      locale: const Locale('pt', 'BR'),
+      supportedLocales: const [Locale('pt', 'BR')],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       // A agenda e a tela inicial (RF-010); a lista de clientes abre a partir dela.
       home: const AgendaScreen(),
     );

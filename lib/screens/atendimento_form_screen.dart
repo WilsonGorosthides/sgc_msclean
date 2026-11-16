@@ -103,6 +103,58 @@ class _AtendimentoFormScreenState extends State<AtendimentoFormScreen> {
 
   bool get _editando => widget.atendimento != null;
 
+  // O dia do atendimento: vem da agenda; na edição, pode ser trocado (#106).
+  late DateTime _data = widget.data;
+
+  // Adiar ou corrigir o dia anotado errado (RF-005, CT-067). Só na edição: no
+  // registro novo a data é a do dia selecionado (CT-040).
+  Future<void> _trocarDia() async {
+    final escolhido = await showDatePicker(
+      context: context,
+      initialDate: _data,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2100),
+      helpText: 'Escolha o novo dia',
+    );
+    if (escolhido != null) setState(() => _data = soData(escolhido));
+  }
+
+  // Excluir (RF-005, CT-068): cliente que desmarcou ou anotação errada.
+  Future<void> _excluir() async {
+    final a = widget.atendimento!;
+    final nome = _cliente?.nome ?? 'este cliente';
+    final confirmado = await showDialog<bool>(
+      context: context,
+      builder: (dialogo) => AlertDialog(
+        title: const Text('Excluir atendimento?'),
+        content: Text(
+            'Remover o atendimento de $nome em ${dataPorExtenso(a.data)}?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogo).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogo).pop(true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.alerta),
+            child: const Text('Excluir'),
+          ),
+        ],
+      ),
+    );
+    if (confirmado != true || !mounted) return;
+    try {
+      await _service.deleteAtendimento(a.id!);
+      if (!mounted) return;
+      Navigator.of(context).pop();
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Erro ao excluir. Tente novamente.')),
+      );
+    }
+  }
+
   // Ao sair do campo, a hora abreviada ("8", "830") vira HH:MM na tela.
   late final FocusNode _horaFoco = FocusNode()
     ..addListener(() {
@@ -175,7 +227,7 @@ class _AtendimentoFormScreenState extends State<AtendimentoFormScreen> {
       final hora = _horaController.text.trim();
       final atendimento = Atendimento(
         id: widget.atendimento?.id,
-        data: widget.data,
+        data: _data,
         periodo: _periodo!,
         hora: Validadores.completarHora(hora),
         clienteId: clienteId!,
@@ -189,7 +241,8 @@ class _AtendimentoFormScreenState extends State<AtendimentoFormScreen> {
         await _service.addAtendimento(atendimento);
       }
       if (!mounted) return;
-      Navigator.of(context).pop();
+      // dia trocado: a agenda vai para o dia novo
+      Navigator.of(context).pop(_data != widget.data ? _data : null);
     } catch (_) {
       // falha (ex.: sem internet) não pode ser silenciosa: avisa e mantém o
       // formulário aberto com o que foi preenchido
@@ -207,17 +260,41 @@ class _AtendimentoFormScreenState extends State<AtendimentoFormScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(_editando ? 'Editar atendimento' : 'Novo atendimento'),
+        actions: [
+          if (_editando)
+            IconButton(
+              key: const Key('excluir_atendimento'),
+              icon: const Icon(Icons.delete_outline, color: AppColors.alerta),
+              tooltip: 'Excluir atendimento',
+              onPressed: _excluir,
+            ),
+        ],
       ),
       body: Form(
         key: _formKey,
         child: ListView(
           padding: const EdgeInsets.all(AppSpacing.lg),
           children: [
-            // DATA: vem do dia da agenda; não se digita (CT-040)
-            Text(
-              dataPorExtenso(widget.data),
-              key: const Key('data_atendimento'),
-              style: textos.titleMedium?.copyWith(color: AppColors.primaria),
+            // DATA: vem do dia da agenda; não se digita (CT-040). Na edição,
+            // toca-se para trocar o dia (CT-067).
+            InkWell(
+              onTap: _editando ? _trocarDia : null,
+              borderRadius: BorderRadius.circular(AppRadius.pequeno),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      dataPorExtenso(_data),
+                      key: const Key('data_atendimento'),
+                      style: textos.titleMedium
+                          ?.copyWith(color: AppColors.primaria),
+                    ),
+                  ),
+                  if (_editando)
+                    const Icon(Icons.edit_calendar_outlined,
+                        color: AppColors.primaria),
+                ],
+              ),
             ),
             const SizedBox(height: AppSpacing.xl),
 
