@@ -35,6 +35,8 @@ void main() {
       periodo: Periodo.manha,
       clienteId: '',
     ));
+    registerFallbackValue(
+        const ItemDePreco(nome: '', unidade: UnidadeDeCobranca.peca));
   });
 
   // Tabela de preços (RF-013, #124): vazia, salvo nos testes do cálculo.
