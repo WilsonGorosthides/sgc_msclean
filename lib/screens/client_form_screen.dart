@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
+import '../models/atendimento.dart';
 import '../models/client_model.dart';
 import '../models/endereco.dart';
 import '../services/contatos.dart';
 import '../services/supabase_service.dart';
+import '../utils/agenda.dart';
+import '../utils/historico.dart';
 import '../utils/telefone.dart';
 import '../utils/validators.dart';
 
@@ -15,7 +18,11 @@ class ClientFormScreen extends StatefulWidget {
     this.cliente,
     this.clientes = const [],
     this.contatos,
+    this.agora,
   });
+
+  // Relógio do histórico (RF-011); nos testes, um dia fixo.
+  final DateTime Function()? agora;
 
   // Nos testes injeta-se um service falso; em produção usa o real.
   final SupabaseService? service;
@@ -57,6 +64,11 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
   late final List<TextEditingController> _telefoneControllers =
       _controllersIniciais();
   var _salvando = false;
+
+  // Histórico do cliente (RF-011, #81): só na edição. Stream criada uma vez,
+  // para o rebuild do formulário não refazer a assinatura.
+  late final Stream<List<Atendimento>>? _atendimentos =
+      widget.cliente?.id == null ? null : _service.getAtendimentosStream();
 
   List<TextEditingController> _controllersIniciais() {
     final tels = widget.cliente?.telefones ?? const <String>[];
@@ -314,6 +326,14 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
           padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg,
               AppSpacing.lg, AppSpacing.lg + MediaQuery.paddingOf(context).bottom),
           children: [
+            if (_atendimentos != null) ...[
+              _Historico(
+                atendimentos: _atendimentos,
+                clienteId: widget.cliente!.id!,
+                agora: widget.agora ?? DateTime.now,
+              ),
+              const SizedBox(height: AppSpacing.xl),
+            ],
             if (widget.cliente == null && _contatos.disponivel) ...[
               OutlinedButton.icon(
                 key: const Key('dos_contatos'),
@@ -343,6 +363,141 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// Topo da tela do cliente (RF-011): último valor cobrado e há quanto tempo foi
+// a última visita, e os atendimentos anteriores — o que ela hoje procura na
+// conversa do WhatsApp e no caderno. Layout do protótipo (gh-pages).
+class _Historico extends StatelessWidget {
+  const _Historico({
+    required this.atendimentos,
+    required this.clienteId,
+    required this.agora,
+  });
+
+  final Stream<List<Atendimento>> atendimentos;
+  final String clienteId;
+  final DateTime Function() agora;
+
+  static String _pecas(Atendimento a) =>
+      a.pecas.isEmpty ? '—' : a.pecas.map((p) => p.resumo).join(' · ');
+
+  @override
+  Widget build(BuildContext context) {
+    final texto = Theme.of(context).textTheme;
+    return StreamBuilder<List<Atendimento>>(
+      key: const Key('historico'),
+      stream: atendimentos,
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) return const SizedBox.shrink();
+        final hoje = agora();
+        final historico = historicoDoCliente(snapshot.data!, clienteId, hoje);
+        if (historico.isEmpty) {
+          return Text('Nenhum atendimento registrado',
+              style: texto.bodyMedium?.copyWith(color: AppColors.tintaFraca));
+        }
+        final ultima = historico.first;
+        final comValor = ultimoComValor(historico);
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: _Destaque(
+                      key: const Key('ultimo_valor'),
+                      grande: comValor == null
+                          ? '—'
+                          : valorEmReais(comValor.valor!),
+                      pequeno: comValor == null
+                          ? 'nenhum valor registrado'
+                          : 'cobrado em ${dataCurta(comValor.data)}'
+                              '${comValor.pecas.isEmpty ? '' : ' · ${_pecas(comValor)}'}',
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: _Destaque(
+                      key: const Key('ultima_visita'),
+                      grande: haQuantoTempo(ultima.data, hoje),
+                      pequeno: 'última visita em ${dataCurta(ultima.data)}',
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            Text('Atendimentos anteriores', style: texto.titleMedium),
+            const SizedBox(height: AppSpacing.xs),
+            for (var i = 0; i < historico.length; i++)
+              Container(
+                key: Key('historico_item_$i'),
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                decoration: const BoxDecoration(
+                  border: Border(top: BorderSide(color: AppColors.borda)),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      width: 72,
+                      child: Text(dataCurta(historico[i].data),
+                          style: texto.bodySmall
+                              ?.copyWith(color: AppColors.tintaFraca)),
+                    ),
+                    Expanded(
+                      child: Text(_pecas(historico[i]),
+                          style: texto.bodyMedium),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Text(
+                      historico[i].valor == null
+                          ? '—'
+                          : valorEmReais(historico[i].valor!),
+                      style: texto.bodyMedium
+                          ?.copyWith(fontWeight: FontWeight.w600),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+// Bloco de destaque do histórico: número grande e legenda.
+class _Destaque extends StatelessWidget {
+  const _Destaque({super.key, required this.grande, required this.pequeno});
+
+  final String grande;
+  final String pequeno;
+
+  @override
+  Widget build(BuildContext context) {
+    final texto = Theme.of(context).textTheme;
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: AppColors.superficieAlt,
+        border: Border.all(color: AppColors.borda),
+        borderRadius: BorderRadius.circular(AppRadius.medio),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(grande,
+              style: texto.headlineSmall?.copyWith(fontWeight: FontWeight.w700)),
+          const SizedBox(height: AppSpacing.xs),
+          Text(pequeno,
+              style: texto.bodySmall?.copyWith(color: AppColors.tintaFraca)),
+        ],
       ),
     );
   }
