@@ -45,8 +45,8 @@ RF-005 que ficam para o RF-013 (valor calculado) e para o RNF-006
 | RF-004 | A lista é filtrada em tempo real conforme o usuário digita, sem necessidade de botão "buscar". | CT-016 — `home_screen_test: filtragem ao digitar na busca` |
 | RF-004 | Quando nenhum cliente corresponde ao termo, a tela exibe a mensagem "Nenhum cliente encontrado.". | CT-017 — `home_screen_test: busca sem correspondência exibe mensagem` |
 | RF-004 | Com o campo de busca vazio, todos os clientes são exibidos. | CT-018 — `home_screen_test: busca vazia exibe todos` |
-| RF-004 | Os resultados vêm por **relevância** (igual, começa com, palavra começa com, no meio, só no endereço); dentro de cada faixa, ordem alfabética. | CT-069 — a implementar |
-| RF-004 | A busca **não diferencia acento**. | CT-070 — a implementar |
+| RF-004 | Os resultados vêm por **relevância** (igual, começa com, palavra começa com, no meio, só no endereço); dentro de cada faixa, ordem alfabética. | CT-069 — `supabase_service_test: busca por relevância` |
+| RF-004 | A busca **não diferencia acento**. | CT-070 — `supabase_service_test: busca sem diferenciar acento` |
 | RF-008 | A exclusão exige confirmação explícita do usuário (diálogo "Confirmar exclusão?") antes de efetivar. | CT-019 — `home_screen_test: exclusão pede confirmação antes de remover` |
 | RF-008 | Ao cancelar a confirmação, o cliente **não** é removido e permanece na lista. | CT-020 — `home_screen_test: cancelar a confirmação não remove` |
 | RF-008 | Ao confirmar, o cliente é removido do banco e desaparece da lista imediatamente após a confirmação. | CT-021 — `home_screen_test: confirmar remove e a lista reflete ao renovar a stream` |
@@ -135,3 +135,4 @@ descoberto.
 | 2026-11-16 | 1.29 | Wilson Gorosthides | RF-005 ganha duas linhas ↔ CT-067 e CT-068 (trocar o dia e excluir, issue #106), "a implementar". |
 | 2026-11-16 | 1.30 | Wilson Gorosthides | CT-067 e CT-068 entregues (issue #106): nomes reais dos testes. |
 | 2026-11-17 | 1.31 | Wilson Gorosthides | RF-004 ganha duas linhas ↔ CT-069 e CT-070 (relevância e acento, issue #113), "a implementar". |
+| 2026-11-17 | 1.32 | Wilson Gorosthides | CT-069 e CT-070 entregues (issue #113): nomes reais dos testes. |

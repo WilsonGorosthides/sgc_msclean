@@ -122,6 +122,7 @@ lib/
 │   └── app_theme.dart              # ColorScheme explícito + ThemeData (AppTheme.claro)
 └── utils/
     ├── avisos.dart                 # função pura planejarAvisos (RF-015): quais avisos e quando
+    ├── texto.dart                  # paraBusca: minúsculas e sem acento (busca, RF-004)
     ├── agenda.dart                 # funções puras da agenda: semana, grade do mês, contagem, ordem do dia, nomes em PT-BR, valor em reais
     └── validators.dart             # validações puras dos formulários (obrigatório, telefone, hora)
 ```
@@ -262,6 +263,7 @@ A auditoria registrou cobertura real de 0% — o único teste era o template pad
 | 2026-11-16 | 2.20 | Wilson Gorosthides | Trocar o dia e excluir atendimento (#106): `SupabaseService.deleteAtendimento` (direto ao banco, fora da fila do aparelho: sem internet, avisa); o formulário devolve o dia novo à agenda; app com localização pt-BR (`flutter_localizations`) para o calendário. Sem mudança de schema. |
 | 2026-11-16 | 2.21 | Wilson Gorosthides | Assinatura do release (#109): §7 com a decisão da chave própria lida de `android/key.properties` e do build de release que falha sem ela; §10 com o risco de perder a keystore; §12 com a geração da keystore e o modelo `key.properties.example`. |
 | 2026-11-17 | 2.22 | Wilson Gorosthides | §10: risco do limite de linhas da API (Max rows 1000) cortando a stream de clientes com a importação da agenda (#23); §12: dica do `-dname` no `keytool`. |
+| 2026-11-17 | 2.23 | Wilson Gorosthides | Busca por relevância e sem acento (RF-004, #113): `lib/utils/texto.dart` na árvore §5; `filtrarClientes` ordena em faixas (igual, começa com, palavra começa com, no meio, endereço). Sem mudança de schema. |
 
 ## 12. Ambiente de Desenvolvimento
 Os seguintes softwares e configurações são necessários para iniciar o desenvolvimento:

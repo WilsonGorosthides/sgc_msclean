@@ -45,8 +45,16 @@ internet passou a valer no release).
 Nenhum SQL pendente: o do RF-014 (colunas `feito` e `pago`) foi aplicado no
 painel (confirmado pelo desenvolvedor em 2026-11-16).
 
-Nenhum passo pendente: o bloco do #109 foi aprovado na Execução 012. As
-próximas entregas acrescentam os seus blocos aqui.
+### #113 — busca por relevância e sem acento (RF-004)
+
+Sem SQL. Com a agenda importada (#23), no celular.
+
+| # | Passo | Resultado esperado | CT |
+|---|---|---|---|
+| 1 | Na lista de clientes, buscar "paulo" | Quem se chama só "Paulo" vem primeiro; depois os que começam com "Paulo"; "João Paulo" e parecidos depois | CT-069 |
+| 2 | Buscar "neto" | "Neto" primeiro; "Bruno Neto" e "amiga do Neto" depois | CT-069 |
+| 3 | Buscar "joao" (sem acento) | Aparecem os "João" | CT-070 |
+| 4 | Em "Novo atendimento", digitar um primeiro nome comum | O cliente com aquele nome aparece entre os 6 primeiros | CT-069 |
 
 ## Execução 001 — Verificação manual do RF-001 (pré-merge do PR #44)
 
@@ -552,3 +560,4 @@ versão nova, assinada com a mesma chave, instala por cima sem perder dados.
 | 2026-11-16 | 1.21 | Wilson Gorosthides | Execução 011: blocos #94, #96, #95 e #106 da pilha aprovados no celular (Android 11), com a ocorrência do fuso corrigida no PR #105; a pilha fica vazia. |
 | 2026-11-16 | 1.22 | Wilson Gorosthides | Pilha: entram os passos do APK de release assinado com a chave própria (#109), sem SQL. |
 | 2026-11-17 | 1.23 | Wilson Gorosthides | Execução 012: APK de release com a chave própria aprovado no celular (Android 16), incluindo a atualização por cima; a pilha fica vazia. |
+| 2026-11-17 | 1.24 | Wilson Gorosthides | Pilha: entram os passos da busca por relevância e sem acento (#113), sem SQL. |

@@ -379,7 +379,7 @@
 
 ### CT-069 — Busca por relevância
 - **Critério:** "Os resultados vêm por **relevância**: nome igual ao termo, depois nome que começa com o termo, depois nome com uma palavra que começa com o termo, depois o termo no meio do nome e, por fim, o termo só no endereço; dentro de cada faixa, ordem alfabética."
-- **Tipo:** Unitário · **Situação:** a implementar
+- **Tipo:** Unitário · **Situação:** implementado — `supabase_service_test: busca por relevância`
 - **Pré-condições:** função pura `filtrarClientes` com clientes em ordem alfabética: "Bruno Neto", "Cris amiga do Neto", "Netinho", "Neto", "Neto Silva", "Sinetol" e um cliente com "Neto" só no endereço.
 - **Passos:**
   1. Filtrar por "neto".
@@ -388,7 +388,7 @@
 
 ### CT-070 — Busca sem diferenciar acento
 - **Critério:** "A busca **não diferencia acento**: \"joao\" acha \"João\"."
-- **Tipo:** Unitário · **Situação:** a implementar
+- **Tipo:** Unitário · **Situação:** implementado — `supabase_service_test: busca sem diferenciar acento`
 - **Pré-condições:** função pura `filtrarClientes` com "João", "Conceição" e um endereço "Rua Pará".
 - **Passos:**
   1. Filtrar por "joao", "conceicao" e "para".
@@ -1005,3 +1005,4 @@ falso, que pode estar "fora do ar", e um armazenamento em memória no lugar do
 | 2026-11-16 | 1.26 | Wilson Gorosthides | CT-067 (trocar o dia na edição) e CT-068 (excluir com confirmação) do RF-005, issue #106. "A implementar". |
 | 2026-11-16 | 1.27 | Wilson Gorosthides | CT-067 e CT-068 passam a "implementado" (issue #106). |
 | 2026-11-17 | 1.28 | Wilson Gorosthides | CT-069 (busca por relevância) e CT-070 (busca sem acento) do RF-004, issue #113. "A implementar". |
+| 2026-11-17 | 1.29 | Wilson Gorosthides | CT-069 e CT-070 passam a "implementado" (issue #113). |
