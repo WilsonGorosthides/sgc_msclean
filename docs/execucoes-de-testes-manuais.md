@@ -45,14 +45,7 @@ internet passou a valer no release).
 Nenhum SQL pendente: o do RF-014 (colunas `feito` e `pago`) foi aplicado no
 painel (confirmado pelo desenvolvedor em 2026-11-16).
 
-### #128 — atendimento novo em dobro na agenda (RNF-007)
-
-Sem SQL. No celular, com o APK novo e com rede.
-
-| # | Passo | Resultado esperado | CT |
-|---|---|---|---|
-| 1 | Registrar um atendimento de teste (cliente "TESTE ...", data passada) e voltar à agenda; repetir três vezes | Cada atendimento aparece **uma vez só**, e a contagem do dia e do período bate | CT-055 |
-| 2 | Fechar e reabrir o app | Nada some nem duplica; apagar os clientes "TESTE" no fim (os atendimentos vão junto) | CT-055 |
+Nenhum passo pendente: a Execução 014 rodou o último bloco (#128).
 
 ## Execução 001 — Verificação manual do RF-001 (pré-merge do PR #44)
 
@@ -569,6 +562,27 @@ versão nova, assinada com a mesma chave, instala por cima sem perder dados.
 ### Veredicto
 **Aprovado**, com o bug #128 corrigido no PR seguinte.
 
+## Execução 014 — Pilha: atendimento novo em dobro na agenda (pós-merge, #128)
+
+- **Data:** 2026-11-17.
+- **Objeto:** correção do atendimento recém-registrado em dobro na agenda
+  (#128, PR #130). Sem SQL.
+- **Ambiente:** APK de release instalado por cima (`adb install -r`) no
+  celular do desenvolvedor, Realme RMX3941 com Android 16, contra o Supabase
+  real do MVP, com rede.
+- **Executor:** o desenvolvedor (resultado informado em 2026-11-17: "passou
+  tudo"); o agente gerou e instalou o APK.
+
+### Resultados
+
+| Passo | O que verificou | Resultado |
+|---|---|---|
+| 1 | Atendimento de teste registrado e volta à agenda, três vezes: cada um aparece uma vez só, contagem do dia e do período certa | Aprovado |
+| 2 | Fechar e reabrir o app: nada some nem duplica; clientes "TESTE" apagados no fim, com os atendimentos | Aprovado |
+
+### Veredicto
+**Aprovado.** Pilha vazia.
+
 ## Histórico de Versões
 
 | Data | Versão | Autor | Descrição da mudança |
@@ -602,3 +616,4 @@ versão nova, assinada com a mesma chave, instala por cima sem perder dados.
 | 2026-11-17 | 1.26 | Wilson Gorosthides | Pilha: entram os passos do cliente dos contatos do celular (#115), sem SQL. |
 | 2026-11-17 | 1.27 | Wilson Gorosthides | Pilha: entram os passos do histórico do cliente (#81). |
 | 2026-11-17 | 1.28 | Wilson Gorosthides | Execução 013 (pilha #81, #115, #118, #113: aprovada; bug #128 e achado #129); a pilha passa a ter só o passo do #128. |
+| 2026-11-17 | 1.29 | Wilson Gorosthides | Execução 014 (#128: atendimento em dobro corrigido, aprovado); pilha vazia. |
