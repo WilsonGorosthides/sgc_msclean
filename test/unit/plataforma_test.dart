@@ -27,6 +27,18 @@ void main() {
       expect(gradle, isNot(contains('signingConfigs.getByName("debug")')));
     });
 
+    // Contatos do celular (RF-016, #115): só o contato escolhido, pelo
+    // seletor do sistema; o app não pede para ler a agenda inteira.
+    test('o app não pede permissão de ler os contatos', () {
+      final manifesto =
+          File('android/app/src/main/AndroidManifest.xml').readAsStringSync();
+      expect(manifesto, isNot(contains('READ_CONTACTS')));
+      final atividade = File(
+              'android/app/src/main/kotlin/com/example/sgc_msclean/MainActivity.kt')
+          .readAsStringSync();
+      expect(atividade, contains('"msclean/contatos"'));
+    });
+
     test('a chave e as senhas ficam fora do git, com um exemplo versionado',
         () {
       final ignorados = File('android/.gitignore').readAsStringSync();

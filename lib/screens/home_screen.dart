@@ -31,6 +31,9 @@ class _HomeScreenState extends State<HomeScreen> {
   late Stream<List<ClientModel>> _clientesStream = _service.getClientsStream();
   late final _abrirMaps = widget.abrirMaps ?? abrirEnderecoNoMaps;
   String _searchQuery = ''; // Guarda o que o usuário digita
+  // Última lista recebida, para o formulário avisar quem já está cadastrado
+  // ao trazer um contato do celular (RF-016).
+  List<ClientModel> _carregados = const [];
 
   // Item só no aparelho (RNF-007, #94): editar ou excluir espera o envio.
   void _avisarPendente() {
@@ -43,7 +46,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _abrirFormulario({ClientModel? cliente}) async {
     if (cliente != null && cliente.pendente) return _avisarPendente();
     await Navigator.of(context).push(MaterialPageRoute(
-      builder: (_) => ClientFormScreen(service: _service, cliente: cliente),
+      builder: (_) => ClientFormScreen(
+          service: _service, cliente: cliente, clientes: _carregados),
     ));
     if (!mounted) return;
     setState(() => _clientesStream = _service.getClientsStream());
@@ -122,6 +126,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   return const Center(child: CircularProgressIndicator());
                 }
 
+                _carregados = snapshot.data ?? const [];
                 // busca (RF-004) aplicada sobre a lista emitida, no widget
                 final clientes = SupabaseService.filtrarClientes(
                     snapshot.data ?? [], _searchQuery);

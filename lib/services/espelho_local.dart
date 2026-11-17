@@ -88,10 +88,13 @@ class EspelhoLocal {
 
   // Cliente provisório (RF-005) criado no aparelho: o id nasce aqui, para o
   // atendimento apontar para ele antes de o cliente chegar ao banco.
-  Future<ClientModel> registrarClienteProvisorio(String nome) async {
+  // Com telefones, é o cliente vindo dos contatos do celular (RF-016): não é
+  // provisório, mas entra na mesma fila, pelo mesmo caminho.
+  Future<ClientModel> registrarClienteProvisorio(String nome,
+      {List<String> telefones = const []}) async {
     final linha = {
       'id': _novoId(),
-      ...ClientModel(nome: nome.trim(), telefones: const []).toMap(),
+      ...ClientModel(nome: nome.trim(), telefones: telefones).toMap(),
     };
     await _enfileirar('clientes', linha);
     return ClientModel.fromMap(linha, pendente: true);

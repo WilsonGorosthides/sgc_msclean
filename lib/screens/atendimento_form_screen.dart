@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import '../models/atendimento.dart';
 import '../models/client_model.dart';
 import '../models/peca.dart';
+import '../services/contatos.dart';
 import '../services/supabase_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
 import '../utils/agenda.dart';
+import '../utils/telefone.dart';
 import '../utils/validators.dart';
 
 // Formulário de atendimento (RF-005, entrega enxuta da issue #77). Parte de um
@@ -21,7 +23,11 @@ class AtendimentoFormScreen extends StatefulWidget {
     required this.data,
     required this.clientes,
     this.atendimento,
+    this.contatos,
   });
+
+  // Seletor de contatos do celular (RF-016); nos testes, um falso.
+  final AgendaDoCelular? contatos;
 
   // Nos testes injeta-se um service falso; em produção usa o real.
   final SupabaseService? service;
@@ -82,6 +88,10 @@ class _AtendimentoFormScreenState extends State<AtendimentoFormScreen> {
   // Cliente: ou um cadastrado, ou um nome novo (vira provisório ao salvar).
   ClientModel? _cliente;
   String? _nomeNovo;
+  // Telefone do contato do celular (RF-016): com ele, o nome novo vira cliente
+  // de verdade, não provisório.
+  String? _telefoneNovo;
+  late final _contatos = widget.contatos ?? ContatosDoAparelho();
   final _buscaController = TextEditingController();
 
   Periodo? _periodo;
@@ -191,6 +201,7 @@ class _AtendimentoFormScreenState extends State<AtendimentoFormScreen> {
   void _escolherCliente(ClientModel c) => setState(() {
         _cliente = c;
         _nomeNovo = null;
+        _telefoneNovo = null;
         _faltaCliente = false;
         // Local vem do endereço cadastrado (mesmo resumo da lista), editável.
         if (!_editando) _localController.text = c.endereco.resumo;
@@ -198,14 +209,36 @@ class _AtendimentoFormScreenState extends State<AtendimentoFormScreen> {
 
   void _anotarSoNome() => setState(() {
         _nomeNovo = _buscaController.text.trim();
+        _telefoneNovo = null;
         _cliente = null;
         _faltaCliente = false;
         if (!_editando) _localController.text = '';
       });
 
+  // Contato do celular (RF-016, CT-074): se o número já é de um cliente,
+  // escolhe esse cliente; senão, anota nome e telefone para criar ao salvar.
+  Future<void> _trazerDosContatos() async {
+    final contato = await _contatos.escolher();
+    if (contato == null || !mounted) return;
+    final existente = clienteComTelefone(widget.clientes, contato.telefone);
+    if (existente != null) {
+      _escolherCliente(existente);
+      return;
+    }
+    final telefone = formatarTelefone(contato.telefone);
+    setState(() {
+      _nomeNovo = contato.nome.isEmpty ? telefone : contato.nome;
+      _telefoneNovo = telefone;
+      _cliente = null;
+      _faltaCliente = false;
+      if (!_editando) _localController.text = '';
+    });
+  }
+
   void _trocarCliente() => setState(() {
         _cliente = null;
         _nomeNovo = null;
+        _telefoneNovo = null;
         _buscaController.clear();
       });
 
@@ -221,7 +254,9 @@ class _AtendimentoFormScreenState extends State<AtendimentoFormScreen> {
     try {
       var clienteId = _cliente?.id;
       if (clienteId == null) {
-        final criado = await _service.addClienteProvisorio(_nomeNovo!);
+        final criado = _telefoneNovo == null
+            ? await _service.addClienteProvisorio(_nomeNovo!)
+            : await _service.addClienteDoContato(_nomeNovo!, _telefoneNovo!);
         clienteId = criado.id;
       }
       final hora = _horaController.text.trim();
@@ -305,7 +340,7 @@ class _AtendimentoFormScreenState extends State<AtendimentoFormScreen> {
             if (_cliente != null || _nomeNovo != null)
               _ClienteEscolhido(
                 nome: _cliente?.nome ?? _nomeNovo!,
-                provisorio: _cliente?.provisorio ?? true,
+                provisorio: _cliente?.provisorio ?? _telefoneNovo == null,
                 aoTrocar: _trocarCliente,
               )
             else
@@ -314,6 +349,8 @@ class _AtendimentoFormScreenState extends State<AtendimentoFormScreen> {
                 clientes: widget.clientes,
                 aoEscolher: _escolherCliente,
                 aoAnotarSoNome: _anotarSoNome,
+                aoTrazerDosContatos:
+                    _contatos.disponivel ? _trazerDosContatos : null,
                 aoDigitar: () => setState(() {}),
               ),
             const SizedBox(height: AppSpacing.xl),
@@ -436,8 +473,10 @@ class _EscolhaDeCliente extends StatelessWidget {
     required this.aoEscolher,
     required this.aoAnotarSoNome,
     required this.aoDigitar,
+    this.aoTrazerDosContatos,
   });
 
+  final VoidCallback? aoTrazerDosContatos;
   final TextEditingController controller;
   final List<ClientModel> clientes;
   final void Function(ClientModel) aoEscolher;
@@ -490,6 +529,16 @@ class _EscolhaDeCliente extends StatelessWidget {
             subtitle: Text('Cria cliente provisório — telefone e endereço depois',
                 style: textos.bodySmall?.copyWith(color: AppColors.tintaFraca)),
             onTap: aoAnotarSoNome,
+          ),
+        if (aoTrazerDosContatos != null)
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              key: const Key('dos_contatos'),
+              onPressed: aoTrazerDosContatos,
+              icon: const Icon(Icons.contacts_outlined),
+              label: const Text('Dos contatos do celular'),
+            ),
           ),
       ],
     );

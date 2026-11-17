@@ -45,6 +45,18 @@ internet passou a valer no release).
 Nenhum SQL pendente: o do RF-014 (colunas `feito` e `pago`) foi aplicado no
 painel (confirmado pelo desenvolvedor em 2026-11-16).
 
+### #115 — cliente dos contatos do celular (RF-016)
+
+Sem SQL. Só no **celular** (Android), com o APK novo.
+
+| # | Passo | Resultado esperado | CT |
+|---|---|---|---|
+| 1 | Clientes > "+" > "Dos contatos do celular"; escolher um contato que **não** está no app | Abre a agenda do celular **sem pedir permissão**; ao escolher, nome e telefone (`+55 67 ...`) preenchidos | CT-072 |
+| 2 | Repetir com um contato que **já** está no app | Aparece "Já cadastrado como <nome>"; "Abrir cadastro" abre a edição dele | CT-073 |
+| 3 | Novo atendimento > "Dos contatos do celular" > um contato que já é cliente | O cliente fica escolhido, sem "provisório" | CT-074 |
+| 4 | Novo atendimento > "Dos contatos do celular" > contato novo; escolher período e salvar | O cartão aparece na agenda; na lista de clientes, ele está com o telefone | CT-074 |
+| 5 | Repetir o passo 4 em modo avião, depois religar | "Aguardando envio" e, com a rede, cliente e atendimento chegam uma vez só | CT-074, CT-055 |
+
 ### #118 — Salvar acima da barra de navegação (RNF-001)
 
 Sem SQL. No celular da usuária (Samsung A25, Android 16), com os botões de navegação na base.
@@ -572,3 +584,4 @@ versão nova, assinada com a mesma chave, instala por cima sem perder dados.
 | 2026-11-17 | 1.23 | Wilson Gorosthides | Execução 012: APK de release com a chave própria aprovado no celular (Android 16), incluindo a atualização por cima; a pilha fica vazia. |
 | 2026-11-17 | 1.24 | Wilson Gorosthides | Pilha: entram os passos da busca por relevância e sem acento (#113), sem SQL. |
 | 2026-11-17 | 1.25 | Wilson Gorosthides | Pilha: entram os passos do Salvar acima da barra de navegação (#118), sem SQL. |
+| 2026-11-17 | 1.26 | Wilson Gorosthides | Pilha: entram os passos do cliente dos contatos do celular (#115), sem SQL. |

@@ -472,6 +472,49 @@
   canal nativo do plugin. Número fora de ordem (após CT-027) segue a convenção
   de append.
 
+## RF-016 — Trazer Cliente dos Contatos do Celular
+
+> O seletor de contatos do Android é trocado nos testes por um falso
+> (`AgendaDoCelular`), que devolve um contato pronto ou nada (ela desistiu).
+
+### CT-072 — Contato escolhido preenche o cadastro
+- **Critério:** "No **cadastro de cliente** (novo) e na escolha de cliente do **atendimento**, um botão **"Dos contatos"** abre o seletor de contatos do próprio Android; o app recebe **só o contato escolhido** (nome e o número tocado), sem pedir acesso à agenda inteira. No cadastro, o contato escolhido **preenche o nome e o telefone**; ela confere e salva como sempre."
+- **Tipo:** Widget · **Situação:** implementado — `client_form_screen_test: contatos: contato escolhido preenche nome e telefone` · `client_form_screen_test: contatos: sem contato escolhido nada muda; na edição não há o botão` · `plataforma_test: o app não pede permissão de ler os contatos`
+- **Pré-condições:** formulário de cliente novo; o falso devolve "Dona Ivete" com "(67) 99301-8496".
+- **Passos:**
+  1. Tocar em "Dos contatos".
+  2. Repetir com o falso devolvendo nada.
+  3. Abrir a edição de um cliente existente.
+- **Resultado esperado:** nome "Dona Ivete" e telefone "+55 67 99301-8496" preenchidos; sem contato, nada muda; na edição, o botão não aparece.
+
+### CT-073 — Contato já cadastrado avisa em vez de duplicar
+- **Critério:** "Se o telefone do contato **já é de um cliente**, o app avisa **"Já cadastrado como <nome>"** e oferece abrir o cadastro existente, em vez de duplicar; ela ainda pode cadastrar mesmo assim."
+- **Tipo:** Widget · **Situação:** implementado — `client_form_screen_test: contatos: contato já cadastrado avisa e abre o cadastro existente` · `client_form_screen_test: contatos: contato já cadastrado pode ser cadastrado mesmo assim`
+- **Pré-condições:** a lista de clientes tem "Ivete Souza" com "67 99301-8496"; o falso devolve um contato com "+55 67 99301-8496".
+- **Passos:**
+  1. Tocar em "Dos contatos".
+  2. Escolher "Abrir cadastro".
+  3. Repetir e escolher "Cadastrar mesmo assim".
+- **Resultado esperado:** aparece "Já cadastrado como Ivete Souza"; "Abrir cadastro" troca para a edição de Ivete Souza; "Cadastrar mesmo assim" preenche o formulário novo.
+
+### CT-074 — Contato no atendimento: cliente existente ou novo com telefone
+- **Critério:** "No atendimento, um contato que **já é cliente** seleciona esse cliente; um contato **novo** vira cliente **com o telefone** (não provisório) ao salvar o atendimento, inclusive sem internet (fila do aparelho, RNF-007)."
+- **Tipo:** Widget · **Situação:** implementado — `atendimento_form_screen_test: contato que já é cliente seleciona o cliente` · `atendimento_form_screen_test: contato novo vira cliente com telefone ao salvar`
+- **Pré-condições:** formulário de atendimento novo com os clientes Ana Souza ("11 91111-1111") e Bruno Lima.
+- **Passos:**
+  1. "Dos contatos" devolve um contato com "+55 11 91111-1111".
+  2. Trocar o cliente; "Dos contatos" devolve "Dona Ivete" com "67993018496"; escolher período e salvar.
+- **Resultado esperado:** no passo 1, Ana Souza fica escolhida; no passo 2, o cartão mostra "Dona Ivete" e salvar cria o cliente com o telefone "+55 67 99301-8496" (`addClienteDoContato`) antes do atendimento.
+
+### CT-075 — Formato e comparação de telefone
+- **Critério:** "O telefone vem no formato da base (`+55 67 99999-9999`); número sem DDD recebe o **67**. Dois números são o mesmo cliente quando batem DDD e os 8 últimos dígitos (com ou sem o nono dígito, com ou sem `+55`)."
+- **Tipo:** Unitário · **Situação:** implementado — `telefone_test: formata no padrão da base, com 67 quando falta o DDD` · `telefone_test: compara pelo DDD e os 8 últimos dígitos` · `telefone_test: acha o cliente que já tem o telefone`
+- **Pré-condições:** funções puras `formatarTelefone` e `mesmoTelefone`.
+- **Passos:**
+  1. Formatar "67993018496", "+55 (67) 99301-8496", "993018496", "6733841234" e "+1 202 555 0100".
+  2. Comparar "+55 67 99301-8496" com "67 9301-8496", com "(67) 99301-8496" e com "+55 11 99301-8496".
+- **Resultado esperado:** "+55 67 99301-8496", "+55 67 99301-8496", "+55 67 99301-8496", "+55 67 3384-1234" e o internacional como veio; iguais, iguais e diferentes (outro DDD).
+
 ## RF-005 — Registrar Atendimento
 
 > Primeira entrega **enxuta** (issue #77): o valor é digitado. O cálculo pela
@@ -1017,3 +1060,5 @@ falso, que pode estar "fora do ar", e um armazenamento em memória no lugar do
 | 2026-11-17 | 1.29 | Wilson Gorosthides | CT-069 e CT-070 passam a "implementado" (issue #113). |
 | 2026-11-17 | 1.30 | Wilson Gorosthides | CT-071 (fim das telas acima da barra de navegação, RNF-001), issue #118. "A implementar". |
 | 2026-11-17 | 1.31 | Wilson Gorosthides | CT-071 passa a "implementado" (issue #118). |
+| 2026-11-17 | 1.32 | Wilson Gorosthides | CT-072 a CT-075 do novo RF-016 (cliente dos contatos do celular), issue #115. "A implementar". |
+| 2026-11-17 | 1.33 | Wilson Gorosthides | CT-072 a CT-075 passam a "implementado" (issue #115). |

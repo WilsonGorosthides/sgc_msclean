@@ -4,7 +4,9 @@ import 'package:mocktail/mocktail.dart';
 import 'package:sgc_msclean/models/client_model.dart';
 import 'package:sgc_msclean/models/endereco.dart';
 import 'package:sgc_msclean/screens/client_form_screen.dart';
+import 'package:sgc_msclean/services/contatos.dart';
 
+import '../mocks/agenda_falsa.dart';
 import '../mocks/mock_supabase_client.dart';
 
 // Testes de widget do formulário de cadastro e edição (RF-001/RF-002), com
@@ -56,6 +58,78 @@ void main() {
     await tester.enterText(campoNumero, '45');
     await tester.enterText(campoTelefone, '11 94444-4444');
   }
+
+  // RF-016 (#115): trazer nome e telefone dos contatos do celular.
+  final ivete = ClientModel(
+      id: '9', nome: 'Ivete Souza', telefones: const ['67 99301-8496']);
+
+  Future<AgendaFalsa> bombearComContatos(WidgetTester tester, Contato? contato,
+      {ClientModel? cliente, List<ClientModel> clientes = const []}) async {
+    ajustarViewport(tester);
+    final agenda = AgendaFalsa(contato);
+    await tester.pumpWidget(MaterialApp(
+        key: UniqueKey(),
+        home: ClientFormScreen(
+            service: service,
+            cliente: cliente,
+            clientes: clientes,
+            contatos: agenda)));
+    return agenda;
+  }
+
+  group('client_form_screen_test: contatos:', () {
+    testWidgets('contato escolhido preenche nome e telefone', (tester) async {
+      await bombearComContatos(
+          tester, const Contato(nome: 'Dona Ivete', telefone: '(67) 99301-8496'));
+      await tester.tap(find.byKey(const Key('dos_contatos')));
+      await tester.pumpAndSettle();
+      expect(
+          tester.widget<TextFormField>(campoNome).controller!.text, 'Dona Ivete');
+      expect(tester.widget<TextFormField>(campoTelefone).controller!.text,
+          '+55 67 99301-8496');
+    });
+
+    testWidgets('sem contato escolhido nada muda; na edição não há o botão',
+        (tester) async {
+      final agenda = await bombearComContatos(tester, null);
+      await tester.tap(find.byKey(const Key('dos_contatos')));
+      await tester.pumpAndSettle();
+      expect(agenda.aberturas, 1);
+      expect(tester.widget<TextFormField>(campoNome).controller!.text, '');
+
+      await bombearComContatos(tester, null, cliente: cliente);
+      expect(find.byKey(const Key('dos_contatos')), findsNothing);
+    });
+
+    testWidgets('contato já cadastrado avisa e abre o cadastro existente',
+        (tester) async {
+      await bombearComContatos(
+          tester, const Contato(nome: 'Ivete', telefone: '+55 67 99301-8496'),
+          clientes: [cliente, ivete]);
+      await tester.tap(find.byKey(const Key('dos_contatos')));
+      await tester.pumpAndSettle();
+      expect(find.text('Já cadastrado como Ivete Souza'), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('abrir_existente')));
+      await tester.pumpAndSettle();
+      expect(find.text('Editar Cliente'), findsOneWidget);
+      expect(tester.widget<TextFormField>(campoNome).controller!.text,
+          'Ivete Souza');
+    });
+
+    testWidgets('contato já cadastrado pode ser cadastrado mesmo assim',
+        (tester) async {
+      await bombearComContatos(
+          tester, const Contato(nome: 'Ivete', telefone: '+55 67 99301-8496'),
+          clientes: [ivete]);
+      await tester.tap(find.byKey(const Key('dos_contatos')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('cadastrar_mesmo_assim')));
+      await tester.pumpAndSettle();
+      expect(find.text('Novo Cliente'), findsOneWidget);
+      expect(tester.widget<TextFormField>(campoNome).controller!.text, 'Ivete');
+    });
+  });
 
   group('client_form_screen_test:', () {
     testWidgets('exige nome e telefone; endereço é opcional', (tester) async {
