@@ -192,6 +192,7 @@ O sistema deve permitir consultar, para um cliente, **quanto foi cobrado** e **q
   - O sistema exibe o **valor do atendimento mais recente** que tenha valor registrado, junto da data desse atendimento e das peças que o compuseram.
   - O sistema exibe o histórico dos atendimentos anteriores daquele cliente, do mais recente para o mais antigo, com data, peças e valor de cada um.
   - Quando o cliente não tem nenhum atendimento registrado, o sistema exibe "Nenhum atendimento registrado" em vez de campos vazios ou zero.
+* **Nota de entrega (issue #81):** o histórico fica no topo da tela do cliente, a que abre ao tocar no nome na lista. Conta só os atendimentos **até hoje** — o que está marcado para depois ainda não é visita e aparece só na agenda.
 
 #### RF-012 - Aviso de Conflito de Horário
 O sistema deve avisar quando um atendimento é marcado em horário já ocupado.
@@ -364,3 +365,4 @@ O sistema deve ter um mecanismo de login para o único usuário (a proprietária
 | 2026-11-17 | 3.8 | Wilson Gorosthides | RF-004 ganha dois critérios: resultados por relevância (quem começa com o termo primeiro) e busca sem diferenciar acento — achado com a agenda importada de 4.371 contatos (issue #113). |
 | 2026-11-17 | 3.9 | Wilson Gorosthides | RNF-001: nenhum botão coberto pela barra de navegação do sistema (Android 15+ de ponta a ponta; Salvar coberto no celular da usuária, issue #118). |
 | 2026-11-17 | 3.10 | Wilson Gorosthides | Novo **RF-016 - Trazer Cliente dos Contatos do Celular** (issue #115): botão "Dos contatos" no cadastro e no atendimento, só o contato escolhido, aviso de já cadastrado, contato novo vira cliente com telefone, formato e comparação de telefone. |
+| 2026-11-17 | 3.11 | Wilson Gorosthides | RF-011 entregue (issue #81): nota de entrega — histórico no topo da tela do cliente, contando só atendimentos até hoje. |

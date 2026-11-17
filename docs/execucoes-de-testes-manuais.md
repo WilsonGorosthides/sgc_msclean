@@ -45,6 +45,18 @@ internet passou a valer no release).
 Nenhum SQL pendente: o do RF-014 (colunas `feito` e `pago`) foi aplicado no
 painel (confirmado pelo desenvolvedor em 2026-11-16).
 
+### #81 — histórico do cliente (RF-011)
+
+Sem SQL. Pode rodar no celular ou no emulador.
+
+| # | Passo | Resultado esperado | CT |
+|---|---|---|---|
+| 1 | Na agenda, registrar para uma cliente um atendimento **num dia passado** com valor (ex.: R$ 250,00, tapete 3 × 2) e outro mais recente **sem valor**; abrir a cliente na lista | No topo: "R$ 250,00" com "cobrado em <data> · tapete 3 × 2", e "há N dias/meses" com "última visita em <data do mais recente>" | CT-076, CT-077 |
+| 2 | Descer até "Atendimentos anteriores" | Os dois, do mais recente ao mais antigo, com data, peças e valor ("—" no sem valor) | CT-078 |
+| 3 | Marcar um atendimento para **daqui a uns dias** e reabrir a cliente | O futuro **não** entra no histórico nem muda a "última visita" | CT-078 |
+| 4 | Abrir uma cliente sem nenhum atendimento; depois, "+" (cliente novo) | "Nenhum atendimento registrado"; no cliente novo o histórico não aparece | CT-079 |
+| 5 | Em modo avião, abrir a mesma cliente do passo 1 | O histórico aparece igual (vem do aparelho) | CT-076 |
+
 ### #115 — cliente dos contatos do celular (RF-016)
 
 Sem SQL. Só no **celular** (Android), com o APK novo.
@@ -585,3 +597,4 @@ versão nova, assinada com a mesma chave, instala por cima sem perder dados.
 | 2026-11-17 | 1.24 | Wilson Gorosthides | Pilha: entram os passos da busca por relevância e sem acento (#113), sem SQL. |
 | 2026-11-17 | 1.25 | Wilson Gorosthides | Pilha: entram os passos do Salvar acima da barra de navegação (#118), sem SQL. |
 | 2026-11-17 | 1.26 | Wilson Gorosthides | Pilha: entram os passos do cliente dos contatos do celular (#115), sem SQL. |
+| 2026-11-17 | 1.27 | Wilson Gorosthides | Pilha: entram os passos do histórico do cliente (#81). |

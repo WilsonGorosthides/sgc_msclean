@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:sgc_msclean/models/atendimento.dart';
 import 'package:sgc_msclean/models/client_model.dart';
 import 'package:sgc_msclean/models/endereco.dart';
 import 'package:sgc_msclean/screens/client_form_screen.dart';
@@ -41,6 +42,9 @@ void main() {
 
   setUp(() {
     service = MockSupabaseService();
+    // A edição do cliente mostra o histórico (RF-011): sem atendimentos.
+    when(() => service.getAtendimentosStream())
+        .thenAnswer((_) => Stream.value(const <Atendimento>[]));
     conectado = ValueNotifier(true);
     when(() => service.conectado).thenReturn(conectado);
   });
