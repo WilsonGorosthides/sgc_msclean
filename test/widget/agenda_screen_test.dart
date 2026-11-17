@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:sgc_msclean/models/atendimento.dart';
 import 'package:sgc_msclean/models/client_model.dart';
+import 'package:sgc_msclean/models/item_de_preco.dart';
 import 'package:sgc_msclean/screens/agenda_screen.dart';
 import 'package:sgc_msclean/screens/atendimento_form_screen.dart';
 import 'package:sgc_msclean/services/avisos_do_aparelho.dart';
@@ -338,6 +339,25 @@ void main() {
 
       expect(find.text('MSClean - Clientes'), findsNothing);
       expect(dataSelecionada(tester), 'sexta-feira, 13 de novembro de 2026');
+    });
+
+    // CT-081 (RF-013, #123): a tabela de preços abre pela barra da agenda.
+    testWidgets('ícone da barra abre a tabela de preços', (tester) async {
+      when(() => service.getPrecosStream()).thenAnswer((_) => Stream.value(
+          const [
+            ItemDePreco(
+                id: 'p1',
+                nome: 'Higienização sofá 3 lugares',
+                unidade: UnidadeDeCobranca.peca,
+                valor: 180),
+          ]));
+      await bombear(tester, []);
+
+      await tocar(tester, 'abrir_precos');
+      await tester.pumpAndSettle();
+
+      expect(find.text('Tabela de preços'), findsOneWidget);
+      expect(find.text('Higienização sofá 3 lugares'), findsOneWidget);
     });
 
     testWidgets(

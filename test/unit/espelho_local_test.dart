@@ -20,6 +20,7 @@ class BancoFalso {
   final linhas = <String, List<Map<String, dynamic>>>{
     'atendimentos': [],
     'clientes': [],
+    'precos': [],
   };
   final enviados = <String>[]; // 'tabela:id', na ordem em que chegaram
 
@@ -49,6 +50,7 @@ void main() {
         armazem: armazem,
         atendimentosRemotos: () => banco.stream('atendimentos'),
         clientesRemotos: () => banco.stream('clientes'),
+        precosRemotos: () => banco.stream('precos'),
         enviar: banco.enviar,
         novaTentativa: const Duration(hours: 1), // fora do alcance do teste
         novoId: () => 'id-${++contador}',
@@ -237,6 +239,35 @@ void main() {
       expect(banco.linhas['atendimentos'], hasLength(1));
       expect(banco.linhas['atendimentos']!.single['id'], 'id-1');
       expect(await espelho.pendentes(), isEmpty);
+    });
+
+    // CT-086 (RF-013, #123): a tabela de preços fica no aparelho, para o
+    // cálculo do valor funcionar sem internet (#124).
+    test('tabela de preços guardada no aparelho abre sem conexão', () async {
+      banco.linhas['precos']!.add({
+        'id': 'p1',
+        'nome': 'Higienização sofá 3 lugares',
+        'unidade': 'peca',
+        'valor': 180,
+        'ordem': 0,
+      });
+      final online = abrir();
+      expect((await ultima(online.precos())).single.valor, 180.0);
+      expect(await armazem.ler(EspelhoLocal.chavePrecos), contains('p1'));
+
+      banco.noAr = false;
+      final offline = abrir();
+      final erros = <Object>[];
+      final guardados = <List<Object>>[];
+      final sub = offline.precos().listen(guardados.add, onError: erros.add);
+      await pumpEventQueue();
+      await sub.cancel();
+
+      expect(erros, isEmpty);
+      expect(guardados.first.single, isA<Object>());
+      expect((await primeira(abrir().precos())).single.nome,
+          'Higienização sofá 3 lugares');
+      expect(offline.conectado.value, isFalse);
     });
 
     test('a fila sobrevive a fechar e reabrir o app', () async {
