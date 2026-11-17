@@ -6,7 +6,9 @@ import 'package:sgc_msclean/models/client_model.dart';
 import 'package:sgc_msclean/models/endereco.dart';
 import 'package:sgc_msclean/models/peca.dart';
 import 'package:sgc_msclean/screens/atendimento_form_screen.dart';
+import 'package:sgc_msclean/services/contatos.dart';
 
+import '../mocks/agenda_falsa.dart';
 import '../mocks/mock_supabase_client.dart';
 
 // Testes de widget do formulário de atendimento (RF-005 enxuto, issue #77),
@@ -42,7 +44,7 @@ void main() {
   // [chave] distingue uma segunda montagem no mesmo teste: sem ela o Flutter
   // reaproveita o MaterialApp (e o Navigator já sem rota, após o pop).
   Future<void> bombear(WidgetTester tester,
-      {Atendimento? atendimento, Key? chave}) async {
+      {Atendimento? atendimento, Key? chave, AgendaDoCelular? contatos}) async {
     tester.view.physicalSize = const Size(1200, 2400);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
@@ -54,6 +56,7 @@ void main() {
         data: dia,
         clientes: clientes,
         atendimento: atendimento,
+        contatos: contatos,
       ),
     ));
   }
@@ -212,6 +215,42 @@ void main() {
       verify(() => service.addClienteProvisorio('Dona Ivete')).called(1);
       expect(gravado.clienteId, 'novo');
       expect(gravado.periodo, Periodo.tarde);
+    });
+
+    // RF-016 (#115), CT-074: contato do celular no atendimento.
+    testWidgets('contato que já é cliente seleciona o cliente', (tester) async {
+      await bombear(tester,
+          contatos: AgendaFalsa(
+              const Contato(nome: 'Aninha', telefone: '+55 11 91111-1111')));
+      await tocar(tester, 'dos_contatos');
+      await tester.pumpAndSettle();
+      expect(find.text('Ana Souza'), findsOneWidget);
+      expect(find.text('provisório'), findsNothing);
+    });
+
+    testWidgets('contato novo vira cliente com telefone ao salvar',
+        (tester) async {
+      await bombear(tester,
+          contatos: AgendaFalsa(
+              const Contato(nome: 'Dona Ivete', telefone: '67993018496')));
+      final criada = ClientModel(
+          id: 'novo', nome: 'Dona Ivete', telefones: const ['+55 67 99301-8496']);
+      when(() => service.addClienteDoContato('Dona Ivete', '+55 67 99301-8496'))
+          .thenAnswer((_) async => criada);
+
+      await tocar(tester, 'dos_contatos');
+      await tester.pumpAndSettle();
+      expect(find.text('Dona Ivete'), findsOneWidget);
+      expect(find.text('provisório'), findsNothing);
+
+      await tocar(tester, 'escolher_tarde');
+      final gravado = await salvarECapturar(tester);
+
+      verify(() =>
+              service.addClienteDoContato('Dona Ivete', '+55 67 99301-8496'))
+          .called(1);
+      verifyNever(() => service.addClienteProvisorio(any()));
+      expect(gravado.clienteId, 'novo');
     });
 
     testWidgets('local vem do endereço do cliente e pode ser alterado',
