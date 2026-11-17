@@ -14,10 +14,12 @@ import '../utils/avisos.dart';
 import 'atendimento_form_screen.dart';
 import 'home_screen.dart';
 import 'sem_conexao.dart';
+import 'tabela_de_precos_screen.dart';
 
 // Tela inicial do app (RF-010): a agenda virtual. Mostra o dia selecionado
 // agrupado por período, com a semana sempre à vista e o mês a um toque. A
-// lista de clientes (RF-003) fica a um toque, na barra do topo.
+// lista de clientes (RF-003) e a tabela de preços (RF-013) ficam a um toque,
+// na barra do topo.
 class AgendaScreen extends StatefulWidget {
   const AgendaScreen({super.key, this.service, this.agora, this.avisos});
 
@@ -181,6 +183,12 @@ class _AgendaScreenState extends State<AgendaScreen> {
     ));
   }
 
+  void _abrirPrecos() {
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (_) => TabelaDePrecosScreen(service: _service),
+    ));
+  }
+
   @override
   Widget build(BuildContext context) {
     final hoje = soData(_agora());
@@ -205,6 +213,12 @@ class _AgendaScreenState extends State<AgendaScreen> {
             onPressed: _verMes
                 ? () => setState(() => _verMes = false)
                 : _abrirMes,
+          ),
+          IconButton(
+            key: const Key('abrir_precos'),
+            icon: const Icon(Icons.sell_outlined),
+            tooltip: 'Tabela de preços',
+            onPressed: _abrirPrecos,
           ),
           IconButton(
             key: const Key('abrir_clientes'),

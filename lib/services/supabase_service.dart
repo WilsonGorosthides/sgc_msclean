@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/atendimento.dart';
 import '../models/client_model.dart';
+import '../models/item_de_preco.dart';
 import '../utils/texto.dart';
 import 'armazem_local.dart';
 import 'espelho_local.dart';
@@ -39,6 +40,11 @@ class SupabaseService {
         .from('atendimentos')
         .stream(primaryKey: ['id'])
         .order('data', ascending: true),
+    // Tabela de preços (RF-013, #123), na ordem da lista.
+    precosRemotos: () => _supabase
+        .from('precos')
+        .stream(primaryKey: ['id'])
+        .order('ordem', ascending: true),
     // upsert sem sobrescrever: o id vem do app, então reenviar um item que o
     // banco já gravou (resposta perdida no caminho) não duplica nem altera.
     enviar: (tabela, linha) async {
@@ -55,6 +61,30 @@ class SupabaseService {
   Stream<List<ClientModel>> getClientsStream() => _espelho.clientes();
 
   Stream<List<Atendimento>> getAtendimentosStream() => _espelho.atendimentos();
+
+  // Tabela de preços (RF-013, #123): lida pelo espelho (guardada no
+  // aparelho); a escrita vai direto ao banco, como a de clientes, e a tela
+  // renova a stream ao voltar.
+  Stream<List<ItemDePreco>> getPrecosStream() => _espelho.precos();
+
+  Future<void> addPreco(ItemDePreco item) async {
+    await _supabase.from('precos').insert(item.toMap());
+  }
+
+  // Lista sugerida (tabela vazia): um insert só, tudo ou nada.
+  Future<void> addPrecos(List<ItemDePreco> itens) async {
+    await _supabase
+        .from('precos')
+        .insert([for (final i in itens) i.toMap()]);
+  }
+
+  Future<void> updatePreco(ItemDePreco item) async {
+    await _supabase.from('precos').update(item.toMap()).eq('id', item.id!);
+  }
+
+  Future<void> deletePreco(String id) async {
+    await _supabase.from('precos').delete().eq('id', id);
+  }
 
   // Cadastra um cliente novo (RF-001); o id é gerado pelo Supabase.
   Future<void> addClient(ClientModel client) async {
