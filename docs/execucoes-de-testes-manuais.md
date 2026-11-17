@@ -45,50 +45,14 @@ internet passou a valer no release).
 Nenhum SQL pendente: o do RF-014 (colunas `feito` e `pago`) foi aplicado no
 painel (confirmado pelo desenvolvedor em 2026-11-16).
 
-### #81 — histórico do cliente (RF-011)
+### #128 — atendimento novo em dobro na agenda (RNF-007)
 
-Sem SQL. Pode rodar no celular ou no emulador.
-
-| # | Passo | Resultado esperado | CT |
-|---|---|---|---|
-| 1 | Na agenda, registrar para uma cliente um atendimento **num dia passado** com valor (ex.: R$ 250,00, tapete 3 × 2) e outro mais recente **sem valor**; abrir a cliente na lista | No topo: "R$ 250,00" com "cobrado em <data> · tapete 3 × 2", e "há N dias/meses" com "última visita em <data do mais recente>" | CT-076, CT-077 |
-| 2 | Descer até "Atendimentos anteriores" | Os dois, do mais recente ao mais antigo, com data, peças e valor ("—" no sem valor) | CT-078 |
-| 3 | Marcar um atendimento para **daqui a uns dias** e reabrir a cliente | O futuro **não** entra no histórico nem muda a "última visita" | CT-078 |
-| 4 | Abrir uma cliente sem nenhum atendimento; depois, "+" (cliente novo) | "Nenhum atendimento registrado"; no cliente novo o histórico não aparece | CT-079 |
-| 5 | Em modo avião, abrir a mesma cliente do passo 1 | O histórico aparece igual (vem do aparelho) | CT-076 |
-
-### #115 — cliente dos contatos do celular (RF-016)
-
-Sem SQL. Só no **celular** (Android), com o APK novo.
+Sem SQL. No celular, com o APK novo e com rede.
 
 | # | Passo | Resultado esperado | CT |
 |---|---|---|---|
-| 1 | Clientes > "+" > "Dos contatos do celular"; escolher um contato que **não** está no app | Abre a agenda do celular **sem pedir permissão**; ao escolher, nome e telefone (`+55 67 ...`) preenchidos | CT-072 |
-| 2 | Repetir com um contato que **já** está no app | Aparece "Já cadastrado como <nome>"; "Abrir cadastro" abre a edição dele | CT-073 |
-| 3 | Novo atendimento > "Dos contatos do celular" > um contato que já é cliente | O cliente fica escolhido, sem "provisório" | CT-074 |
-| 4 | Novo atendimento > "Dos contatos do celular" > contato novo; escolher período e salvar | O cartão aparece na agenda; na lista de clientes, ele está com o telefone | CT-074 |
-| 5 | Repetir o passo 4 em modo avião, depois religar | "Aguardando envio" e, com a rede, cliente e atendimento chegam uma vez só | CT-074, CT-055 |
-
-### #118 — Salvar acima da barra de navegação (RNF-001)
-
-Sem SQL. No celular da usuária (Samsung A25, Android 16), com os botões de navegação na base.
-
-| # | Passo | Resultado esperado | CT |
-|---|---|---|---|
-| 1 | Novo atendimento: rolar até o fim | "Salvar atendimento" inteiro acima da barra do sistema, tocável | CT-071 |
-| 2 | Novo cliente: rolar até o fim | "Salvar" inteiro acima da barra | CT-071 |
-| 3 | Agenda com vários atendimentos no dia: rolar até o fim | O último cartão não fica sob a barra nem sob o "+" | CT-071 |
-
-### #113 — busca por relevância e sem acento (RF-004)
-
-Sem SQL. Com a agenda importada (#23), no celular.
-
-| # | Passo | Resultado esperado | CT |
-|---|---|---|---|
-| 1 | Na lista de clientes, buscar "paulo" | Quem se chama só "Paulo" vem primeiro; depois os que começam com "Paulo"; "João Paulo" e parecidos depois | CT-069 |
-| 2 | Buscar "neto" | "Neto" primeiro; "Bruno Neto" e "amiga do Neto" depois | CT-069 |
-| 3 | Buscar "joao" (sem acento) | Aparecem os "João" | CT-070 |
-| 4 | Em "Novo atendimento", digitar um primeiro nome comum | O cliente com aquele nome aparece entre os 6 primeiros | CT-069 |
+| 1 | Registrar um atendimento de teste (cliente "TESTE ...", data passada) e voltar à agenda; repetir três vezes | Cada atendimento aparece **uma vez só**, e a contagem do dia e do período bate | CT-055 |
+| 2 | Fechar e reabrir o app | Nada some nem duplica; apagar os clientes "TESTE" no fim (os atendimentos vão junto) | CT-055 |
 
 ## Execução 001 — Verificação manual do RF-001 (pré-merge do PR #44)
 
@@ -566,6 +530,45 @@ preparação do APK de release (#23).
 **Aprovado.** O caminho de atualização do app da usuária está provado: cada
 versão nova, assinada com a mesma chave, instala por cima sem perder dados.
 
+## Execução 013 — Pilha: histórico, contatos, Salvar acima da barra e busca (pós-merge, #81, #115, #118, #113)
+
+- **Data:** 2026-11-17.
+- **Objeto:** os quatro blocos da pilha — histórico do cliente (#81, PR
+  #121), cliente dos contatos do celular (#115, PR #120), Salvar acima da
+  barra de navegação (#118) e busca por relevância e sem acento (#113). Sem
+  SQL.
+- **Ambiente:** APK de release instalado por cima (`adb install -r`) no
+  celular do desenvolvedor, Realme RMX3941 com Android 16, contra o Supabase
+  real do MVP. O #118 foi escrito para o Samsung A25 da usuária e rodou no
+  celular do desenvolvedor.
+- **Executor:** o desenvolvedor (resultado informado em 2026-11-17: "todos os
+  testes passaram"); o agente instalou o APK e capturou as telas por `adb`.
+
+### Resultados
+
+| Bloco | Passos | Resultado |
+|---|---|---|
+| #81 — histórico do cliente | 1 a 5 (CT-076 a CT-079) | Aprovado |
+| #115 — cliente dos contatos | 1 a 5 (CT-072 a CT-074, CT-055) | Aprovado |
+| #118 — Salvar acima da barra | 1 a 3 (CT-071) | Aprovado |
+| #113 — busca | 1 a 4 (CT-069, CT-070) | Aprovado |
+
+### Ocorrências
+- **Bug #128:** um atendimento recém-registrado apareceu **duas vezes** na
+  agenda; reabrir o app desfazia, trocar de tela às vezes não. Causa: a
+  stream do Supabase entrega a linha em dobro quando o INSERT do realtime
+  chega depois da leitura inicial. Corrigido no espelho (uma linha por id),
+  com passo novo na pilha.
+- **Achado de uso (#129):** o desenvolvedor procurou o histórico na tela do
+  atendimento, não na do cliente. Vira resumo do histórico na escolha do
+  cliente do atendimento.
+- Os testes gravaram dados no banco real (o mesmo do celular da usuária):
+  registros de teste nomeados "TESTE" e apagados no fim. Um projeto Supabase
+  separado para teste fica como recomendação.
+
+### Veredicto
+**Aprovado**, com o bug #128 corrigido no PR seguinte.
+
 ## Histórico de Versões
 
 | Data | Versão | Autor | Descrição da mudança |
@@ -598,3 +601,4 @@ versão nova, assinada com a mesma chave, instala por cima sem perder dados.
 | 2026-11-17 | 1.25 | Wilson Gorosthides | Pilha: entram os passos do Salvar acima da barra de navegação (#118), sem SQL. |
 | 2026-11-17 | 1.26 | Wilson Gorosthides | Pilha: entram os passos do cliente dos contatos do celular (#115), sem SQL. |
 | 2026-11-17 | 1.27 | Wilson Gorosthides | Pilha: entram os passos do histórico do cliente (#81). |
+| 2026-11-17 | 1.28 | Wilson Gorosthides | Execução 013 (pilha #81, #115, #118, #113: aprovada; bug #128 e achado #129); a pilha passa a ter só o passo do #128. |

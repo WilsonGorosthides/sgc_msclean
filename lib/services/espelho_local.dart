@@ -169,6 +169,32 @@ class EspelhoLocal {
     if (!_mudou.isClosed) _mudou.add(null);
   }
 
+  // A stream do Supabase pode entregar a mesma linha duas vezes: o INSERT do
+  // realtime chega depois da leitura inicial que já a trazia (#128 — atendimento
+  // recém-salvo em dobro na agenda até reabrir o app). Fica uma por id, a
+  // última recebida, na posição da primeira.
+  static Linhas _semRepetidas(Linhas dados) {
+    final porId = <String, Map<String, dynamic>>{};
+    final semId = <Map<String, dynamic>>[];
+    for (final linha in dados) {
+      final id = linha['id']?.toString();
+      if (id == null) {
+        semId.add(linha);
+      } else {
+        porId[id] = linha;
+      }
+    }
+    if (porId.length + semId.length == dados.length) return dados;
+    final vistos = <String>{};
+    return [
+      for (final linha in dados)
+        if (linha['id'] == null)
+          linha
+        else if (vistos.add(linha['id'].toString()))
+          porId[linha['id'].toString()]!,
+    ];
+  }
+
   static List<Map<String, dynamic>>? _decodificar(String? texto) {
     if (texto == null) return null;
     try {
@@ -235,9 +261,9 @@ class EspelhoLocal {
       assinatura = fonte.listen(
         (dados) {
           limite?.cancel();
-          linhas = dados;
+          linhas = _semRepetidas(dados);
           _conectado.value = true;
-          _armazem.gravar(chave, jsonEncode(dados)).catchError((_) {});
+          _armazem.gravar(chave, jsonEncode(linhas)).catchError((_) {});
           emitir();
           enviarPendentes();
         },
@@ -260,7 +286,7 @@ class EspelhoLocal {
         mudancas = _mudou.stream.listen((_) => emitir());
         final guardado = _decodificar(await _armazem.ler(chave));
         if (linhas == null && guardado != null) {
-          linhas = guardado;
+          linhas = _semRepetidas(guardado); // cópia gravada antes do #128
           await emitir();
         }
         if (!saida.isClosed) assinar();
