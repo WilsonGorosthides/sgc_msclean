@@ -251,7 +251,10 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.all(AppSpacing.lg),
+          // Do Android 15 em diante a tela vai por baixo da barra de
+          // navegação; sem somar a barra, o Salvar fica coberto (#118).
+          padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg,
+              AppSpacing.lg, AppSpacing.lg + MediaQuery.paddingOf(context).bottom),
           children: [
             TextFormField(
               key: const Key('campo_nome'),
