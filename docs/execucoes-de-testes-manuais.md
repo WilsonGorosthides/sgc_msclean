@@ -45,16 +45,8 @@ internet passou a valer no release).
 Nenhum SQL pendente: o do RF-014 (colunas `feito` e `pago`) foi aplicado no
 painel (confirmado pelo desenvolvedor em 2026-11-16).
 
-### #109 — APK de release assinado com a chave própria
-
-Sem SQL. No computador e no celular.
-
-| # | Passo | Resultado esperado | CT |
-|---|---|---|---|
-| 1 | Sem `android/key.properties`, rodar `fvm flutter build apk --release` | O build falha com "Falta android/key.properties com a chave do release" | — |
-| 2 | Gerar a keystore (`docs/arquitetura.md` §12), criar o `key.properties` e rodar o build de novo | Sai `build/app/outputs/flutter-apk/app-release.apk`; `git status` não mostra o `key.properties` nem o `.jks` | — |
-| 3 | Desinstalar o app antigo do celular e instalar o `app-release.apk` | Abre a agenda **com dados**, com o ícone e o nome "MS Clean" | — |
-| 4 | Gerar o APK de novo (mesma chave) e instalar **por cima**, sem desinstalar | Instala como atualização, sem pedir para desinstalar, e os dados continuam | — |
+Nenhum passo pendente: o bloco do #109 foi aprovado na Execução 012. As
+próximas entregas acrescentam os seus blocos aqui.
 
 ## Execução 001 — Verificação manual do RF-001 (pré-merge do PR #44)
 
@@ -502,6 +494,36 @@ pelo próprio app.
 **Aprovado.** Os quatro blocos saem da pilha, que fica vazia antes da
 preparação do APK de release (#23).
 
+## Execução 012 — Pilha: APK de release assinado com a chave própria (pós-merge, #109)
+
+- **Data:** 2026-11-16.
+- **Objeto:** assinatura do release com a keystore do desenvolvedor (#109, PR
+  #110). Sem SQL.
+- **Ambiente:** computador do desenvolvedor (build) e celular Realme RMX3941
+  com Android 16, instalação por cabo USB (`adb install`), contra o Supabase
+  real do MVP.
+- **Executor:** o agente (passo 1, ao validar o PR, e as instalações por
+  `adb`) e o desenvolvedor (conferência no celular, informada em 2026-11-16).
+
+### Resultados
+
+| Passo | O que verificou | Resultado |
+|---|---|---|
+| 1 | Sem `android/key.properties`, o build de release falha com a mensagem "Falta android/key.properties..." | Aprovado |
+| 2 | Com a keystore e o `key.properties`, sai o `app-release.apk` assinado pela chave do desenvolvedor (`apksigner verify`); nem a chave nem o `key.properties` aparecem no `git status` | Aprovado |
+| 3 | Instalado num aparelho sem o app: abre a agenda com dados, ícone e nome "MS Clean"; pede notificação (Android 16) e bateria | Aprovado |
+| 4 | APK gerado de novo e instalado **por cima** (`adb install -r`): aceito como atualização, dados mantidos, sem pedir permissões de novo | Aprovado |
+
+### Ocorrências
+- O `keytool` em português pergunta "Está correto? [não]" e não aceita `y`;
+  a resposta é `sim`, ou passar `-dname` no comando (`docs/arquitetura.md` §12).
+- Primeira rodada num Android 13+: o pedido de notificação, que não existe no
+  Android 11 da Execução 011, apareceu e foi aceito.
+
+### Veredicto
+**Aprovado.** O caminho de atualização do app da usuária está provado: cada
+versão nova, assinada com a mesma chave, instala por cima sem perder dados.
+
 ## Histórico de Versões
 
 | Data | Versão | Autor | Descrição da mudança |
@@ -529,3 +551,4 @@ preparação do APK de release (#23).
 | 2026-11-16 | 1.20 | Wilson Gorosthides | Pilha: entram os passos de trocar o dia e excluir atendimento (#106), sem SQL. |
 | 2026-11-16 | 1.21 | Wilson Gorosthides | Execução 011: blocos #94, #96, #95 e #106 da pilha aprovados no celular (Android 11), com a ocorrência do fuso corrigida no PR #105; a pilha fica vazia. |
 | 2026-11-16 | 1.22 | Wilson Gorosthides | Pilha: entram os passos do APK de release assinado com a chave própria (#109), sem SQL. |
+| 2026-11-17 | 1.23 | Wilson Gorosthides | Execução 012: APK de release com a chave própria aprovado no celular (Android 16), incluindo a atualização por cima; a pilha fica vazia. |
