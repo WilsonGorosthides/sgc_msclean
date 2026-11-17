@@ -977,7 +977,7 @@ falso, que pode estar "fora do ar", e um armazenamento em memória no lugar do
 ### CT-055 — Envio automático ao voltar a conexão, sem duplicar
 - **Critério:** "É enviado ao banco sozinho quando a conexão voltar, sem
   duplicar."
-- **Tipo:** Unitário · **Situação:** implementado — `espelho_local_test: ao voltar a conexão envia a fila na ordem e esvazia` · `espelho_local_test: o id é gerado no app: o envio leva o id e reenviar não duplica`
+- **Tipo:** Unitário · **Situação:** implementado — `espelho_local_test: ao voltar a conexão envia a fila na ordem e esvazia` · `espelho_local_test: o id é gerado no app: o envio leva o id e reenviar não duplica` · `espelho_local_test: linha repetida pelo banco aparece uma vez só`
 - **Pré-condições:** dois itens na fila.
 - **Passos:**
   1. O banco volta e a stream recebe dados.
@@ -1106,3 +1106,4 @@ falso, que pode estar "fora do ar", e um armazenamento em memória no lugar do
 | 2026-11-17 | 1.33 | Wilson Gorosthides | CT-072 a CT-075 passam a "implementado" (issue #115). |
 | 2026-11-17 | 1.34 | Wilson Gorosthides | CT-076 a CT-079 do RF-011 (histórico do cliente), issue #81. "A implementar". |
 | 2026-11-17 | 1.35 | Wilson Gorosthides | CT-076 a CT-079 passam a "implementado" (issue #81). |
+| 2026-11-17 | 1.36 | Wilson Gorosthides | CT-055 ganha o teste da linha repetida pelo banco (bug #128: atendimento em dobro na agenda). |
