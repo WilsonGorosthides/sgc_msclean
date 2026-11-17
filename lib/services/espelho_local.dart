@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 
 import '../models/atendimento.dart';
 import '../models/client_model.dart';
+import '../models/item_de_preco.dart';
 import 'armazem_local.dart';
 
 typedef Linhas = List<Map<String, dynamic>>;
@@ -14,8 +15,9 @@ typedef Linhas = List<Map<String, dynamic>>;
 // SupabaseService — que continua a única porta para o backend — e faz três
 // coisas:
 //
-// 1. Guarda no aparelho a última leitura de atendimentos e de clientes; ao
-//    abrir, emite primeiro o que está guardado e depois o que vier do banco.
+// 1. Guarda no aparelho a última leitura de atendimentos, de clientes e da
+//    tabela de preços (RF-013, #123); ao abrir, emite primeiro o que está
+//    guardado e depois o que vier do banco.
 // 2. Mantém uma fila de envios (cliente provisório e atendimento novo). O
 //    item entra na fila antes de qualquer tentativa de rede, aparece nas
 //    streams com a marca de pendente e é enviado, na ordem, sempre que o
@@ -27,6 +29,9 @@ class EspelhoLocal {
     required ArmazemLocal armazem,
     required Stream<Linhas> Function() atendimentosRemotos,
     required Stream<Linhas> Function() clientesRemotos,
+    // Tabela de preços (RF-013): só leitura espelhada, a escrita vai direto
+    // ao banco. Opcional para os testes que não a usam.
+    Stream<Linhas> Function()? precosRemotos,
     required Future<void> Function(String tabela, Map<String, dynamic> linha)
         enviar,
     Duration novaTentativa = const Duration(seconds: 20),
@@ -36,6 +41,7 @@ class EspelhoLocal {
   })  : _armazem = armazem,
         _atendimentosRemotos = atendimentosRemotos,
         _clientesRemotos = clientesRemotos,
+        _precosRemotos = precosRemotos ?? (() => Stream.value(const [])),
         _enviar = enviar,
         _novaTentativa = novaTentativa,
         _prazo = prazo,
@@ -45,10 +51,12 @@ class EspelhoLocal {
   static const chaveAtendimentos = 'espelho.atendimentos';
   static const chaveClientes = 'espelho.clientes';
   static const chaveFila = 'espelho.fila';
+  static const chavePrecos = 'espelho.precos';
 
   final ArmazemLocal _armazem;
   final Stream<Linhas> Function() _atendimentosRemotos;
   final Stream<Linhas> Function() _clientesRemotos;
+  final Stream<Linhas> Function() _precosRemotos;
   final Future<void> Function(String tabela, Map<String, dynamic> linha)
       _enviar;
   final Duration _novaTentativa;
@@ -65,7 +73,11 @@ class EspelhoLocal {
 
   // Enviados nesta sessão que a stream do banco ainda não devolveu: seguem à
   // vista (sem a marca) até chegarem pelo banco, para o item não piscar.
-  final Map<String, Linhas> _enviados = {'atendimentos': [], 'clientes': []};
+  final Map<String, Linhas> _enviados = {
+    'atendimentos': [],
+    'clientes': [],
+    'precos': [],
+  };
 
   final _mudou = StreamController<void>.broadcast();
   Future<void> _envio = Future.value();
@@ -84,6 +96,15 @@ class EspelhoLocal {
         ler: (m, pendente) => ClientModel.fromMap(m, pendente: pendente),
         // o banco entrega em ordem de nome; um item local entra na mesma ordem
         ordenar: (a, b) => a.nome.toLowerCase().compareTo(b.nome.toLowerCase()),
+      );
+
+  // Tabela de preços (RF-013), guardada no aparelho para o cálculo do valor
+  // sem internet (#124). Nada dela passa pela fila.
+  Stream<List<ItemDePreco>> precos() => _espelho(
+        tabela: 'precos',
+        chave: chavePrecos,
+        remoto: _precosRemotos,
+        ler: (m, _) => ItemDePreco.fromMap(m),
       );
 
   // Cliente provisório (RF-005) criado no aparelho: o id nasce aqui, para o
