@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:sgc_msclean/models/atendimento.dart';
 import 'package:sgc_msclean/models/client_model.dart';
 import 'package:sgc_msclean/models/endereco.dart';
+import 'package:sgc_msclean/models/peca.dart';
 import 'package:sgc_msclean/screens/client_form_screen.dart';
 import 'package:sgc_msclean/services/contatos.dart';
 
@@ -28,6 +30,9 @@ void main() {
 
   setUp(() {
     service = MockSupabaseService();
+    // A edição mostra o histórico do cliente (RF-011): sem atendimentos.
+    when(() => service.getAtendimentosStream())
+        .thenAnswer((_) => Stream.value(const <Atendimento>[]));
   });
 
   final campoNome = find.byKey(const Key('campo_nome'));
@@ -366,6 +371,115 @@ void main() {
       expect(
           find.text('Use apenas dígitos, espaços e + ( ) -'), findsOneWidget);
       verifyNever(() => service.addClient(any()));
+    });
+  });
+
+  // RF-011 (#81): o histórico do cliente no topo da tela do cliente.
+  group('client_form_screen_test: histórico:', () {
+    final hoje = DateTime(2026, 11, 17);
+    final marco = Atendimento(
+      data: DateTime(2026, 3, 10),
+      periodo: Periodo.manha,
+      clienteId: '7',
+      valor: 250,
+      pecas: const [Peca(tipo: 'tapete', largura: 3, comprimento: 2)],
+    );
+    final agosto = Atendimento(
+      data: DateTime(2026, 8, 12),
+      periodo: Periodo.tarde,
+      clienteId: '7',
+      pecas: const [Peca(tipo: 'sofá')],
+    );
+    final futuro = Atendimento(
+      data: DateTime(2026, 11, 30),
+      periodo: Periodo.manha,
+      clienteId: '7',
+      valor: 999,
+      pecas: const [Peca(tipo: 'poltrona')],
+    );
+    final deOutro = Atendimento(
+      data: DateTime(2026, 9, 1),
+      periodo: Periodo.manha,
+      clienteId: '8',
+      valor: 777,
+      pecas: const [Peca(tipo: 'colchão')],
+    );
+
+    Future<void> abrirCliente(
+        WidgetTester tester, List<Atendimento> atendimentos) async {
+      ajustarViewport(tester);
+      when(() => service.getAtendimentosStream())
+          .thenAnswer((_) => Stream.value(atendimentos));
+      await tester.pumpWidget(MaterialApp(
+          home: ClientFormScreen(
+              service: service, cliente: cliente, agora: () => hoje)));
+      await tester.pump();
+    }
+
+    testWidgets('mostra a última visita e há quanto tempo', (tester) async {
+      await abrirCliente(tester, [marco, futuro, agosto, deOutro]);
+
+      final ultima = find.byKey(const Key('ultima_visita'));
+      expect(find.descendant(of: ultima, matching: find.text('há 3 meses')),
+          findsOneWidget);
+      expect(
+          find.descendant(
+              of: ultima, matching: find.text('última visita em 12/08/26')),
+          findsOneWidget);
+    });
+
+    testWidgets('mostra o último valor com a data e as peças', (tester) async {
+      await abrirCliente(tester, [marco, agosto]);
+
+      final valor = find.byKey(const Key('ultimo_valor'));
+      expect(find.descendant(of: valor, matching: find.text('R\$ 250,00')),
+          findsOneWidget);
+      expect(
+          find.descendant(
+              of: valor,
+              matching: find.text('cobrado em 10/03/26 · tapete 3 × 2')),
+          findsOneWidget);
+    });
+
+    testWidgets('lista os atendimentos do mais recente ao mais antigo',
+        (tester) async {
+      await abrirCliente(tester, [marco, futuro, agosto, deOutro]);
+
+      final primeiro = find.byKey(const Key('historico_item_0'));
+      final segundo = find.byKey(const Key('historico_item_1'));
+      expect(find.byKey(const Key('historico_item_2')), findsNothing);
+      expect(find.descendant(of: primeiro, matching: find.text('12/08/26')),
+          findsOneWidget);
+      expect(find.descendant(of: primeiro, matching: find.text('sofá')),
+          findsOneWidget);
+      expect(find.descendant(of: primeiro, matching: find.text('—')),
+          findsOneWidget);
+      expect(find.descendant(of: segundo, matching: find.text('10/03/26')),
+          findsOneWidget);
+      expect(
+          find.descendant(of: segundo, matching: find.text('tapete 3 × 2')),
+          findsOneWidget);
+      expect(find.descendant(of: segundo, matching: find.text('R\$ 250,00')),
+          findsOneWidget);
+      expect(find.text('R\$ 999,00'), findsNothing);
+      expect(find.text('R\$ 777,00'), findsNothing);
+    });
+
+    testWidgets('sem atendimento mostra "Nenhum atendimento registrado"',
+        (tester) async {
+      await abrirCliente(tester, [deOutro, futuro]);
+
+      expect(find.text('Nenhum atendimento registrado'), findsOneWidget);
+      expect(find.byKey(const Key('ultima_visita')), findsNothing);
+      expect(find.byKey(const Key('ultimo_valor')), findsNothing);
+
+      // no cadastro de cliente novo o histórico não aparece
+      await tester.pumpWidget(MaterialApp(
+          key: UniqueKey(),
+          home: ClientFormScreen(service: service, agora: () => hoje)));
+      await tester.pump();
+      expect(find.byKey(const Key('historico')), findsNothing);
+      expect(find.text('Nenhum atendimento registrado'), findsNothing);
     });
   });
 }
