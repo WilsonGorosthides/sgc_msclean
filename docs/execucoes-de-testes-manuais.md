@@ -42,28 +42,8 @@ como **outro app**: desinstalar o antigo primeiro, para não ficarem dois ícone
 Conferir também que o APK novo abre a agenda **com dados** (a permissão de
 internet passou a valer no release).
 
-### SQL a aplicar (antes dos passos)
-
-Tabela de preços (#123), no SQL Editor do painel do Supabase:
-
-```sql
-create table public.precos (
-  id        uuid primary key default gen_random_uuid(),
-  nome      text not null,
-  unidade   text not null check (unidade in ('peca', 'm2')),
-  valor     numeric,
-  ordem     int not null default 0,
-  criado_em timestamptz not null default now()
-);
-
-alter table public.precos enable row level security;
-
-create policy mvp_acesso_total_anon on public.precos
-  for all to anon using (true) with check (true);
-
--- a stream do app depende da publicação de realtime
-alter publication supabase_realtime add table public.precos;
-```
+Nenhum SQL pendente: o da tabela `precos` (#123) foi aplicado no painel
+(confirmado pelo desenvolvedor em 2026-11-17).
 
 ### #123 — Tabela de preços editável (RF-013, parte 1)
 
@@ -87,6 +67,30 @@ tabela de verdade, pular o passo 2.
    aparece (guardada no aparelho) com o aviso de sem conexão. Com a internet de
    volta, tocar na lixeira do TESTE, Cancelar (fica) e depois Remover.
    **Esperado:** "Serviço removido" e a linha sai. (CT-086, CT-083)
+
+### #124 — Valor do atendimento calculado pela tabela (RF-013, parte 2)
+
+Antes: a tabela tem "Higienização sofá 3 lugares" e "Impermeabilização sofá 3
+lugares" com valor, "Higienização de tapete" com valor do m² e um serviço sem
+valor (ex.: "Remoção de odor"). Usar o cliente "TESTE" num dia passado e
+excluir o atendimento no fim.
+
+1. Novo atendimento, peça sofá. **Esperado:** só os serviços de sofá aparecem
+   como opção. Marcar só a impermeabilização: "Total calculado" mostra o valor
+   dela e o campo Valor acompanha. Marcar também a higienização: o total soma
+   os dois. Mudar a quantidade para 2: o total dobra. (CT-087, CT-089, CT-090)
+2. Adicionar uma peça tapete, marcar a higienização por m² e informar 8 × 4,5.
+   **Esperado:** antes das medidas, aviso "Falta medida"; depois, o tapete
+   soma 36 × o valor do m². (CT-088)
+3. Adicionar uma peça "outro" e marcar o serviço sem valor. **Esperado:**
+   aviso "Sem valor na tabela" com o nome dele; o total não muda. (CT-090)
+4. Digitar outro valor no campo Valor (desconto). **Esperado:** o valor
+   digitado fica, mesmo mudando peças; aparece "Usar o calculado", que volta ao
+   total. Salvar com o valor digitado. (CT-091)
+5. Na tabela de preços, mudar o valor da higienização de sofá; abrir o
+   atendimento salvo. **Esperado:** os serviços e o Valor seguem com os preços
+   do dia do registro. Excluir o atendimento TESTE e voltar a tabela ao valor
+   de antes. (CT-092)
 
 ## Execução 001 — Verificação manual do RF-001 (pré-merge do PR #44)
 
@@ -659,3 +663,4 @@ versão nova, assinada com a mesma chave, instala por cima sem perder dados.
 | 2026-11-17 | 1.28 | Wilson Gorosthides | Execução 013 (pilha #81, #115, #118, #113: aprovada; bug #128 e achado #129); a pilha passa a ter só o passo do #128. |
 | 2026-11-17 | 1.29 | Wilson Gorosthides | Execução 014 (#128: atendimento em dobro corrigido, aprovado); pilha vazia. |
 | 2026-11-17 | 1.30 | Wilson Gorosthides | Pilha: SQL da tabela `precos` e os passos da tabela de preços (#123, RF-013 parte 1). |
+| 2026-11-17 | 1.31 | Wilson Gorosthides | Pilha: SQL da `precos` (#123) confirmado como aplicado; entram os passos do valor calculado (#124, RF-013 parte 2). |

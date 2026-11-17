@@ -46,7 +46,7 @@ A tabela é lida via stream ordenada por `nome`. O mapeamento jsonb ⇄ objeto v
     -   `hora` (time, opcional — a proprietária quase nunca anota hora; quando anota, ordena dentro do período)
     -   `cliente_id` (uuid, obrigatório — FK para `clientes.id` com `on delete cascade`: excluir um cliente leva os atendimentos dele; a alternativa `restrict` bloquearia a exclusão de qualquer cliente já atendido, o que não existe na agenda de papel)
     -   `local` (text, opcional — endereço do serviço quando não é o do cadastro)
-    -   `pecas` (**jsonb**, lista — cada peça é `{ "tipo", "quantidade", "largura", "comprimento" }`, mesmo molde do `endereco`; o mapeamento vive no value object `Peca`, `lib/models/peca.dart`)
+    -   `pecas` (**jsonb**, lista — cada peça é `{ "tipo", "quantidade", "largura", "comprimento", "servicos" }`, mesmo molde do `endereco`; o mapeamento vive no value object `Peca`, `lib/models/peca.dart`. `servicos` (RF-013, #124) é a lista dos serviços da tabela escolhidos na peça, cada um `{ "nome", "unidade", "valor" }` **copiado da tabela no registro**: mudar a tabela depois não muda o atendimento. Chave ausente = peça sem serviço)
     -   `valor` (numeric, opcional — valor combinado)
     -   `criado_em` (timestamptz, `default now()` — desempata os atendimentos sem hora: ficam na ordem em que foram registrados)
 
@@ -101,7 +101,7 @@ alter publication supabase_realtime add table public.atendimentos;
 
 Cada serviço é **independente** (regra da proprietária): impermeabilização é uma linha como higienização, nunca um extra dela; o combo é escolher as duas linhas, ou cadastrar o combo como mais uma. Por isso não há coluna de "extra" nem relação entre linhas. A leitura passa pelo `EspelhoLocal` (guardada no aparelho, chave `espelho.precos`, para o cálculo sem internet da #124); a escrita (`addPreco`, `addPrecos`, `updatePreco`, `deletePreco`) vai direto ao banco, como a de clientes, e a tela renova a stream ao voltar. A tabela é lida via stream ordenada por `ordem`.
 
-SQL a aplicar no painel do Supabase (issue #123):
+SQL aplicado no painel do Supabase (issue #123; confirmado pelo desenvolvedor em 2026-11-17):
 
 ```sql
 create table public.precos (
@@ -158,6 +158,7 @@ lib/
     ├── avisos.dart                 # função pura planejarAvisos (RF-015): quais avisos e quando
     ├── telefone.dart               # formatarTelefone, mesmoTelefone, clienteComTelefone (RF-016)
     ├── historico.dart              # histórico do cliente (RF-011): atendimentos até hoje, último valor, "há quanto tempo"
+    ├── calculo.dart                # valor pela tabela de preços (RF-013): subtotal por peça ou m², total, serviços do tipo da peça
     ├── texto.dart                  # paraBusca: minúsculas e sem acento (busca, RF-004)
     ├── agenda.dart                 # funções puras da agenda: semana, grade do mês, contagem, ordem do dia, nomes em PT-BR, valor em reais
     └── validators.dart             # validações puras dos formulários (obrigatório, telefone, hora)
@@ -306,6 +307,7 @@ A auditoria registrou cobertura real de 0% — o único teste era o template pad
 | 2026-11-17 | 2.24 | Wilson Gorosthides | Cliente dos contatos do celular (RF-016, #115): §7 com a decisão do seletor do sistema sem `READ_CONTACTS` (canal `msclean/contatos`); `lib/services/contatos.dart` e `lib/utils/telefone.dart` na árvore §5; `SupabaseService.addClienteDoContato` pela fila do aparelho. Sem mudança de schema. |
 | 2026-11-17 | 2.25 | Wilson Gorosthides | Histórico do cliente (RF-011, #81): árvore §5 com `utils/historico.dart` e o histórico no formulário do cliente; §7 com a decisão de calcular no app, sobre a stream de atendimentos, sem schema novo. |
 | 2026-11-17 | 2.26 | Wilson Gorosthides | Tabela de preços (RF-013 parte 1, #123): §4 com a tabela `precos` (SQL a aplicar, RLS `mvp_acesso_total_anon`, realtime) e a regra de serviços independentes; árvore §5 com `item_de_preco.dart` e `tabela_de_precos_screen.dart`. |
+| 2026-11-17 | 2.27 | Wilson Gorosthides | Valor calculado (RF-013 parte 2, #124): §4 com a chave `servicos` no jsonb `pecas` (preço copiado no registro, sem mudança de schema) e o SQL da `precos` como aplicado; árvore §5 com `utils/calculo.dart`. |
 
 ## 12. Ambiente de Desenvolvimento
 Os seguintes softwares e configurações são necessários para iniciar o desenvolvimento:
