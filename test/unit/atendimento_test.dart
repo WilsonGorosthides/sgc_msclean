@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sgc_msclean/models/atendimento.dart';
+import 'package:sgc_msclean/models/item_de_preco.dart';
 import 'package:sgc_msclean/models/peca.dart';
 
 // Testes unitários do modelo Atendimento e do value object Peca (RF-010):
@@ -188,6 +189,36 @@ void main() {
         const Peca(tipo: 'sofá', quantidade: 2).toMap(),
         {'tipo': 'sofá', 'quantidade': 2},
       );
+    });
+
+    // CT-087 (RF-013, #124): o preço do serviço é copiado para a peça.
+    test('serviços da peça vão ao jsonb com o preço copiado', () {
+      const peca = Peca(tipo: 'sofá', servicos: [
+        ItemDePreco(
+            id: 'p9',
+            nome: 'Impermeabilização sofá 3 lugares',
+            unidade: UnidadeDeCobranca.peca,
+            valor: 150,
+            ordem: 7),
+        ItemDePreco(nome: 'Remoção de odor', unidade: UnidadeDeCobranca.peca),
+      ]);
+
+      final mapa = peca.toMap();
+      expect(mapa['servicos'], [
+        {
+          'nome': 'Impermeabilização sofá 3 lugares',
+          'unidade': 'peca',
+          'valor': 150.0,
+        },
+        {'nome': 'Remoção de odor', 'unidade': 'peca', 'valor': null},
+      ]);
+
+      final lida = Peca.fromMap(mapa);
+      expect(lida.servicos.map((s) => s.nome),
+          ['Impermeabilização sofá 3 lugares', 'Remoção de odor']);
+      expect(lida.servicos.first.valor, 150.0);
+      expect(lida.servicos.last.valor, isNull);
+      expect(Peca.fromMap({'tipo': 'sofá'}).servicos, isEmpty);
     });
 
     test('tapete é o tipo medido por metragem; os demais são contados', () {

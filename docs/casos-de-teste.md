@@ -834,8 +834,8 @@
 
 ## RF-013 — Tabela de Preços e Cálculo do Valor
 
-> Parte 1 (issue #123): a tabela editável. Os CTs do cálculo no atendimento
-> (parte 2, issue #124) entram na entrega dela.
+> Parte 1 (issue #123): a tabela editável, CT-080 a CT-086. Parte 2 (issue
+> #124): o cálculo no atendimento, CT-087 a CT-092.
 
 ### CT-080 — Serviço da tabela: nome, unidade e valor
 - **Critério:** "A proprietária mantém a **tabela de preços** como uma lista de **serviços**: cada um com **nome** [...], **unidade de cobrança** (peça ou metro quadrado) e **valor**."
@@ -897,6 +897,60 @@
   1. Abrir a tabela com o banco no ar.
   2. Reabrir com o banco fora do ar.
 - **Resultado esperado:** a segunda abertura mostra o serviço guardado no aparelho, sem erro na stream, e o estado fica "sem conexão".
+
+### CT-087 — Serviço sozinho ou combo na peça, com o preço copiado
+- **Critério:** "**Cada serviço é independente**: impermeabilização [...] pode ser orçada e registrada **sozinha**, sem higienização na mesma peça." e "O **combo** [...] é escolher os dois serviços; o valor é a soma."
+- **Tipo:** Unitário + Widget · **Situação:** implementado — `atendimento_test: serviços da peça vão ao jsonb com o preço copiado` · `calculo_test: serviço sozinho ou combo: o total é a soma` · `calculo_test: serviços da peça: os do tipo dela; outro ou sem par mostra todos` · `atendimento_form_screen_test: só impermeabilização na peça grava só ela, com o preço` · `atendimento_form_screen_test: combo: os dois serviços somam; o total segue a quantidade`
+- **Pré-condições:** tabela com "Higienização sofá 3 lugares" (R$ 180,00) e "Impermeabilização sofá 3 lugares" (R$ 150,00).
+- **Passos:**
+  1. Gravar e ler de volta uma peça com serviços (`Peca.toMap`/`fromMap`).
+  2. No formulário, peça sofá: marcar só a impermeabilização e salvar.
+  3. Em outro registro, marcar os dois serviços.
+- **Resultado esperado:** o jsonb da peça leva `servicos` com nome, unidade e valor de cada um (sem a chave quando não há serviço); só a impermeabilização é gravada, com R$ 150,00; com os dois, o total é R$ 330,00. Os chips da peça mostram só os serviços do tipo dela ("outro" mostra todos).
+
+### CT-088 — Serviço por m²: largura × comprimento × valor do metro
+- **Critério:** "Para serviços cobrados por metro quadrado, o sistema calcula a área a partir de largura × comprimento e multiplica pelo valor do metro (ex.: `8 × 4,5 = 36 m²`)."
+- **Tipo:** Unitário + Widget · **Situação:** implementado — `calculo_test: por m²: largura × comprimento × valor do metro` · `calculo_test: por m² sem medida não soma e avisa que falta medida` · `atendimento_form_screen_test: por m²: medidas × valor do metro; outro tipo mostra medidas`
+- **Pré-condições:** "Higienização de tapete" por m² a R$ 12,00.
+- **Passos:**
+  1. Calcular um tapete 8 × 4,5 com o serviço (função pura); depois sem uma das medidas; depois dois tapetes iguais.
+  2. No formulário, tapete com o serviço, largura 8 e comprimento 4,5.
+- **Resultado esperado:** 36 m² × R$ 12,00 = R$ 432,00; sem medida não soma e avisa "falta medida"; dois tapetes iguais somam R$ 864,00. Uma peça de outro tipo com serviço por m² também mostra as medidas.
+
+### CT-089 — Serviço por peça: valor × quantidade
+- **Critério:** "Para serviços cobrados por peça, o sistema multiplica o valor pela quantidade."
+- **Tipo:** Unitário · **Situação:** implementado — `calculo_test: por peça: valor × quantidade`
+- **Pré-condições:** "Higienização poltrona" a R$ 90,00.
+- **Passos:**
+  1. Calcular duas poltronas com o serviço.
+- **Resultado esperado:** R$ 180,00.
+
+### CT-090 — Total à vista enquanto informa; serviço sem valor avisa
+- **Critério:** "O valor total é a soma dos serviços, exibido enquanto eles são informados." e "um serviço sem valor não entra no cálculo, e o total avisa que falta valor."
+- **Tipo:** Unitário + Widget · **Situação:** implementado — `calculo_test: serviço sem valor não entra na soma e é avisado` · `atendimento_form_screen_test: combo: os dois serviços somam; o total segue a quantidade` · `atendimento_form_screen_test: serviço sem valor não soma e é avisado`
+- **Pré-condições:** tabela com um serviço com valor e "Remoção de odor" sem valor.
+- **Passos:**
+  1. Somar peças com serviços com e sem valor (função pura).
+  2. No formulário, marcar o serviço com valor, mudar a quantidade e depois marcar o sem valor.
+- **Resultado esperado:** o total muda a cada toque e a cada número digitado; o serviço sem valor não soma e aparece o aviso com o nome dele.
+
+### CT-091 — Valor calculado é sugestão, sobrescrevível
+- **Critério:** "O valor calculado é **sugestão, não imposição**: a proprietária pode sobrescrevê-lo (desconto, combinado diferente) sem alterar a tabela."
+- **Tipo:** Widget · **Situação:** implementado — `atendimento_form_screen_test: valor calculado é sugestão: digitado prevalece; volta ao total`
+- **Pré-condições:** tabela com "Higienização sofá 3 lugares" a R$ 180,00.
+- **Passos:**
+  1. Marcar o serviço: o campo Valor acompanha o total.
+  2. Digitar 150 no Valor e mudar a quantidade.
+  3. Tocar em "Usar o calculado" e salvar.
+- **Resultado esperado:** o Valor vem "180,00"; digitado, fica 150 mesmo com o total mudando, e grava 150 se salvo assim; "Usar o calculado" volta ao total. A tabela de preços não é gravada.
+
+### CT-092 — Tabela alterada não muda o atendimento registrado
+- **Critério:** "Alterar a tabela de preços **não altera** o valor de atendimentos e orçamentos já registrados."
+- **Tipo:** Widget · **Situação:** implementado — `atendimento_form_screen_test: tabela alterada não muda o preço copiado no atendimento`
+- **Pré-condições:** atendimento registrado com "Higienização sofá 3 lugares" copiado a R$ 180,00 e valor R$ 180,00; a tabela agora cobra R$ 200,00.
+- **Passos:**
+  1. Abrir o atendimento para editar e salvar sem mexer nos serviços.
+- **Resultado esperado:** o serviço segue com R$ 180,00 (o preço copiado), o total e o Valor mostram 180,00 e o update grava R$ 180,00.
 
 ## RF-014 — Estados de Conclusão do Atendimento
 
@@ -1176,4 +1230,6 @@ falso, que pode estar "fora do ar", e um armazenamento em memória no lugar do
 | 2026-11-17 | 1.35 | Wilson Gorosthides | CT-076 a CT-079 passam a "implementado" (issue #81). |
 | 2026-11-17 | 1.36 | Wilson Gorosthides | CT-080 a CT-086 do RF-013, parte 1 (tabela de preços), issue #123. "A implementar". |
 | 2026-11-17 | 1.37 | Wilson Gorosthides | CT-080 a CT-086 passam a "implementado" (issue #123). |
+| 2026-11-17 | 1.38 | Wilson Gorosthides | CT-087 a CT-092 do RF-013, parte 2 (valor calculado no atendimento), issue #124. "A implementar". |
+| 2026-11-17 | 1.39 | Wilson Gorosthides | CT-087 a CT-092 passam a "implementado" (issue #124). |
 | 2026-11-17 | 1.36 | Wilson Gorosthides | CT-055 ganha o teste da linha repetida pelo banco (bug #128: atendimento em dobro na agenda). |

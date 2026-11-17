@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../models/atendimento.dart';
 import '../models/client_model.dart';
+import '../models/item_de_preco.dart';
 import '../models/peca.dart';
 import '../services/contatos.dart';
 import '../services/supabase_service.dart';
@@ -9,6 +12,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
 import '../utils/agenda.dart';
+import '../utils/calculo.dart';
 import '../utils/telefone.dart';
 import '../utils/validators.dart';
 
@@ -45,15 +49,35 @@ class AtendimentoFormScreen extends StatefulWidget {
   State<AtendimentoFormScreen> createState() => _AtendimentoFormScreenState();
 }
 
-// Linha de peça em edição: controllers próprios para quantidade e medidas.
+// Linha de peça em edição: controllers próprios para quantidade e medidas, e
+// os serviços escolhidos, com o preço copiado da tabela (RF-013, #124).
 class _PecaEmEdicao {
   _PecaEmEdicao([Peca? p])
       : tipo = p?.tipo ?? Peca.tipos.first,
         quantidade = TextEditingController(text: '${p?.quantidade ?? 1}'),
         largura = TextEditingController(text: _numero(p?.largura)),
-        comprimento = TextEditingController(text: _numero(p?.comprimento));
+        comprimento = TextEditingController(text: _numero(p?.comprimento)),
+        servicos = [...?p?.servicos];
 
   String tipo;
+  final List<ItemDePreco> servicos;
+
+  // Medidas: o tapete, ou qualquer peça com serviço cobrado por m².
+  bool get medido =>
+      Peca.ehMedido(tipo) ||
+      servicos.any((s) => s.unidade == UnidadeDeCobranca.m2);
+
+  bool escolhido(ItemDePreco s) => servicos.any((x) => x.nome == s.nome);
+
+  // Marca copiando o serviço da tabela (nome, unidade e valor de agora);
+  // desmarca pelo nome.
+  void alternar(ItemDePreco s) {
+    if (escolhido(s)) {
+      servicos.removeWhere((x) => x.nome == s.nome);
+    } else {
+      servicos.add(ItemDePreco(nome: s.nome, unidade: s.unidade, valor: s.valor));
+    }
+  }
   final TextEditingController quantidade;
   final TextEditingController largura;
   final TextEditingController comprimento;
@@ -65,12 +89,12 @@ class _PecaEmEdicao {
   }
 
   Peca paraPeca() {
-    final medido = Peca.ehMedido(tipo);
     return Peca(
       tipo: tipo,
       quantidade: int.tryParse(quantidade.text.trim()) ?? 1,
       largura: medido ? lerValor(largura.text) : null,
       comprimento: medido ? lerValor(comprimento.text) : null,
+      servicos: [...servicos],
     );
   }
 
@@ -105,6 +129,38 @@ class _AtendimentoFormScreenState extends State<AtendimentoFormScreen> {
     for (final p in widget.atendimento?.pecas ?? const <Peca>[])
       _PecaEmEdicao(p),
   ];
+
+  // Tabela de preços (RF-013, #124), do espelho no aparelho: funciona sem
+  // internet. Só leitura; nada aqui grava na tabela.
+  List<ItemDePreco> _tabela = const [];
+  StreamSubscription<List<ItemDePreco>>? _assinaturaPrecos;
+
+  // O Valor acompanha o total calculado até ela digitar outro (o calculado é
+  // sugestão, CT-091); "Usar o calculado" volta a acompanhar.
+  bool _valorManual = false;
+
+  CalculoDoValor get _calculo =>
+      calcularValor([for (final p in _pecas) p.paraPeca()]);
+
+  String _textoDoTotal(CalculoDoValor c) =>
+      c.temValor ? valorEmReais(c.total).substring(3) : ''; // sem o "R$ "
+
+  void _sincronizarValor() {
+    if (_valorManual) return;
+    final texto = _textoDoTotal(_calculo);
+    if (_valorController.text != texto) _valorController.text = texto;
+  }
+
+  // Peças, quantidades, medidas ou serviços mudaram: refaz o total.
+  void _mudou() {
+    setState(() {});
+    _sincronizarValor();
+  }
+
+  void _usarCalculado() {
+    setState(() => _valorManual = false);
+    _sincronizarValor();
+  }
 
   // Erros dos campos que não são TextFormField (cliente e período).
   bool _faltaCliente = false;
@@ -182,11 +238,24 @@ class _AtendimentoFormScreenState extends State<AtendimentoFormScreen> {
       for (final c in widget.clientes) {
         if (c.id == a.clienteId) _cliente = c;
       }
+      // Valor registrado diferente do calculado (ou sem serviços): foi
+      // combinado à mão e fica como está.
+      final calculo = calcularValor(a.pecas);
+      _valorManual = a.valor != null &&
+          (!calculo.temValor || a.valor != calculo.total);
+      _sincronizarValor();
     }
+    _assinaturaPrecos = _service.getPrecosStream().listen(
+          (dados) {
+            if (mounted) setState(() => _tabela = dados);
+          },
+          onError: (Object _) {}, // sem tabela, o valor é só digitado
+        );
   }
 
   @override
   void dispose() {
+    _assinaturaPrecos?.cancel();
     _buscaController.dispose();
     _horaFoco.dispose();
     _horaController.dispose();
@@ -241,6 +310,57 @@ class _AtendimentoFormScreenState extends State<AtendimentoFormScreen> {
         _telefoneNovo = null;
         _buscaController.clear();
       });
+
+  // Serviços oferecidos na peça: os do tipo dela e os já escolhidos.
+  List<ItemDePreco> _ofertas(_PecaEmEdicao peca) {
+    final doTipo = servicosDoTipo(_tabela, peca.tipo);
+    return [
+      ...doTipo,
+      // escolhidos que a tabela não oferece mais (ou outro tipo): seguem à vista
+      for (final s in peca.servicos)
+        if (!doTipo.any((t) => t.nome == s.nome)) s,
+    ];
+  }
+
+  // Total calculado pela tabela (RF-013, CT-090), com o que ficou de fora, e
+  // o atalho para voltar ao calculado quando ela digitou outro valor (CT-091).
+  List<Widget> _total(TextTheme textos) {
+    final calculo = _calculo;
+    if (!calculo.temServicos) return const [];
+    final aviso = textos.bodySmall?.copyWith(color: AppColors.tarde);
+    final digitado = lerValor(_valorController.text);
+    return [
+      Text(
+        'Total calculado: ${valorEmReais(calculo.total)}',
+        key: const Key('total_calculado'),
+        style: textos.titleMedium?.copyWith(
+            fontFeatures: AppTypography.digitosTabulares),
+      ),
+      if (calculo.semValor.isNotEmpty)
+        Text(
+          'Sem valor na tabela: ${calculo.semValor.join(', ')}',
+          key: const Key('aviso_sem_valor'),
+          style: aviso,
+        ),
+      if (calculo.semMedida.isNotEmpty)
+        Text(
+          'Falta medida: ${calculo.semMedida.join(', ')}',
+          key: const Key('aviso_sem_medida'),
+          style: aviso,
+        ),
+      if (_valorManual && calculo.temValor && digitado != calculo.total)
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton.icon(
+            key: const Key('usar_calculado'),
+            onPressed: _usarCalculado,
+            icon: const Icon(Icons.calculate_outlined),
+            label: Text('Usar o calculado (${valorEmReais(calculo.total)})'),
+          ),
+        ),
+      const SizedBox(height: AppSpacing.sm),
+    ];
+  }
 
   Future<void> _salvar() async {
     final camposOk = _formKey.currentState!.validate();
@@ -401,8 +521,21 @@ class _AtendimentoFormScreenState extends State<AtendimentoFormScreen> {
               _LinhaDePeca(
                 indice: i,
                 peca: _pecas[i],
-                aoMudarTipo: (t) => setState(() => _pecas[i].tipo = t),
-                aoRemover: () => setState(() => _pecas.removeAt(i).dispose()),
+                ofertas: _ofertas(_pecas[i]),
+                tabelaVazia: _tabela.isEmpty,
+                aoMudarTipo: (t) {
+                  _pecas[i].tipo = t;
+                  _mudou();
+                },
+                aoAlternarServico: (s) {
+                  _pecas[i].alternar(s);
+                  _mudou();
+                },
+                aoMudarNumero: _mudou,
+                aoRemover: () {
+                  _pecas.removeAt(i).dispose();
+                  _mudou();
+                },
               ),
             Align(
               alignment: Alignment.centerLeft,
@@ -415,11 +548,13 @@ class _AtendimentoFormScreenState extends State<AtendimentoFormScreen> {
             ),
             const SizedBox(height: AppSpacing.lg),
 
+            ..._total(textos),
             TextFormField(
               key: const Key('campo_valor'),
               controller: _valorController,
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
               style: TextStyle(fontFeatures: AppTypography.digitosTabulares),
+              onChanged: (_) => setState(() => _valorManual = true),
               decoration: const InputDecoration(
                 labelText: 'Valor combinado (opcional)',
                 prefixText: 'R\$ ',
@@ -633,26 +768,37 @@ class _CartaoPeriodo extends StatelessWidget {
   }
 }
 
-// Uma peça: chips de tipo, quantidade e, para tipo medido, as medidas (CT-043).
+// Uma peça: chips de tipo, quantidade e, para tipo medido, as medidas (CT-043);
+// abaixo, os serviços da tabela para aquele tipo (RF-013, CT-087).
 class _LinhaDePeca extends StatelessWidget {
   const _LinhaDePeca({
     required this.indice,
     required this.peca,
+    required this.ofertas,
+    required this.tabelaVazia,
     required this.aoMudarTipo,
+    required this.aoAlternarServico,
+    required this.aoMudarNumero,
     required this.aoRemover,
   });
 
   final int indice;
   final _PecaEmEdicao peca;
+  final List<ItemDePreco> ofertas;
+  final bool tabelaVazia;
   final void Function(String) aoMudarTipo;
+  final void Function(ItemDePreco) aoAlternarServico;
+  final VoidCallback aoMudarNumero;
   final VoidCallback aoRemover;
 
   @override
   Widget build(BuildContext context) {
+    final textos = Theme.of(context).textTheme;
     Widget numero(String chave, TextEditingController c, String rotulo) {
       return TextFormField(
         key: Key(chave),
         controller: c,
+        onChanged: (_) => aoMudarNumero(),
         keyboardType: const TextInputType.numberWithOptions(decimal: true),
         style: TextStyle(fontFeatures: AppTypography.digitosTabulares),
         decoration: InputDecoration(labelText: rotulo),
@@ -699,7 +845,7 @@ class _LinhaDePeca extends StatelessWidget {
                   child: numero('peca_${indice}_quantidade', peca.quantidade,
                       'Quantidade'),
                 ),
-                if (Peca.ehMedido(peca.tipo)) ...[
+                if (peca.medido) ...[
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: numero(
@@ -713,6 +859,26 @@ class _LinhaDePeca extends StatelessWidget {
                 ],
               ],
             ),
+            const SizedBox(height: AppSpacing.sm),
+            if (ofertas.isEmpty && tabelaVazia)
+              Text(
+                'Cadastre os serviços na tabela de preços para calcular o valor.',
+                style: textos.bodySmall?.copyWith(color: AppColors.tintaFraca),
+              )
+            else
+              Wrap(
+                spacing: AppSpacing.xs,
+                runSpacing: AppSpacing.xs,
+                children: [
+                  for (final s in ofertas)
+                    FilterChip(
+                      key: Key('peca_${indice}_servico_${s.nome}'),
+                      label: Text(s.nome),
+                      selected: peca.escolhido(s),
+                      onSelected: (_) => aoAlternarServico(s),
+                    ),
+                ],
+              ),
           ],
         ),
       ),
