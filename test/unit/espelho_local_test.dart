@@ -99,6 +99,38 @@ void main() {
       expect(espelho.conectado.value, isTrue);
     });
 
+    // #128: a stream do Supabase entrega a mesma linha duas vezes quando o
+    // INSERT do realtime chega depois da leitura inicial que já a trazia.
+    test('linha repetida pelo banco aparece uma vez só', () async {
+      final linha = {
+        'id': 'a1',
+        'data': '2026-11-16',
+        'periodo': 'manha',
+        'cliente_id': 'c1',
+      };
+      final repetida = {...linha, 'periodo': 'tarde'}; // a última vale
+      final espelho = EspelhoLocal(
+        armazem: armazem,
+        atendimentosRemotos: () => Stream.value([linha, repetida]),
+        clientesRemotos: () => Stream.value([
+          {'id': 'c1', 'nome': 'Ana Souza'},
+          {'id': 'c1', 'nome': 'Ana Souza'},
+        ]),
+        enviar: banco.enviar,
+        novaTentativa: const Duration(hours: 1),
+      );
+
+      final atendimentos = await ultima(espelho.atendimentos());
+      final clientes = await ultima(espelho.clientes());
+
+      expect(atendimentos.single.periodo, Periodo.tarde);
+      expect(clientes.single.nome, 'Ana Souza');
+      expect(
+          RegExp('a1').allMatches(
+              (await armazem.ler(EspelhoLocal.chaveAtendimentos))!),
+          hasLength(1));
+    });
+
     test('sem conexão, abre com o que está guardado no aparelho', () async {
       banco.linhas['atendimentos']!.add({
         'id': 'a1',
