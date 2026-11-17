@@ -81,6 +81,9 @@ void main() {
     when(() => service.conectado).thenReturn(conectado);
     when(() => service.getClientsStream())
         .thenAnswer((_) => Stream.value(clientes));
+    // o formulário de atendimento lê a tabela de preços (RF-013, #124)
+    when(() => service.getPrecosStream())
+        .thenAnswer((_) => Stream.value(const []));
   });
 
   Future<void> bombear(WidgetTester tester, List<Atendimento> atendimentos,

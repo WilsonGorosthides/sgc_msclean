@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:sgc_msclean/screens/atendimento_form_screen.dart';
 import 'package:sgc_msclean/screens/client_form_screen.dart';
 
@@ -34,7 +35,8 @@ void main() {
       await rolarAteOFim(
           tester,
           AtendimentoFormScreen(
-            service: MockSupabaseService(),
+            // o formulário lê a tabela de preços (RF-013, #124)
+            service: _comTabelaVazia(MockSupabaseService()),
             data: DateTime(2026, 11, 17),
             clientes: const [],
           ));
@@ -48,4 +50,10 @@ void main() {
       salvarAcimaDaBarra(tester);
     });
   });
+}
+
+MockSupabaseService _comTabelaVazia(MockSupabaseService service) {
+  when(() => service.getPrecosStream())
+      .thenAnswer((_) => Stream.value(const []));
+  return service;
 }

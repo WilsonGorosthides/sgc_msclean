@@ -4,6 +4,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:sgc_msclean/models/atendimento.dart';
 import 'package:sgc_msclean/models/client_model.dart';
 import 'package:sgc_msclean/models/endereco.dart';
+import 'package:sgc_msclean/models/item_de_preco.dart';
 import 'package:sgc_msclean/models/peca.dart';
 import 'package:sgc_msclean/screens/atendimento_form_screen.dart';
 import 'package:sgc_msclean/services/contatos.dart';
@@ -36,9 +37,15 @@ void main() {
     ));
   });
 
+  // Tabela de preços (RF-013, #124): vazia, salvo nos testes do cálculo.
+  var tabela = <ItemDePreco>[];
+
   setUp(() {
     service = MockSupabaseService();
+    tabela = [];
     when(() => service.addAtendimento(any())).thenAnswer((_) async {});
+    when(() => service.getPrecosStream())
+        .thenAnswer((_) => Stream.value([...tabela]));
   });
 
   // [chave] distingue uma segunda montagem no mesmo teste: sem ela o Flutter
@@ -59,6 +66,7 @@ void main() {
         contatos: contatos,
       ),
     ));
+    await tester.pump(); // a tabela de preços chega
   }
 
   Future<void> tocar(WidgetTester tester, String chave) async {
@@ -416,6 +424,173 @@ void main() {
     testWidgets('registro novo não mostra o excluir', (tester) async {
       await bombear(tester);
       expect(find.byKey(const Key('excluir_atendimento')), findsNothing);
+    });
+  });
+
+  // Valor calculado pela tabela de preços (RF-013, parte 2, issue #124).
+  group('atendimento_form_screen_test:', () {
+    const higSofa = ItemDePreco(
+        id: 'p1',
+        nome: 'Higienização sofá 3 lugares',
+        unidade: UnidadeDeCobranca.peca,
+        valor: 180);
+    const impSofa = ItemDePreco(
+        id: 'p2',
+        nome: 'Impermeabilização sofá 3 lugares',
+        unidade: UnidadeDeCobranca.peca,
+        valor: 150);
+    const tapeteM2 = ItemDePreco(
+        id: 'p3',
+        nome: 'Higienização de tapete',
+        unidade: UnidadeDeCobranca.m2,
+        valor: 12);
+    const cortinaM2 = ItemDePreco(
+        id: 'p4',
+        nome: 'Higienização de cortina',
+        unidade: UnidadeDeCobranca.m2,
+        valor: 20);
+    const odor = ItemDePreco(
+        id: 'p5', nome: 'Remoção de odor', unidade: UnidadeDeCobranca.peca);
+
+    Future<void> comSofa(WidgetTester tester) async {
+      await bombear(tester);
+      await tocar(tester, 'escolher_cliente_1');
+      await tocar(tester, 'escolher_manha');
+      await tocar(tester, 'adicionar_peca');
+      await tocar(tester, 'peca_0_tipo_sofá');
+    }
+
+    String servico(String nome) => 'peca_0_servico_$nome';
+
+    testWidgets('só impermeabilização na peça grava só ela, com o preço',
+        (tester) async {
+      tabela = [higSofa, impSofa, tapeteM2];
+      await comSofa(tester);
+
+      // a peça sofá oferece só os serviços de sofá
+      expect(find.byKey(Key(servico(higSofa.nome))), findsOneWidget);
+      expect(find.byKey(Key(servico(tapeteM2.nome))), findsNothing);
+
+      await tocar(tester, servico(impSofa.nome));
+      expect(textoDe(tester, 'total_calculado'), 'Total calculado: R\$ 150,00');
+
+      final gravado = await salvarECapturar(tester);
+      final servicos = gravado.pecas.single.servicos;
+      expect(servicos.single.nome, 'Impermeabilização sofá 3 lugares');
+      expect(servicos.single.valor, 150);
+      expect(gravado.valor, 150);
+    });
+
+    testWidgets('combo: os dois serviços somam; o total segue a quantidade',
+        (tester) async {
+      tabela = [higSofa, impSofa];
+      await comSofa(tester);
+
+      await tocar(tester, servico(higSofa.nome));
+      await tocar(tester, servico(impSofa.nome));
+      expect(textoDe(tester, 'total_calculado'), 'Total calculado: R\$ 330,00');
+
+      await digitar(tester, 'peca_0_quantidade', '2');
+      await tester.pump();
+      expect(textoDe(tester, 'total_calculado'), 'Total calculado: R\$ 660,00');
+
+      final gravado = await salvarECapturar(tester);
+      expect(gravado.pecas.single.servicos, hasLength(2));
+      expect(gravado.valor, 660);
+    });
+
+    testWidgets('por m²: medidas × valor do metro; outro tipo mostra medidas',
+        (tester) async {
+      tabela = [tapeteM2, cortinaM2];
+      await bombear(tester);
+      await tocar(tester, 'adicionar_peca'); // nasce tapete
+      await tocar(tester, servico(tapeteM2.nome));
+      expect(find.byKey(const Key('aviso_sem_medida')), findsOneWidget);
+
+      await digitar(tester, 'peca_0_largura', '8');
+      await digitar(tester, 'peca_0_comprimento', '4,5');
+      await tester.pump();
+      expect(textoDe(tester, 'total_calculado'), 'Total calculado: R\$ 432,00');
+      expect(find.byKey(const Key('aviso_sem_medida')), findsNothing);
+
+      // cortina não é medida pelo tipo, mas o serviço por m² pede as medidas
+      await tocar(tester, 'adicionar_peca');
+      await tocar(tester, 'peca_1_tipo_cortina');
+      expect(find.byKey(const Key('peca_1_largura')), findsNothing);
+      await tocar(tester, 'peca_1_servico_${cortinaM2.nome}');
+      expect(find.byKey(const Key('peca_1_largura')), findsOneWidget);
+    });
+
+    testWidgets('serviço sem valor não soma e é avisado', (tester) async {
+      tabela = [higSofa, odor];
+      await bombear(tester);
+      await tocar(tester, 'adicionar_peca');
+      await tocar(tester, 'peca_0_tipo_outro'); // outro mostra todos
+
+      await tocar(tester, servico(higSofa.nome));
+      await tocar(tester, servico(odor.nome));
+
+      expect(textoDe(tester, 'total_calculado'), 'Total calculado: R\$ 180,00');
+      expect(textoDe(tester, 'aviso_sem_valor'),
+          contains('Remoção de odor'));
+    });
+
+    testWidgets('valor calculado é sugestão: digitado prevalece; volta ao total',
+        (tester) async {
+      tabela = [higSofa];
+      await comSofa(tester);
+
+      await tocar(tester, servico(higSofa.nome));
+      expect(textoDoCampo(tester, 'campo_valor'), '180,00');
+
+      await digitar(tester, 'campo_valor', '150');
+      await tester.pump();
+      await digitar(tester, 'peca_0_quantidade', '2');
+      await tester.pump();
+      expect(textoDe(tester, 'total_calculado'), 'Total calculado: R\$ 360,00');
+      expect(textoDoCampo(tester, 'campo_valor'), '150');
+
+      await tocar(tester, 'usar_calculado');
+      expect(textoDoCampo(tester, 'campo_valor'), '360,00');
+
+      final gravado = await salvarECapturar(tester);
+      expect(gravado.valor, 360);
+      verifyNever(() => service.updatePreco(any()));
+      verifyNever(() => service.addPreco(any()));
+    });
+
+    testWidgets('tabela alterada não muda o preço copiado no atendimento',
+        (tester) async {
+      tabela = [
+        const ItemDePreco(
+            id: 'p1',
+            nome: 'Higienização sofá 3 lugares',
+            unidade: UnidadeDeCobranca.peca,
+            valor: 200),
+      ];
+      final existente = Atendimento(
+        id: 'a1',
+        data: dia,
+        periodo: Periodo.manha,
+        clienteId: '1',
+        pecas: const [
+          Peca(tipo: 'sofá', servicos: [higSofa]),
+        ],
+        valor: 180,
+      );
+      when(() => service.updateAtendimento(any())).thenAnswer((_) async {});
+      await bombear(tester, atendimento: existente);
+
+      expect(textoDe(tester, 'total_calculado'), 'Total calculado: R\$ 180,00');
+      expect(textoDoCampo(tester, 'campo_valor'), '180,00');
+
+      await tocar(tester, 'botao_salvar');
+      await tester.pump();
+      final gravado =
+          verify(() => service.updateAtendimento(captureAny())).captured.single
+              as Atendimento;
+      expect(gravado.pecas.single.servicos.single.valor, 180);
+      expect(gravado.valor, 180);
     });
   });
 }
