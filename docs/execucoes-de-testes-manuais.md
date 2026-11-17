@@ -45,6 +45,16 @@ internet passou a valer no release).
 Nenhum SQL pendente: o do RF-014 (colunas `feito` e `pago`) foi aplicado no
 painel (confirmado pelo desenvolvedor em 2026-11-16).
 
+### #118 — Salvar acima da barra de navegação (RNF-001)
+
+Sem SQL. No celular da usuária (Samsung A25, Android 16), com os botões de navegação na base.
+
+| # | Passo | Resultado esperado | CT |
+|---|---|---|---|
+| 1 | Novo atendimento: rolar até o fim | "Salvar atendimento" inteiro acima da barra do sistema, tocável | CT-071 |
+| 2 | Novo cliente: rolar até o fim | "Salvar" inteiro acima da barra | CT-071 |
+| 3 | Agenda com vários atendimentos no dia: rolar até o fim | O último cartão não fica sob a barra nem sob o "+" | CT-071 |
+
 ### #113 — busca por relevância e sem acento (RF-004)
 
 Sem SQL. Com a agenda importada (#23), no celular.
@@ -561,3 +571,4 @@ versão nova, assinada com a mesma chave, instala por cima sem perder dados.
 | 2026-11-16 | 1.22 | Wilson Gorosthides | Pilha: entram os passos do APK de release assinado com a chave própria (#109), sem SQL. |
 | 2026-11-17 | 1.23 | Wilson Gorosthides | Execução 012: APK de release com a chave própria aprovado no celular (Android 16), incluindo a atualização por cima; a pilha fica vazia. |
 | 2026-11-17 | 1.24 | Wilson Gorosthides | Pilha: entram os passos da busca por relevância e sem acento (#113), sem SQL. |
+| 2026-11-17 | 1.25 | Wilson Gorosthides | Pilha: entram os passos do Salvar acima da barra de navegação (#118), sem SQL. |

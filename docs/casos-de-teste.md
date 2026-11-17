@@ -974,7 +974,7 @@ falso, que pode estar "fora do ar", e um armazenamento em memória no lugar do
 
 ### CT-071 — Fim das telas acima da barra de navegação
 - **Requisito:** RNF-001 — "Nenhum botão ou campo fica coberto pela barra de navegação do sistema: o fim de cada tela rolável termina acima dela."
-- **Tipo:** Widget · **Situação:** a implementar
+- **Tipo:** Widget · **Situação:** implementado — `barra_do_sistema_test: formulário de atendimento termina acima da barra` · `barra_do_sistema_test: formulário de cliente termina acima da barra`
 - **Pré-condições:** tela com uma barra de navegação do sistema simulada de 48 px na base (`MediaQuery.padding.bottom`).
 - **Passos:**
   1. Abrir o formulário de atendimento e rolar até o fim.
@@ -1016,3 +1016,4 @@ falso, que pode estar "fora do ar", e um armazenamento em memória no lugar do
 | 2026-11-17 | 1.28 | Wilson Gorosthides | CT-069 (busca por relevância) e CT-070 (busca sem acento) do RF-004, issue #113. "A implementar". |
 | 2026-11-17 | 1.29 | Wilson Gorosthides | CT-069 e CT-070 passam a "implementado" (issue #113). |
 | 2026-11-17 | 1.30 | Wilson Gorosthides | CT-071 (fim das telas acima da barra de navegação, RNF-001), issue #118. "A implementar". |
+| 2026-11-17 | 1.31 | Wilson Gorosthides | CT-071 passa a "implementado" (issue #118). |
