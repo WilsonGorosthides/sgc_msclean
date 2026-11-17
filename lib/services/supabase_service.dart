@@ -107,6 +107,11 @@ class SupabaseService {
   Future<ClientModel> addClienteProvisorio(String nome) =>
       _espelho.registrarClienteProvisorio(nome);
 
+  // Cliente novo vindo dos contatos do celular (RF-016, #115), criado junto
+  // com o atendimento: nome e telefone, pela mesma fila do aparelho.
+  Future<ClientModel> addClienteDoContato(String nome, String telefone) =>
+      _espelho.registrarClienteProvisorio(nome, telefones: [telefone]);
+
   // Filtro da busca (RF-004): substring em nome ou em qualquer campo do
   // endereço (via Endereco.buscavel), sem diferenciar maiúsculas nem acento.
   // Ordem por relevância (#113): com a agenda inteira importada, "Paulo" tem

@@ -3,14 +3,28 @@ import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../models/client_model.dart';
 import '../models/endereco.dart';
+import '../services/contatos.dart';
 import '../services/supabase_service.dart';
+import '../utils/telefone.dart';
 import '../utils/validators.dart';
 
 class ClientFormScreen extends StatefulWidget {
-  const ClientFormScreen({super.key, this.service, this.cliente});
+  const ClientFormScreen({
+    super.key,
+    this.service,
+    this.cliente,
+    this.clientes = const [],
+    this.contatos,
+  });
 
   // Nos testes injeta-se um service falso; em produção usa o real.
   final SupabaseService? service;
+
+  // Clientes já carregados, para avisar quem já está cadastrado (RF-016).
+  final List<ClientModel> clientes;
+
+  // Seletor de contatos do celular (RF-016); nos testes, um falso.
+  final AgendaDoCelular? contatos;
 
   // null = cadastro (RF-001); preenchido = edição (RF-002): campos
   // pré-preenchidos e salvamento via update, preservando o id.
@@ -23,6 +37,7 @@ class ClientFormScreen extends StatefulWidget {
 class _ClientFormScreenState extends State<ClientFormScreen> {
   late final _service = widget.service ?? SupabaseService();
   final _formKey = GlobalKey<FormState>();
+  late final _contatos = widget.contatos ?? ContatosDoAparelho();
   late final _nomeController =
       TextEditingController(text: widget.cliente?.nome ?? '');
   // Endereço estruturado (#65): um controller por campo, pré-preenchido na
@@ -84,6 +99,49 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
 
   void _removerTelefone(int indice) {
     setState(() => _telefoneControllers.removeAt(indice).dispose());
+  }
+
+  // Contato do celular (RF-016, #115): preenche nome e telefone. Se o número
+  // já é de um cliente, avisa e oferece o cadastro existente (CT-073).
+  Future<void> _trazerDosContatos() async {
+    final contato = await _contatos.escolher();
+    if (contato == null || !mounted) return;
+    final existente = clienteComTelefone(widget.clientes, contato.telefone);
+    if (existente != null) {
+      final abrir = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          content: Text('Já cadastrado como ${existente.nome}'),
+          actions: [
+            TextButton(
+              key: const Key('cadastrar_mesmo_assim'),
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Cadastrar mesmo assim'),
+            ),
+            TextButton(
+              key: const Key('abrir_existente'),
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('Abrir cadastro'),
+            ),
+          ],
+        ),
+      );
+      if (!mounted || abrir == null) return;
+      if (abrir) {
+        Navigator.of(context).pushReplacement(MaterialPageRoute(
+          builder: (_) => ClientFormScreen(
+              service: widget.service,
+              cliente: existente,
+              clientes: widget.clientes,
+              contatos: widget.contatos),
+        ));
+        return;
+      }
+    }
+    setState(() {
+      if (contato.nome.isNotEmpty) _nomeController.text = contato.nome;
+      _telefoneControllers.first.text = formatarTelefone(contato.telefone);
+    });
   }
 
   Future<void> _salvar() async {
@@ -256,6 +314,15 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
           padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg,
               AppSpacing.lg, AppSpacing.lg + MediaQuery.paddingOf(context).bottom),
           children: [
+            if (widget.cliente == null && _contatos.disponivel) ...[
+              OutlinedButton.icon(
+                key: const Key('dos_contatos'),
+                onPressed: _trazerDosContatos,
+                icon: const Icon(Icons.contacts_outlined),
+                label: const Text('Dos contatos do celular'),
+              ),
+              const SizedBox(height: AppSpacing.md),
+            ],
             TextFormField(
               key: const Key('campo_nome'),
               controller: _nomeController,
