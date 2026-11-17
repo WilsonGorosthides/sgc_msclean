@@ -90,7 +90,39 @@ create policy mvp_acesso_total_anon on public.atendimentos
 alter publication supabase_realtime add table public.atendimentos;
 ```
 
-**Row Level Security.** As tabelas `clientes` e `atendimentos` têm RLS habilitada, cada uma com uma única política de mesmo nome: `mvp_acesso_total_anon` (`FOR ALL`, role `anon`, `USING (true)` e `WITH CHECK (true)`). Na prática, com o RLS ligado, a role `anon` — a mesma que a `anonKey` pública carregada pelo app assume — tem acesso total de leitura e escrita às tabelas, sem nenhum filtro por linha. Essa permissividade é **deliberada** para o estágio atual (usuária única, app ainda não distribuído publicamente) e tem prazo de validade: deve ser substituída por políticas restritivas quando o RF-007 (autenticação) for implementado. Ver as dívidas técnicas (seção 9) e os riscos (seção 10).
+* **Tabela:** `precos` (RF-013, parte 1, issue #123) — a tabela de preços que a proprietária mantém.
+* **Colunas (baseado em `item_de_preco.dart`):**
+    -   `id` (uuid / chave primária, gerado pelo Supabase)
+    -   `nome` (text, obrigatório — o serviço: "Higienização sofá 3 lugares", "Impermeabilização de tapete")
+    -   `unidade` (text, obrigatório — `'peca'` ou `'m2'`, com `check`)
+    -   `valor` (numeric, opcional — **nulo é "sem valor"**: a lista sugerida nasce assim e ela completa)
+    -   `ordem` (int — posição na lista; um serviço novo vai ao fim)
+    -   `criado_em` (timestamptz, `default now()`)
+
+Cada serviço é **independente** (regra da proprietária): impermeabilização é uma linha como higienização, nunca um extra dela; o combo é escolher as duas linhas, ou cadastrar o combo como mais uma. Por isso não há coluna de "extra" nem relação entre linhas. A leitura passa pelo `EspelhoLocal` (guardada no aparelho, chave `espelho.precos`, para o cálculo sem internet da #124); a escrita (`addPreco`, `addPrecos`, `updatePreco`, `deletePreco`) vai direto ao banco, como a de clientes, e a tela renova a stream ao voltar. A tabela é lida via stream ordenada por `ordem`.
+
+SQL a aplicar no painel do Supabase (issue #123):
+
+```sql
+create table public.precos (
+  id        uuid primary key default gen_random_uuid(),
+  nome      text not null,
+  unidade   text not null check (unidade in ('peca', 'm2')),
+  valor     numeric,
+  ordem     int not null default 0,
+  criado_em timestamptz not null default now()
+);
+
+alter table public.precos enable row level security;
+
+create policy mvp_acesso_total_anon on public.precos
+  for all to anon using (true) with check (true);
+
+-- a stream do app depende da publicação de realtime
+alter publication supabase_realtime add table public.precos;
+```
+
+**Row Level Security.** As tabelas `clientes`, `atendimentos` e `precos` têm RLS habilitada, cada uma com uma única política de mesmo nome: `mvp_acesso_total_anon` (`FOR ALL`, role `anon`, `USING (true)` e `WITH CHECK (true)`). Na prática, com o RLS ligado, a role `anon` — a mesma que a `anonKey` pública carregada pelo app assume — tem acesso total de leitura e escrita às tabelas, sem nenhum filtro por linha. Essa permissividade é **deliberada** para o estágio atual (usuária única, app ainda não distribuído publicamente) e tem prazo de validade: deve ser substituída por políticas restritivas quando o RF-007 (autenticação) for implementado. Ver as dívidas técnicas (seção 9) e os riscos (seção 10).
 
 ## 5. Estrutura de Diretórios do Projeto
 A organização real do código:
@@ -100,16 +132,18 @@ lib/
 ├── models/
 │   ├── atendimento.dart            # Atendimento e Periodo (manhã/tarde): a linha da agenda
 │   ├── peca.dart                   # Peca: value object das peças do serviço (jsonb), com o resumo do cartão
+│   ├── item_de_preco.dart          # ItemDePreco e UnidadeDeCobranca: serviço da tabela de preços e a lista sugerida (RF-013)
 │   ├── client_model.dart           # ClientModel: id, nome, endereco (Endereco), telefones
 │   └── endereco.dart               # Endereco: value object do endereço estruturado (jsonb)
 ├── screens/
 │   ├── agenda_screen.dart          # tela inicial (RF-010): dia por período, faixa da semana, mês em calendário
 │   ├── atendimento_form_screen.dart # registro e edição de atendimento a partir do dia (RF-005)
 │   ├── home_screen.dart            # lista de clientes + barra de busca (aberta a partir da agenda)
+│   ├── tabela_de_precos_screen.dart # tabela de preços (RF-013): listar, adicionar, editar, remover; lista sugerida (aberta a partir da agenda)
 │   ├── sem_conexao.dart            # aviso de "sem conexão" e selo "aguardando envio" (RNF-007)
 │   └── client_form_screen.dart     # formulário de cadastro (RF-001; reusável na edição, com o histórico do cliente no topo, RF-011)
 ├── services/
-│   ├── supabase_service.dart       # acesso ao Supabase (streams de clientes e atendimentos + escrita de clientes e atendimentos)
+│   ├── supabase_service.dart       # acesso ao Supabase (streams de clientes, atendimentos e preços + escrita de cada um)
 │   ├── espelho_local.dart          # anotar sem internet (RNF-007): cópia no aparelho, fila de envios, estado de conexão
 │   ├── avisos_do_aparelho.dart     # avisos no celular (RF-015): agenda no Android via flutter_local_notifications
 │   ├── bateria.dart                # pedido de liberação da economia de bateria (RF-015, #101): regra + canal com a MainActivity
@@ -271,6 +305,7 @@ A auditoria registrou cobertura real de 0% — o único teste era o template pad
 | 2026-11-17 | 2.23 | Wilson Gorosthides | Busca por relevância e sem acento (RF-004, #113): `lib/utils/texto.dart` na árvore §5; `filtrarClientes` ordena em faixas (igual, começa com, palavra começa com, no meio, endereço). Sem mudança de schema. |
 | 2026-11-17 | 2.24 | Wilson Gorosthides | Cliente dos contatos do celular (RF-016, #115): §7 com a decisão do seletor do sistema sem `READ_CONTACTS` (canal `msclean/contatos`); `lib/services/contatos.dart` e `lib/utils/telefone.dart` na árvore §5; `SupabaseService.addClienteDoContato` pela fila do aparelho. Sem mudança de schema. |
 | 2026-11-17 | 2.25 | Wilson Gorosthides | Histórico do cliente (RF-011, #81): árvore §5 com `utils/historico.dart` e o histórico no formulário do cliente; §7 com a decisão de calcular no app, sobre a stream de atendimentos, sem schema novo. |
+| 2026-11-17 | 2.26 | Wilson Gorosthides | Tabela de preços (RF-013 parte 1, #123): §4 com a tabela `precos` (SQL a aplicar, RLS `mvp_acesso_total_anon`, realtime) e a regra de serviços independentes; árvore §5 com `item_de_preco.dart` e `tabela_de_precos_screen.dart`. |
 
 ## 12. Ambiente de Desenvolvimento
 Os seguintes softwares e configurações são necessários para iniciar o desenvolvimento:

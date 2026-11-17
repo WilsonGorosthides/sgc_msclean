@@ -839,7 +839,7 @@
 
 ### CT-080 — Serviço da tabela: nome, unidade e valor
 - **Critério:** "A proprietária mantém a **tabela de preços** como uma lista de **serviços**: cada um com **nome** [...], **unidade de cobrança** (peça ou metro quadrado) e **valor**."
-- **Tipo:** Unitário · **Situação:** a implementar
+- **Tipo:** Unitário · **Situação:** implementado — `item_de_preco_test: lê nome, unidade e valor; valor nulo é sem valor` · `item_de_preco_test: unidade desconhecida vale peça; rótulos por peça e por m²` · `item_de_preco_test: toMap leva nome, unidade, valor e ordem, sem id nem criado_em`
 - **Pré-condições:** linhas do banco com unidade `peca` e `m2`, com e sem valor.
 - **Passos:**
   1. Ler cada linha (`ItemDePreco.fromMap`) e gravar de volta (`toMap`).
@@ -847,7 +847,7 @@
 
 ### CT-081 — Tabela aberta pela agenda, com nome, unidade e valor
 - **Critério:** idem CT-080 (exibição).
-- **Tipo:** Widget · **Situação:** a implementar
+- **Tipo:** Widget · **Situação:** implementado — `tabela_de_precos_screen_test: lista nome, unidade e valor; sem valor quando vazio` · `agenda_screen_test: ícone da barra abre a tabela de preços`
 - **Pré-condições:** tabela com "Higienização sofá 3 lugares" (por peça, R$ 180,00) e "Higienização de tapete" (por m², sem valor).
 - **Passos:**
   1. Na agenda, tocar no ícone da tabela de preços.
@@ -855,7 +855,7 @@
 
 ### CT-082 — Adicionar e editar um serviço
 - **Critério:** "Ela adiciona, edita e remove serviços." (adicionar e editar)
-- **Tipo:** Widget · **Situação:** a implementar
+- **Tipo:** Widget · **Situação:** implementado — `tabela_de_precos_screen_test: adicionar exige nome e grava com o valor e a ordem seguinte` · `tabela_de_precos_screen_test: editar abre preenchido e apagar o valor grava sem valor`
 - **Pré-condições:** tabela com um serviço.
 - **Passos:**
   1. Tocar em adicionar, salvar sem nome; depois preencher "Impermeabilização poltrona", "por peça", valor "90,50" e salvar.
@@ -864,7 +864,7 @@
 
 ### CT-083 — Remover um serviço com confirmação
 - **Critério:** "Ela adiciona, edita e remove serviços." (remover)
-- **Tipo:** Widget · **Situação:** a implementar
+- **Tipo:** Widget · **Situação:** implementado — `tabela_de_precos_screen_test: remover pede confirmação; cancelar não remove`
 - **Pré-condições:** tabela com um serviço.
 - **Passos:**
   1. Tocar na lixeira do serviço e cancelar.
@@ -873,7 +873,7 @@
 
 ### CT-084 — Serviços independentes; combo é escolher os dois
 - **Critério:** "**Cada serviço é independente**: impermeabilização é um serviço como higienização [...]" e "O **combo** [...] é escolher os dois serviços; o valor é a soma. Se ela cobra o combo com preço próprio, cadastra o combo como mais um serviço da tabela."
-- **Tipo:** Unitário + Widget · **Situação:** a implementar
+- **Tipo:** Unitário + Widget · **Situação:** implementado — `item_de_preco_test: lista sugerida: higienização e impermeabilização separadas` · `tabela_de_precos_screen_test: dica: serviços independentes e combo`
 - **Pré-condições:** nenhuma.
 - **Passos:**
   1. Montar a lista sugerida (função pura).
@@ -882,7 +882,7 @@
 
 ### CT-085 — Tabela vazia começa pela lista sugerida, sem valor
 - **Critério:** "A tabela começa com uma **lista inicial** de serviços **sem valor**, que ela completa."
-- **Tipo:** Unitário + Widget · **Situação:** a implementar
+- **Tipo:** Unitário + Widget · **Situação:** implementado — `item_de_preco_test: lista sugerida vem sem valor, com ordem crescente e tapete por m²` · `tabela_de_precos_screen_test: tabela vazia começa com a lista sugerida, sem valor` · `tabela_de_precos_screen_test: com serviço cadastrado, a lista sugerida não aparece`
 - **Pré-condições:** tabela vazia; depois, tabela com um serviço.
 - **Passos:**
   1. Abrir a tabela vazia e tocar em "Começar com a lista sugerida".
@@ -891,7 +891,7 @@
 
 ### CT-086 — Tabela guardada no aparelho
 - **Critério:** apoio ao cálculo sem internet (RNF-007; uso na parte 2, #124).
-- **Tipo:** Unitário · **Situação:** a implementar
+- **Tipo:** Unitário · **Situação:** implementado — `espelho_local_test: tabela de preços guardada no aparelho abre sem conexão`
 - **Pré-condições:** banco com um serviço na tabela; depois, banco fora do ar.
 - **Passos:**
   1. Abrir a tabela com o banco no ar.
@@ -1175,4 +1175,5 @@ falso, que pode estar "fora do ar", e um armazenamento em memória no lugar do
 | 2026-11-17 | 1.34 | Wilson Gorosthides | CT-076 a CT-079 do RF-011 (histórico do cliente), issue #81. "A implementar". |
 | 2026-11-17 | 1.35 | Wilson Gorosthides | CT-076 a CT-079 passam a "implementado" (issue #81). |
 | 2026-11-17 | 1.36 | Wilson Gorosthides | CT-080 a CT-086 do RF-013, parte 1 (tabela de preços), issue #123. "A implementar". |
+| 2026-11-17 | 1.37 | Wilson Gorosthides | CT-080 a CT-086 passam a "implementado" (issue #123). |
 | 2026-11-17 | 1.36 | Wilson Gorosthides | CT-055 ganha o teste da linha repetida pelo banco (bug #128: atendimento em dobro na agenda). |

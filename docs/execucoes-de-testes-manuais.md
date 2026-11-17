@@ -42,10 +42,51 @@ como **outro app**: desinstalar o antigo primeiro, para não ficarem dois ícone
 Conferir também que o APK novo abre a agenda **com dados** (a permissão de
 internet passou a valer no release).
 
-Nenhum SQL pendente: o do RF-014 (colunas `feito` e `pago`) foi aplicado no
-painel (confirmado pelo desenvolvedor em 2026-11-16).
+### SQL a aplicar (antes dos passos)
 
-Nenhum passo pendente: a Execução 014 rodou o último bloco (#128).
+Tabela de preços (#123), no SQL Editor do painel do Supabase:
+
+```sql
+create table public.precos (
+  id        uuid primary key default gen_random_uuid(),
+  nome      text not null,
+  unidade   text not null check (unidade in ('peca', 'm2')),
+  valor     numeric,
+  ordem     int not null default 0,
+  criado_em timestamptz not null default now()
+);
+
+alter table public.precos enable row level security;
+
+create policy mvp_acesso_total_anon on public.precos
+  for all to anon using (true) with check (true);
+
+-- a stream do app depende da publicação de realtime
+alter publication supabase_realtime add table public.precos;
+```
+
+### #123 — Tabela de preços editável (RF-013, parte 1)
+
+Testes manuais gravam no banco real (o mesmo do celular): usar serviços com
+"TESTE" no nome e apagá-los no fim. Se a proprietária já tiver começado a
+tabela de verdade, pular o passo 2.
+
+1. Na agenda, tocar no ícone de etiqueta (Tabela de preços). **Esperado:** abre
+   "Tabela de preços" com a dica de serviços independentes e combo no topo.
+   (CT-081, CT-084)
+2. Com a tabela vazia, tocar em "Começar com a lista sugerida". **Esperado:** a
+   lista aparece, com higienização e impermeabilização em linhas separadas,
+   tapete e cortina "por m²", o resto "por peça", todos "sem valor"; o botão
+   some. (CT-084, CT-085)
+3. Tocar em "+", salvar sem nome (avisa "Informe o nome"); depois "TESTE
+   Impermeabilização poltrona", por peça, valor `90,50`, Salvar. **Esperado:**
+   aparece no fim da lista com "R$ 90,50". (CT-082)
+4. Tocar no serviço TESTE, mudar para "por m²", apagar o valor e salvar.
+   **Esperado:** "por m²" e "sem valor". (CT-082)
+5. Sem internet, fechar e reabrir o app e a tabela. **Esperado:** a tabela
+   aparece (guardada no aparelho) com o aviso de sem conexão. Com a internet de
+   volta, tocar na lixeira do TESTE, Cancelar (fica) e depois Remover.
+   **Esperado:** "Serviço removido" e a linha sai. (CT-086, CT-083)
 
 ## Execução 001 — Verificação manual do RF-001 (pré-merge do PR #44)
 
@@ -617,3 +658,4 @@ versão nova, assinada com a mesma chave, instala por cima sem perder dados.
 | 2026-11-17 | 1.27 | Wilson Gorosthides | Pilha: entram os passos do histórico do cliente (#81). |
 | 2026-11-17 | 1.28 | Wilson Gorosthides | Execução 013 (pilha #81, #115, #118, #113: aprovada; bug #128 e achado #129); a pilha passa a ter só o passo do #128. |
 | 2026-11-17 | 1.29 | Wilson Gorosthides | Execução 014 (#128: atendimento em dobro corrigido, aprovado); pilha vazia. |
+| 2026-11-17 | 1.30 | Wilson Gorosthides | Pilha: SQL da tabela `precos` e os passos da tabela de preços (#123, RF-013 parte 1). |
