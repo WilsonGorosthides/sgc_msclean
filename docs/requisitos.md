@@ -61,6 +61,8 @@ O sistema deve permitir a busca de clientes por palavra-chave.
   - A lista é filtrada em tempo real conforme o usuário digita, sem necessidade de botão "buscar".
   - Quando nenhum cliente corresponde ao termo, a tela exibe a mensagem "Nenhum cliente encontrado.".
   - Com o campo de busca vazio, todos os clientes são exibidos.
+  - Os resultados vêm por **relevância**: nome igual ao termo, depois nome que começa com o termo, depois nome com uma palavra que começa com o termo, depois o termo no meio do nome e, por fim, o termo só no endereço; dentro de cada faixa, ordem alfabética. (Com a agenda inteira importada, a ordem alfabética punha "João Paulo" antes de "Paulo".)
+  - A busca **não diferencia acento**: "joao" acha "João".
 
 #### RF-008 - Exclusão de Cliente
 O sistema deve permitir excluir um cliente existente.
@@ -344,3 +346,4 @@ O sistema deve ter um mecanismo de login para o único usuário (a proprietária
 | 2026-11-16 | 3.5 | Wilson Gorosthides | Novo **RF-015 - Avisos no Celular** (issue #95, pedido da proprietária na demonstração): resumo da véspera às 19h, resumo do dia às 7h, aviso 1 hora antes do atendimento com hora, lembrete único de feito e não pago no terceiro dia, avisos que acompanham a agenda e toque que abre o dia. Avisos locais, só no Android. |
 | 2026-11-16 | 3.6 | Wilson Gorosthides | RF-015 ganha o critério do pedido de liberação da economia de bateria na primeira abertura, com nova tentativa só após 30 dias (issue #101). |
 | 2026-11-16 | 3.7 | Wilson Gorosthides | RF-005 ganha dois critérios: trocar o dia na edição (adiar ou corrigir) e excluir o atendimento com confirmação — cancelar é excluir, sem marca de cancelado (decisão de 2026-11-16, issue #106). |
+| 2026-11-17 | 3.8 | Wilson Gorosthides | RF-004 ganha dois critérios: resultados por relevância (quem começa com o termo primeiro) e busca sem diferenciar acento — achado com a agenda importada de 4.371 contatos (issue #113). |

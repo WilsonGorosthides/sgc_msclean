@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/atendimento.dart';
 import '../models/client_model.dart';
+import '../utils/texto.dart';
 import 'armazem_local.dart';
 import 'espelho_local.dart';
 
@@ -107,15 +108,39 @@ class SupabaseService {
       _espelho.registrarClienteProvisorio(nome);
 
   // Filtro da busca (RF-004): substring em nome ou em qualquer campo do
-  // endereço (via Endereco.buscavel), sem diferenciar maiúsculas de
-  // minúsculas. Função pura: testável sem mockar a stream do Supabase.
+  // endereço (via Endereco.buscavel), sem diferenciar maiúsculas nem acento.
+  // Ordem por relevância (#113): com a agenda inteira importada, "Paulo" tem
+  // de vir antes de "João Paulo". Faixas: 0 nome igual, 1 começa com o termo,
+  // 2 uma palavra começa com o termo, 3 no meio do nome, 4 só no endereço.
+  // Dentro da faixa, a ordem de entrada (alfabética, da stream). Função pura:
+  // testável sem mockar a stream do Supabase.
   static List<ClientModel> filtrarClientes(
       List<ClientModel> clientes, String query) {
-    final termo = query.toLowerCase();
-    return clientes
-        .where((client) =>
-            client.nome.toLowerCase().contains(termo) ||
-            client.endereco.buscavel.contains(termo))
-        .toList();
+    final termo = paraBusca(query.trim());
+    if (termo.isEmpty) return clientes.toList();
+    final faixas = List.generate(5, (_) => <ClientModel>[]);
+    for (final cliente in clientes) {
+      final faixa = _faixaDeRelevancia(cliente, termo);
+      if (faixa != null) faixas[faixa].add(cliente);
+    }
+    return [for (final faixa in faixas) ...faixa];
   }
+
+  static int? _faixaDeRelevancia(ClientModel cliente, String termo) {
+    final nome = paraBusca(cliente.nome.trim());
+    if (nome == termo) return 0;
+    int? melhor;
+    var i = nome.indexOf(termo);
+    while (i >= 0) {
+      if (i == 0) return 1;
+      if (!_letraOuDigito(nome[i - 1])) return 2;
+      melhor = 3;
+      i = nome.indexOf(termo, i + 1);
+    }
+    if (melhor != null) return melhor;
+    return paraBusca(cliente.endereco.buscavel).contains(termo) ? 4 : null;
+  }
+
+  static final _alfanumerico = RegExp(r'[a-z0-9]');
+  static bool _letraOuDigito(String c) => _alfanumerico.hasMatch(c);
 }
