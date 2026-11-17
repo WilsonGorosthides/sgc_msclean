@@ -29,6 +29,8 @@
   depois dos casos do RF-014, na ordem dos RFs da agenda.
 - CT-076 a CT-079 cobrem o RF-011 (histórico do cliente, issue #81) e ficam
   entre os casos do RF-010 e os do RF-014, na ordem dos RFs da agenda.
+- CT-080 a CT-086 cobrem a parte 1 do RF-013 (tabela de preços, issue #123) e
+  ficam entre os casos do RF-011 e os do RF-014.
 - Critérios de aceitação são copiados literalmente da matriz.
 - Nos CTs automatizados, os "passos" descrevem o que o teste executa; nos
   manuais, o que a pessoa executa.
@@ -830,6 +832,72 @@
   1. Abrir o cliente.
 - **Resultado esperado:** "Nenhum atendimento registrado", sem valor nem "há quanto tempo". No cadastro de cliente novo o histórico não aparece.
 
+## RF-013 — Tabela de Preços e Cálculo do Valor
+
+> Parte 1 (issue #123): a tabela editável. Os CTs do cálculo no atendimento
+> (parte 2, issue #124) entram na entrega dela.
+
+### CT-080 — Serviço da tabela: nome, unidade e valor
+- **Critério:** "A proprietária mantém a **tabela de preços** como uma lista de **serviços**: cada um com **nome** [...], **unidade de cobrança** (peça ou metro quadrado) e **valor**."
+- **Tipo:** Unitário · **Situação:** a implementar
+- **Pré-condições:** linhas do banco com unidade `peca` e `m2`, com e sem valor.
+- **Passos:**
+  1. Ler cada linha (`ItemDePreco.fromMap`) e gravar de volta (`toMap`).
+- **Resultado esperado:** nome, unidade e valor lidos; `valor` nulo vale "sem valor"; unidade desconhecida vale peça; os rótulos são "por peça" e "por m²"; o `toMap` leva nome, unidade, valor e ordem, sem id nem `criado_em`.
+
+### CT-081 — Tabela aberta pela agenda, com nome, unidade e valor
+- **Critério:** idem CT-080 (exibição).
+- **Tipo:** Widget · **Situação:** a implementar
+- **Pré-condições:** tabela com "Higienização sofá 3 lugares" (por peça, R$ 180,00) e "Higienização de tapete" (por m², sem valor).
+- **Passos:**
+  1. Na agenda, tocar no ícone da tabela de preços.
+- **Resultado esperado:** abre "Tabela de preços" com os dois serviços, cada um com "por peça"/"por m²" e "R$ 180,00"/"sem valor".
+
+### CT-082 — Adicionar e editar um serviço
+- **Critério:** "Ela adiciona, edita e remove serviços." (adicionar e editar)
+- **Tipo:** Widget · **Situação:** a implementar
+- **Pré-condições:** tabela com um serviço.
+- **Passos:**
+  1. Tocar em adicionar, salvar sem nome; depois preencher "Impermeabilização poltrona", "por peça", valor "90,50" e salvar.
+  2. Tocar no serviço existente, apagar o valor e salvar.
+- **Resultado esperado:** sem nome não grava e avisa "Informe o nome"; o novo serviço é gravado com valor 90,5 e ordem depois do último; a edição grava o mesmo id com valor nulo ("sem valor"). A lista é renovada ao voltar.
+
+### CT-083 — Remover um serviço com confirmação
+- **Critério:** "Ela adiciona, edita e remove serviços." (remover)
+- **Tipo:** Widget · **Situação:** a implementar
+- **Pré-condições:** tabela com um serviço.
+- **Passos:**
+  1. Tocar na lixeira do serviço e cancelar.
+  2. Tocar de novo e confirmar.
+- **Resultado esperado:** cancelar não remove; confirmar remove pelo id e mostra "Serviço removido".
+
+### CT-084 — Serviços independentes; combo é escolher os dois
+- **Critério:** "**Cada serviço é independente**: impermeabilização é um serviço como higienização [...]" e "O **combo** [...] é escolher os dois serviços; o valor é a soma. Se ela cobra o combo com preço próprio, cadastra o combo como mais um serviço da tabela."
+- **Tipo:** Unitário + Widget · **Situação:** a implementar
+- **Pré-condições:** nenhuma.
+- **Passos:**
+  1. Montar a lista sugerida (função pura).
+  2. Abrir a tabela de preços.
+- **Resultado esperado:** para cada peça que se impermeabiliza (sofás, poltrona, cadeira, tapete), há um item "Higienização ..." e outro "Impermeabilização ..." separados, nenhum chamado de extra; a tela mostra a dica de que cada serviço é independente e de que o combo é escolher os dois ou cadastrar o combo como mais um serviço.
+
+### CT-085 — Tabela vazia começa pela lista sugerida, sem valor
+- **Critério:** "A tabela começa com uma **lista inicial** de serviços **sem valor**, que ela completa."
+- **Tipo:** Unitário + Widget · **Situação:** a implementar
+- **Pré-condições:** tabela vazia; depois, tabela com um serviço.
+- **Passos:**
+  1. Abrir a tabela vazia e tocar em "Começar com a lista sugerida".
+  2. Abrir a tabela com um serviço.
+- **Resultado esperado:** a lista sugerida é gravada de uma vez, todos os itens sem valor e com ordem crescente, e a lista é renovada; com serviço cadastrado, o botão não aparece.
+
+### CT-086 — Tabela guardada no aparelho
+- **Critério:** apoio ao cálculo sem internet (RNF-007; uso na parte 2, #124).
+- **Tipo:** Unitário · **Situação:** a implementar
+- **Pré-condições:** banco com um serviço na tabela; depois, banco fora do ar.
+- **Passos:**
+  1. Abrir a tabela com o banco no ar.
+  2. Reabrir com o banco fora do ar.
+- **Resultado esperado:** a segunda abertura mostra o serviço guardado no aparelho, sem erro na stream, e o estado fica "sem conexão".
+
 ## RF-014 — Estados de Conclusão do Atendimento
 
 ### CT-049 — Dois marcadores independentes
@@ -1106,4 +1174,5 @@ falso, que pode estar "fora do ar", e um armazenamento em memória no lugar do
 | 2026-11-17 | 1.33 | Wilson Gorosthides | CT-072 a CT-075 passam a "implementado" (issue #115). |
 | 2026-11-17 | 1.34 | Wilson Gorosthides | CT-076 a CT-079 do RF-011 (histórico do cliente), issue #81. "A implementar". |
 | 2026-11-17 | 1.35 | Wilson Gorosthides | CT-076 a CT-079 passam a "implementado" (issue #81). |
+| 2026-11-17 | 1.36 | Wilson Gorosthides | CT-080 a CT-086 do RF-013, parte 1 (tabela de preços), issue #123. "A implementar". |
 | 2026-11-17 | 1.36 | Wilson Gorosthides | CT-055 ganha o teste da linha repetida pelo banco (bug #128: atendimento em dobro na agenda). |

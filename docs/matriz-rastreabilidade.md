@@ -78,6 +78,11 @@ RF-005 que ficam para o RF-013 (valor calculado) e para o RNF-006
 | RF-011 | O sistema exibe o **valor do atendimento mais recente** que tenha valor registrado, junto da data desse atendimento e das peças que o compuseram. | CT-077 — `historico_test: último valor é o do atendimento mais recente com valor` · `client_form_screen_test: histórico: mostra o último valor com a data e as peças` |
 | RF-011 | O sistema exibe o histórico dos atendimentos anteriores daquele cliente, do mais recente para o mais antigo, com data, peças e valor de cada um. | CT-078 — `historico_test: só os atendimentos do cliente até hoje, do mais recente ao mais antigo` · `client_form_screen_test: histórico: lista os atendimentos do mais recente ao mais antigo` |
 | RF-011 | Quando o cliente não tem nenhum atendimento registrado, o sistema exibe "Nenhum atendimento registrado" em vez de campos vazios ou zero. | CT-079 — `client_form_screen_test: histórico: sem atendimento mostra "Nenhum atendimento registrado"` |
+| RF-013 | A proprietária mantém a **tabela de preços** como uma lista de **serviços**: cada um com **nome**, **unidade de cobrança** (peça ou metro quadrado) e **valor**. | CT-080 — a implementar · CT-081 — a implementar · CT-086 — a implementar |
+| RF-013 | Ela adiciona, edita e remove serviços. | CT-082 — a implementar · CT-083 — a implementar |
+| RF-013 | **Cada serviço é independente**: impermeabilização é um serviço como higienização, e pode ser orçada e registrada **sozinha**, sem higienização na mesma peça. | CT-084 — a implementar |
+| RF-013 | O **combo** (higienizar e impermeabilizar a mesma peça) é escolher os dois serviços; o valor é a soma. Se ela cobra o combo com preço próprio, cadastra o combo como mais um serviço da tabela. | CT-084 — a implementar |
+| RF-013 | A tabela começa com uma **lista inicial** de serviços **sem valor**, que ela completa. | CT-085 — a implementar |
 | RF-014 | Cada atendimento tem dois marcadores **independentes**: *serviço feito* e *cliente pagou*, cada um podendo ser ligado e desligado. | CT-049 — `atendimento_test: lê feito e pago; ausentes valem falso` · `atendimento_test: toMap não leva feito nem pago` · `agenda_screen_test: marcar serviço feito não abre o formulário e não marca o pago` · `agenda_screen_test: desmarcar o pago desliga só ele` |
 | RF-014 | Um atendimento é considerado **concluído** somente quando **os dois** estão marcados. | CT-050 — `atendimento_test: concluído só com os dois marcados` · `agenda_screen_test: cartão distingue nada marcado, um dos dois e concluído` |
 | RF-014 | A agenda distingue visualmente três situações: nada marcado, um dos dois marcado, e concluído. | CT-051 — `agenda_screen_test: cartão distingue nada marcado, um dos dois e concluído` |
@@ -153,3 +158,4 @@ descoberto.
 | 2026-11-17 | 1.37 | Wilson Gorosthides | RF-011 entra com quatro linhas ↔ CT-076 a CT-079 (histórico do cliente, issue #81), "a implementar". |
 | 2026-11-17 | 1.38 | Wilson Gorosthides | CT-076 a CT-079 entregues (issue #81): nomes reais dos testes do histórico do cliente. |
 | 2026-11-17 | 1.39 | Wilson Gorosthides | CT-055 (RNF-007) ganha o teste da linha repetida pelo banco (bug #128). |
+| 2026-11-17 | 1.40 | Wilson Gorosthides | RF-013, parte 1 (tabela de preços, issue #123), entra com cinco linhas ↔ CT-080 a CT-086, "a implementar". |
