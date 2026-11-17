@@ -205,16 +205,54 @@ O sistema deve avisar quando um atendimento é marcado em horário já ocupado.
   - **Limitação assumida:** a duração do serviço não é modelada nesta versão, então o conflito é aproximado pela janela fixa de 1 hora. Se a janela se mostrar imprecisa no uso real, a decisão a rever é modelar a duração — não ajustar o número.
   - Para os atendimentos **sem hora**, a proteção contra excesso não é o aviso, e sim a contagem por período exibida no RF-010: a carga do dia fica visível antes de aceitar mais um.
 
-#### RF-013 - Tabela de Preços e Cálculo por Metragem
-O sistema deve calcular o valor de um atendimento a partir das peças, usando uma tabela de preços que a proprietária mantém.
+#### RF-013 - Tabela de Preços e Cálculo do Valor
+O sistema deve calcular o valor de um atendimento (e de um orçamento, RF-017) a partir dos serviços, usando uma tabela de preços que a proprietária mantém.
+
+> **Referência (2026-11-17).** A proprietária comprou e usa um app de orçamento
+> de higienização. Gosta da forma de precificar: uma tabela de itens (produtos,
+> mão de obra e imprevistos), com o valor de cada um e o total que sai pronto.
+> **Reclamação dela:** lá, a impermeabilização só entra como *extra* de uma
+> higienização. Ela também faz **só impermeabilização**: é um serviço completo,
+> não um extra. O combo (higienizar e impermeabilizar a mesma peça) existe e é
+> comum, mas é a soma de dois serviços, não a regra. Daí o critério de serviços
+> independentes.
 
 * **Critérios de aceitação:**
-  - A proprietária pode **editar a tabela de preços**: para cada tipo de peça, a unidade de cobrança (**metro quadrado** ou **peça**) e o valor correspondente.
-  - Para peças cobradas por metro quadrado, o sistema calcula a área a partir de largura × comprimento e multiplica pelo valor do metro (ex.: `8 × 4,5 = 36 m²`).
-  - Para peças cobradas por peça, o sistema multiplica o valor pela quantidade.
-  - O valor total do atendimento é a soma das peças, exibido enquanto elas são informadas.
-  - O valor calculado é **sugestão, não imposição**: a proprietária pode sobrescrevê-lo no atendimento (desconto, combinado diferente) sem alterar a tabela.
-  - Alterar a tabela de preços **não altera** o valor de atendimentos já registrados.
+  - A proprietária mantém a **tabela de preços** como uma lista de **serviços**: cada um com **nome** (ex.: "Higienização sofá 3 lugares", "Impermeabilização sofá 3 lugares", "Higienização de tapete"), **unidade de cobrança** (peça ou metro quadrado) e **valor**. Ela adiciona, edita e remove serviços.
+  - **Cada serviço é independente**: impermeabilização é um serviço como higienização, e pode ser orçada e registrada **sozinha**, sem higienização na mesma peça.
+  - O **combo** (higienizar e impermeabilizar a mesma peça) é escolher os dois serviços; o valor é a soma. Se ela cobra o combo com preço próprio, cadastra o combo como mais um serviço da tabela.
+  - A tabela começa com uma **lista inicial** de serviços **sem valor**, que ela completa; um serviço sem valor não entra no cálculo, e o total avisa que falta valor.
+  - Para serviços cobrados por metro quadrado, o sistema calcula a área a partir de largura × comprimento e multiplica pelo valor do metro (ex.: `8 × 4,5 = 36 m²`).
+  - Para serviços cobrados por peça, o sistema multiplica o valor pela quantidade.
+  - O valor total é a soma dos serviços, exibido enquanto eles são informados.
+  - O valor calculado é **sugestão, não imposição**: a proprietária pode sobrescrevê-lo (desconto, combinado diferente) sem alterar a tabela.
+  - Alterar a tabela de preços **não altera** o valor de atendimentos e orçamentos já registrados.
+* **Entrega em duas partes:** a tabela editável (os quatro primeiros critérios) e o cálculo no atendimento (os demais).
+
+#### RF-017 - Orçamento
+O sistema deve montar um orçamento a partir da tabela de preços (RF-013), mandá-lo pelo WhatsApp e, aprovado, levá-lo à agenda.
+
+> Pedido da proprietária, a partir do app de orçamento que ela usa (ver a nota
+> do RF-013). Lá o orçamento é isolado; aqui ele nasce do cadastro de clientes
+> e termina na agenda — "cliente aprovou" vira atendimento sem digitar de novo,
+> o que fecha a etapa de transcrição que já causou agendamento duplicado
+> (RNF-006).
+
+* **Critérios de aceitação:**
+  - O orçamento é feito para um cliente **cadastrado**, um **contato do celular** (RF-016) ou um **nome novo** (cliente provisório, como no RF-005).
+  - Os itens são **serviços da tabela** (com quantidade ou medidas) e **itens avulsos** (descrição e valor, para imprevistos); o total sai pelo RF-013 e pode ser sobrescrito.
+  - O orçamento leva **garantia**, **validade** (em dias) e **formas de pagamento**, textos que ela configura uma vez e pode mudar em cada orçamento.
+  - Cada orçamento tem uma **situação**: rascunho, enviado, aprovado ou recusado.
+  - **Enviar pelo WhatsApp** abre o WhatsApp com o orçamento em texto (itens, total, garantia, validade e pagamento) e marca o orçamento como enviado.
+  - **Cliente aprovou** pede o dia e o período e cria o **atendimento** na agenda com os mesmos itens e valor; o orçamento fica aprovado e ligado ao atendimento.
+  - Os orçamentos ficam numa lista, do mais recente ao mais antigo, com cliente, total e situação.
+* **Decisões em aberto (com a proprietária):** mostrar o total separado em **produtos e mão de obra**, como no app de referência, ou só o total; envio só em **texto** ou também em **PDF com o logo**; resumo do mês (**quanto foi orçado e quantos aprovados**), que esbarra na nota de prioridade do RF-006.
+* **Já coberto pelo app:** o "lembrete de retorno", pago à parte no app de referência, é o histórico do cliente (RF-011) mais os avisos no celular (RF-015).
+
+#### RF-018 - Orçamento por Áudio
+O sistema deve montar o orçamento (RF-017) a partir de um áudio em que a proprietária descreve o serviço.
+
+* **Nota de prioridade:** é o recurso de destaque do app de referência. Exige reconhecimento de voz e um modelo de linguagem para casar a fala com a tabela de preços — com custo por uso e um servidor que guarde a chave. Fica especificado e **não priorizado** até o RF-017 estar em uso; antes, um spike avalia custo e precisão.
 
 #### RF-014 - Estados de Conclusão do Atendimento
 Um atendimento tem dois estados independentes: **serviço feito** e **cliente pagou**.
@@ -306,8 +344,12 @@ O sistema deve ter um mecanismo de login para o único usuário (a proprietária
     * **Para que** eu não perca tempo procurando em conversas antigas e saiba quando voltar.
 * **História 9: Calcular o preço na hora**
     * **Como** proprietária da empresa,
-    * **Eu quero** informar as peças e as medidas e ver o valor sair pronto,
+    * **Eu quero** informar os serviços, as peças e as medidas e ver o valor sair pronto,
     * **Para que** eu passe o orçamento na conversa sem fazer conta no papel.
+* **História 11: Mandar o orçamento e, aprovado, já estar na agenda**
+    * **Como** proprietária da empresa,
+    * **Eu quero** montar o orçamento pela minha tabela, mandar pelo WhatsApp e, quando a cliente aprovar, ver o serviço já na agenda,
+    * **Para que** eu não precise de outro app para orçar nem passe nada a limpo depois.
 * **História 10: Saber o que já fechou**
     * **Como** proprietária da empresa,
     * **Eu quero** marcar separadamente que o serviço foi feito e que a cliente pagou,
@@ -366,3 +408,4 @@ O sistema deve ter um mecanismo de login para o único usuário (a proprietária
 | 2026-11-17 | 3.9 | Wilson Gorosthides | RNF-001: nenhum botão coberto pela barra de navegação do sistema (Android 15+ de ponta a ponta; Salvar coberto no celular da usuária, issue #118). |
 | 2026-11-17 | 3.10 | Wilson Gorosthides | Novo **RF-016 - Trazer Cliente dos Contatos do Celular** (issue #115): botão "Dos contatos" no cadastro e no atendimento, só o contato escolhido, aviso de já cadastrado, contato novo vira cliente com telefone, formato e comparação de telefone. |
 | 2026-11-17 | 3.11 | Wilson Gorosthides | RF-011 entregue (issue #81): nota de entrega — histórico no topo da tela do cliente, contando só atendimentos até hoje. |
+| 2026-11-17 | 3.12 | Wilson Gorosthides | A partir do app de orçamento que a proprietária usa: **RF-013 reescrito** (tabela como lista de serviços independentes — impermeabilização é serviço completo, não extra de higienização; combo é a soma ou um item próprio; lista inicial sem valor; entrega em duas partes), novo **RF-017 - Orçamento** (tabela, avulsos, garantia/validade/pagamento, situação, envio pelo WhatsApp, aprovado vira atendimento; decisões em aberto registradas) e novo **RF-018 - Orçamento por Áudio** (não priorizado); História 9 ajustada e nova História 11. |
