@@ -73,6 +73,52 @@ void main() {
       expect(misturadas.map((c) => c.nome), ['Ana Souza', 'Carla Dias']);
     });
 
+    // Com a agenda importada (4.371 contatos, #113), a ordem alfabética punha
+    // "João Paulo" antes de "Paulo"; no formulário só aparecem 6 resultados.
+    ClientModel cliente(String nome, {String bairro = ''}) => ClientModel(
+        id: nome,
+        nome: nome,
+        endereco: Endereco(bairro: bairro),
+        telefones: ['67 99999-0000']);
+
+    test('busca por relevância', () {
+      // entrada em ordem alfabética, como vem da stream
+      final agenda = [
+        cliente('Ana', bairro: 'Vila Neto'),
+        cliente('Bruno Neto'),
+        cliente('Cris amiga do Neto'),
+        cliente('Netinho'),
+        cliente('Neto'),
+        cliente('Neto Silva'),
+        cliente('Sinetol'),
+      ];
+      expect(SupabaseService.filtrarClientes(agenda, 'neto').map((c) => c.nome),
+          ['Neto', 'Neto Silva', 'Bruno Neto', 'Cris amiga do Neto', 'Sinetol', 'Ana']);
+
+      final paulos = [cliente('João Paulo'), cliente('Paulo')];
+      expect(SupabaseService.filtrarClientes(paulos, 'paulo').map((c) => c.nome),
+          ['Paulo', 'João Paulo']);
+
+      // busca vazia continua sendo a lista inteira, na ordem de entrada
+      expect(SupabaseService.filtrarClientes(agenda, '  '), agenda);
+    });
+
+    test('busca sem diferenciar acento', () {
+      final agenda = [
+        cliente('Conceição'),
+        cliente('João'),
+        cliente('Maria', bairro: 'Rua Pará'),
+      ];
+      List<String> nomes(String termo) => SupabaseService.filtrarClientes(
+              agenda, termo)
+          .map((c) => c.nome)
+          .toList();
+      expect(nomes('joao'), ['João']);
+      expect(nomes('JOÃO'), ['João']);
+      expect(nomes('conceicao'), ['Conceição']);
+      expect(nomes('para'), ['Maria']);
+    });
+
     test('ordena por nome em ordem alfabética crescente', () {
       final client = MockSupabaseClient();
       final queryBuilder = MockSupabaseQueryBuilder();
