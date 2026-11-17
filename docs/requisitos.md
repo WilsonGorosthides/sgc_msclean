@@ -81,6 +81,21 @@ O sistema deve permitir abrir o endereço de um cliente no Google Maps.
   - A consulta ao mapa usa os campos de "chegar" (logradouro, número, bairro) com **Campo Grande - MS** como âncora fixa; complemento e ponto de referência não entram (atrapalham a geolocalização).
   - Quando o cliente **não tem endereço**, a ação não é exibida.
 
+#### RF-016 - Trazer Cliente dos Contatos do Celular
+O sistema deve permitir trazer nome e telefone de um contato do celular, em vez de digitá-los.
+
+> A agenda do celular da proprietária é onde o cliente novo já está: ela salva o
+> contato quando ele chama no WhatsApp. Digitar de novo no app é a fricção que
+> faz a anotação voltar para o papel (decisão de 2026-11-17, issue #115; spike #29).
+
+* **Critérios de aceitação:**
+  - No **cadastro de cliente** (novo) e na escolha de cliente do **atendimento**, um botão **"Dos contatos"** abre o seletor de contatos do próprio Android; o app recebe **só o contato escolhido** (nome e o número tocado), sem pedir acesso à agenda inteira.
+  - No cadastro, o contato escolhido **preenche o nome e o telefone**; ela confere e salva como sempre.
+  - Se o telefone do contato **já é de um cliente**, o app avisa **"Já cadastrado como <nome>"** e oferece abrir o cadastro existente, em vez de duplicar; ela ainda pode cadastrar mesmo assim.
+  - No atendimento, um contato que **já é cliente** seleciona esse cliente; um contato **novo** vira cliente **com o telefone** (não provisório) ao salvar o atendimento, inclusive sem internet (fila do aparelho, RNF-007).
+  - O telefone vem no formato da base (`+55 67 99999-9999`); número sem DDD recebe o **67**. Dois números são o mesmo cliente quando batem DDD e os 8 últimos dígitos (com ou sem o nono dígito, com ou sem `+55`).
+* **Fora do escopo:** sincronizar a agenda inteira do celular com o app (contato apagado ou editado nos dois lados, contatos pessoais no banco) e receber o contato compartilhado pelo WhatsApp (#116). Só no Android; na web o botão não aparece.
+
 ### 2.2 Agenda e Atendimentos
 
 > **Origem.** Esta seção nasceu do levantamento de campo com a proprietária em
@@ -348,3 +363,4 @@ O sistema deve ter um mecanismo de login para o único usuário (a proprietária
 | 2026-11-16 | 3.7 | Wilson Gorosthides | RF-005 ganha dois critérios: trocar o dia na edição (adiar ou corrigir) e excluir o atendimento com confirmação — cancelar é excluir, sem marca de cancelado (decisão de 2026-11-16, issue #106). |
 | 2026-11-17 | 3.8 | Wilson Gorosthides | RF-004 ganha dois critérios: resultados por relevância (quem começa com o termo primeiro) e busca sem diferenciar acento — achado com a agenda importada de 4.371 contatos (issue #113). |
 | 2026-11-17 | 3.9 | Wilson Gorosthides | RNF-001: nenhum botão coberto pela barra de navegação do sistema (Android 15+ de ponta a ponta; Salvar coberto no celular da usuária, issue #118). |
+| 2026-11-17 | 3.10 | Wilson Gorosthides | Novo **RF-016 - Trazer Cliente dos Contatos do Celular** (issue #115): botão "Dos contatos" no cadastro e no atendimento, só o contato escolhido, aviso de já cadastrado, contato novo vira cliente com telefone, formato e comparação de telefone. |
