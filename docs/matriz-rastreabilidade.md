@@ -92,6 +92,7 @@ RF-005 que ficam para o RF-013 (valor calculado) e para o RNF-006
 | RNF-007 | Nada anotado sem rede se perde ao fechar e reabrir o app. | CT-057 — `espelho_local_test: a fila sobrevive a fechar e reabrir o app` |
 | RNF-007 | Um item ainda aguardando envio não se edita nem se marca até ser enviado. | CT-058 — `agenda_screen_test: atendimento aguardando envio não abre o formulário nem marca` · `home_screen_test: cliente aguardando envio não abre a edição nem exclui` |
 | RNF-008 | Na gaveta de apps, o ícone é o **símbolo da marca** sobre o **azul-marinho**, e o nome exibido é **"MS Clean"**; ao abrir, aparece o **logo completo** sobre o mesmo azul-marinho; na web, a aba e o atalho usam o mesmo símbolo e nome. | CT-059 — `marca_test: nome MS Clean no Android e na web` · `marca_test: ícone adaptativo com o símbolo sobre o azul-marinho` · `marca_test: abertura com o logo sobre o azul-marinho` |
+| RNF-001 | Nenhum botão ou campo fica **coberto pela barra de navegação** do sistema. | CT-071 — `barra_do_sistema_test: formulário de atendimento termina acima da barra` · `barra_do_sistema_test: formulário de cliente termina acima da barra` |
 
 Os casos de teste de RF-003 e RF-004 estão **implementados e passando** — vivem em
 `test/unit/supabase_service_test.dart` e `test/widget/home_screen_test.dart`, com
@@ -136,3 +137,5 @@ descoberto.
 | 2026-11-16 | 1.30 | Wilson Gorosthides | CT-067 e CT-068 entregues (issue #106): nomes reais dos testes. |
 | 2026-11-17 | 1.31 | Wilson Gorosthides | RF-004 ganha duas linhas ↔ CT-069 e CT-070 (relevância e acento, issue #113), "a implementar". |
 | 2026-11-17 | 1.32 | Wilson Gorosthides | CT-069 e CT-070 entregues (issue #113): nomes reais dos testes. |
+| 2026-11-17 | 1.33 | Wilson Gorosthides | RNF-001 ganha a linha ↔ CT-071 (barra de navegação, issue #118), "a implementar". |
+| 2026-11-17 | 1.34 | Wilson Gorosthides | CT-071 entregue (issue #118): nomes reais dos testes. |

@@ -405,6 +405,8 @@ class _VisaoMes extends StatelessWidget {
     ];
 
     return SingleChildScrollView(
+      // barra de navegação do sistema (#118)
+      padding: EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom),
       child: Column(
         children: [
           _Navegador(
@@ -601,8 +603,9 @@ class _DiaSelecionado extends StatelessWidget {
     final grupos = agruparPorPeriodo(atendimentos);
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(
-          AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xxl * 3),
+      // folga do botão "+" e da barra de navegação do sistema (#118)
+      padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg,
+          AppSpacing.xxl * 3 + MediaQuery.paddingOf(context).bottom),
       children: [
         Text(titulo, style: textos.titleLarge),
         Text(

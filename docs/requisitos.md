@@ -249,7 +249,7 @@ O sistema deve ter um mecanismo de login para o único usuário (a proprietária
 
 ## 3. Requisitos Não Funcionais (RNFs)
 
-* **RNF-001 - Usabilidade:** Todas as ações principais (cadastrar, buscar, editar, excluir) devem ser alcançáveis em no máximo 2 toques a partir da tela inicial, sem necessidade de treinamento prévio.
+* **RNF-001 - Usabilidade:** Todas as ações principais (cadastrar, buscar, editar, excluir) devem ser alcançáveis em no máximo 2 toques a partir da tela inicial, sem necessidade de treinamento prévio. Nenhum botão ou campo fica **coberto pela barra de navegação** do sistema: o fim de cada tela rolável termina acima dela (Android 15+ desenha o app de ponta a ponta; achado no celular da usuária, issue #118).
 * **RNF-002 - Desempenho:** Operações de busca, cadastro, edição e exclusão devem responder em menos de 2 segundos para uma base de até 500 clientes, em uso por um único usuário.
 * **RNF-003 - Compatibilidade de Plataforma:** A aplicação deve compilar e funcionar a partir de um único código-fonte Flutter em **Android** e em **navegadores web (desktop)**.
 * **RNF-004 - Sincronização de Dados:** Os dados gravados em uma plataforma devem aparecer na outra sem ação manual de atualização, por meio da stream em tempo real do Supabase (latência típica inferior a 2 segundos).
@@ -347,3 +347,4 @@ O sistema deve ter um mecanismo de login para o único usuário (a proprietária
 | 2026-11-16 | 3.6 | Wilson Gorosthides | RF-015 ganha o critério do pedido de liberação da economia de bateria na primeira abertura, com nova tentativa só após 30 dias (issue #101). |
 | 2026-11-16 | 3.7 | Wilson Gorosthides | RF-005 ganha dois critérios: trocar o dia na edição (adiar ou corrigir) e excluir o atendimento com confirmação — cancelar é excluir, sem marca de cancelado (decisão de 2026-11-16, issue #106). |
 | 2026-11-17 | 3.8 | Wilson Gorosthides | RF-004 ganha dois critérios: resultados por relevância (quem começa com o termo primeiro) e busca sem diferenciar acento — achado com a agenda importada de 4.371 contatos (issue #113). |
+| 2026-11-17 | 3.9 | Wilson Gorosthides | RNF-001: nenhum botão coberto pela barra de navegação do sistema (Android 15+ de ponta a ponta; Salvar coberto no celular da usuária, issue #118). |
