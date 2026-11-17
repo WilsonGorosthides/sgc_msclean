@@ -27,6 +27,8 @@
   RNF-008 (identidade visual, issue #96) e vem logo depois deles.
 - CT-060 a CT-066 cobrem o RF-015 (avisos no celular, issue #95) e ficam
   depois dos casos do RF-014, na ordem dos RFs da agenda.
+- CT-076 a CT-079 cobrem o RF-011 (histórico do cliente, issue #81) e ficam
+  entre os casos do RF-010 e os do RF-014, na ordem dos RFs da agenda.
 - Critérios de aceitação são copiados literalmente da matriz.
 - Nos CTs automatizados, os "passos" descrevem o que o teste executa; nos
   manuais, o que a pessoa executa.
@@ -788,6 +790,46 @@
 - **Resultado esperado:** a lista de clientes (RF-003) é exibida em um toque, e
   voltar retorna à agenda no mesmo dia selecionado.
 
+## RF-011 — Consultar o Histórico de um Cliente
+
+> O histórico aparece no topo da tela do cliente (a que abre ao tocar no nome
+> na lista). Conta só atendimentos **até hoje**: o que está marcado para o
+> futuro ainda não é visita. O "hoje" é injetado, como na agenda.
+
+### CT-076 — Última visita e há quanto tempo
+- **Critério:** "A partir de um cliente, o sistema exibe a **data do atendimento mais recente** e **há quanto tempo** ele foi (ex.: "há 3 meses")."
+- **Tipo:** Unitário + Widget · **Situação:** a implementar — `historico_test: há quanto tempo, de hoje a anos` · `client_form_screen_test: histórico: mostra a última visita e há quanto tempo`
+- **Pré-condições:** hoje = 17/11/2026; cliente com atendimentos em 10/03/2026 e 12/08/2026, e um marcado para 30/11/2026.
+- **Passos:**
+  1. Calcular "há quanto tempo" para 0, 1, 5, 30, 95 e 400 dias.
+  2. Abrir o cliente.
+- **Resultado esperado:** "hoje", "ontem", "há 5 dias", "há 1 mês", "há 3 meses", "há 1 ano"; a tela mostra "há 3 meses" e "última visita em 12/08/26" (o de 30/11 não conta).
+
+### CT-077 — Último valor cobrado, com data e peças
+- **Critério:** "O sistema exibe o **valor do atendimento mais recente** que tenha valor registrado, junto da data desse atendimento e das peças que o compuseram."
+- **Tipo:** Unitário + Widget · **Situação:** a implementar — `historico_test: último valor é o do atendimento mais recente com valor` · `client_form_screen_test: histórico: mostra o último valor com a data e as peças`
+- **Pré-condições:** cliente com atendimento de 10/03/2026 (R$ 250,00, tapete 3 × 2) e de 12/08/2026 sem valor.
+- **Passos:**
+  1. Abrir o cliente.
+- **Resultado esperado:** "R$ 250,00" com "cobrado em 10/03/26 · tapete 3 × 2" — o atendimento mais recente sem valor é pulado.
+
+### CT-078 — Atendimentos anteriores, do mais recente ao mais antigo
+- **Critério:** "O sistema exibe o histórico dos atendimentos anteriores daquele cliente, do mais recente para o mais antigo, com data, peças e valor de cada um."
+- **Tipo:** Unitário + Widget · **Situação:** a implementar — `historico_test: só os atendimentos do cliente até hoje, do mais recente ao mais antigo` · `client_form_screen_test: histórico: lista os atendimentos do mais recente ao mais antigo`
+- **Pré-condições:** atendimentos do cliente em 10/03/2026 e 12/08/2026, um futuro (30/11/2026) e um de outro cliente.
+- **Passos:**
+  1. Montar o histórico do cliente.
+  2. Abrir o cliente.
+- **Resultado esperado:** dois itens, 12/08/26 antes de 10/03/26, cada um com data, peças e valor ("—" quando não há valor); o futuro e o de outro cliente ficam fora.
+
+### CT-079 — Cliente sem atendimento
+- **Critério:** "Quando o cliente não tem nenhum atendimento registrado, o sistema exibe "Nenhum atendimento registrado" em vez de campos vazios ou zero."
+- **Tipo:** Widget · **Situação:** a implementar — `client_form_screen_test: histórico: sem atendimento mostra "Nenhum atendimento registrado"`
+- **Pré-condições:** cliente sem atendimentos.
+- **Passos:**
+  1. Abrir o cliente.
+- **Resultado esperado:** "Nenhum atendimento registrado", sem valor nem "há quanto tempo". No cadastro de cliente novo o histórico não aparece.
+
 ## RF-014 — Estados de Conclusão do Atendimento
 
 ### CT-049 — Dois marcadores independentes
@@ -1062,3 +1104,4 @@ falso, que pode estar "fora do ar", e um armazenamento em memória no lugar do
 | 2026-11-17 | 1.31 | Wilson Gorosthides | CT-071 passa a "implementado" (issue #118). |
 | 2026-11-17 | 1.32 | Wilson Gorosthides | CT-072 a CT-075 do novo RF-016 (cliente dos contatos do celular), issue #115. "A implementar". |
 | 2026-11-17 | 1.33 | Wilson Gorosthides | CT-072 a CT-075 passam a "implementado" (issue #115). |
+| 2026-11-17 | 1.34 | Wilson Gorosthides | CT-076 a CT-079 do RF-011 (histórico do cliente), issue #81. "A implementar". |

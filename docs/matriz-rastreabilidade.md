@@ -74,6 +74,10 @@ RF-005 que ficam para o RF-013 (valor calculado) e para o RNF-006
 | RF-010 | Tocar em um dia, na semana ou no mês, seleciona esse dia e exibe os seus atendimentos. | CT-037 — `agenda_screen_test: tocar num dia do mês seleciona e volta à visão do dia` |
 | RF-010 | O **dia de hoje** é identificável na semana e no mês, e um atalho volta a hoje a partir de qualquer data. | CT-038 — `agenda_screen_test: hoje tem marca própria na semana e no mês` · `agenda_screen_test: atalho volta a hoje a partir de outro mês` |
 | RF-010 | A lista de clientes (RF-003) continua acessível, deixando de ser a tela inicial. | CT-039 — `agenda_screen_test: lista de clientes abre pela agenda e volta ao mesmo dia` |
+| RF-011 | A partir de um cliente, o sistema exibe a **data do atendimento mais recente** e **há quanto tempo** ele foi (ex.: "há 3 meses"). | CT-076 — a implementar |
+| RF-011 | O sistema exibe o **valor do atendimento mais recente** que tenha valor registrado, junto da data desse atendimento e das peças que o compuseram. | CT-077 — a implementar |
+| RF-011 | O sistema exibe o histórico dos atendimentos anteriores daquele cliente, do mais recente para o mais antigo, com data, peças e valor de cada um. | CT-078 — a implementar |
+| RF-011 | Quando o cliente não tem nenhum atendimento registrado, o sistema exibe "Nenhum atendimento registrado" em vez de campos vazios ou zero. | CT-079 — a implementar |
 | RF-014 | Cada atendimento tem dois marcadores **independentes**: *serviço feito* e *cliente pagou*, cada um podendo ser ligado e desligado. | CT-049 — `atendimento_test: lê feito e pago; ausentes valem falso` · `atendimento_test: toMap não leva feito nem pago` · `agenda_screen_test: marcar serviço feito não abre o formulário e não marca o pago` · `agenda_screen_test: desmarcar o pago desliga só ele` |
 | RF-014 | Um atendimento é considerado **concluído** somente quando **os dois** estão marcados. | CT-050 — `atendimento_test: concluído só com os dois marcados` · `agenda_screen_test: cartão distingue nada marcado, um dos dois e concluído` |
 | RF-014 | A agenda distingue visualmente três situações: nada marcado, um dos dois marcado, e concluído. | CT-051 — `agenda_screen_test: cartão distingue nada marcado, um dos dois e concluído` |
@@ -146,3 +150,4 @@ descoberto.
 | 2026-11-17 | 1.34 | Wilson Gorosthides | CT-071 entregue (issue #118): nomes reais dos testes. |
 | 2026-11-17 | 1.35 | Wilson Gorosthides | Novo RF-016 entra com cinco linhas ↔ CT-072 a CT-075 (cliente dos contatos, issue #115), "a implementar". |
 | 2026-11-17 | 1.36 | Wilson Gorosthides | CT-072 a CT-075 entregues (issue #115): nomes reais dos testes. |
+| 2026-11-17 | 1.37 | Wilson Gorosthides | RF-011 entra com quatro linhas ↔ CT-076 a CT-079 (histórico do cliente, issue #81), "a implementar". |
