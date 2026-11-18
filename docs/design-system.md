@@ -229,7 +229,8 @@ mesmo. A guarda de cor (`design_system_test.dart`) vale para eles como para as t
   em `primaria` com dígitos tabulares; botões Higienizar e Impermeabilizar lado a lado,
   marcados com borda de 2 px e fundo da família, com o preço embaixo ("sem valor" em
   `tarde`). Serve ao atendimento e ao orçamento (RF-017).
-- **`RodapeDoTotal`** (#134): faixa fixa em `superficie`, separada por borda
+- **`RodapeDoTotal`** (#134), rodapé da tela **Peças e valor** (o atendimento abre
+  essa tela por uma linha de resumo e mantém o próprio botão de salvar): faixa fixa em `superficie`, separada por borda
   `bordaForte` (sem sombra, como o resto do sistema); total no token `display`, avisos
   em `tarde`, "Mudar valor" e "Usar o calculado" como `TextButton`, salvar como
   `FilledButton` de largura total.
@@ -282,3 +283,4 @@ azul-marinho**, a de maior contraste (RNF-008, issue #96).
 | 1.2 | 2026-11-16 | Wilson Gorosthides | Nova seção 9, Marca (RNF-008, issue #96): arquivos de `assets/marca/` extraídos do PDF, azul-marinho `#252C67` fora dos tokens das telas, só o símbolo no ícone, nome "MS Clean" e como regerar. Histórico passa a ser a seção 10. |
 | 1.3 | 2026-11-16 | Wilson Gorosthides | Seção 9: ícone pequeno dos avisos no celular (`ic_aviso`, silhueta branca da gota), RF-015, issue #95. |
 | 1.4 | 2026-11-17 | Wilson Gorosthides | Nova 2.5, cores de família de peça (seis cores com fundo, medidas em AA) e §8 com os widgets de domínio `SeletorDePecas` e `RodapeDoTotal` em `lib/widgets/`, cobertos pela guarda de cor. Issue #134. |
+| 1.5 | 2026-11-17 | Wilson Gorosthides | §8: o `RodapeDoTotal` vive na tela Peças e valor, aberta pelo resumo do atendimento (registro rápido). Issue #134. |

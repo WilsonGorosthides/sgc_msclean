@@ -146,28 +146,32 @@ excluir o atendimento no fim.
 
 ### #134 — Seletor de peças e serviços (RF-013) · **PR de interface, sem merge antes do ok**
 
-Antes: SQL acima aplicado. Testes gravam no banco real: cliente "TESTE", dia
+Antes: SQL acima aplicado (confirmado pelo desenvolvedor em 2026-11-17; o
+bloco "SQL a aplicar" sai da pilha quando a execução registrar). Testes gravam no banco real: cliente "TESTE", dia
 passado, e excluir o atendimento no fim.
 
 1. Tabela de preços: abrir "Higienização sofá 3 lugares". **Esperado:** peça
    Sofá, 3 lugares e Higienizar marcados. A lista tem as linhas de retrátil
    "sem valor" e a cortina "por peça". (CT-100)
-2. Novo atendimento: os quadros vêm na ordem Sofá, Tapete, Poltrona, Cortina,
+2. Novo atendimento: o formulário é curto (sem quadros nem rodapé de total) e
+   salva só com cliente e período. Tocar na linha "Adicionar peças e valor":
+   abre "Peças e valor", com os quadros na ordem Sofá, Tapete, Poltrona, Cortina,
    Colchão, Cadeira, Outros. Tocar Sofá duas vezes e Poltrona uma. **Esperado:**
    selos ×2 e ×1; "Sofá 1" e "Sofá 2". No Sofá 1, − / + nos lugares (2 → 3 → 4
    → canto), ligar retrátil; tirar o Sofá 2 pelo ×. (CT-093, CT-094)
 3. Tapete: + na largura e no comprimento até 2 × 3. **Esperado:** "6 m²" a
    cada toque. Colchão: Casal + duas vezes (selo ×2). Cortina e cadeira: − / +.
-   Nenhum teclado aparece. (CT-094)
+   Nenhum teclado aparece. (CT-094, CT-101)
 4. No sofá de 3 lugares, marcar só Impermeabilizar; depois os dois. Passar a
    4 lugares, depois voltar e ligar o retrátil. **Esperado:** cada botão mostra
    o preço; os dois somam; sem linha ou sem valor, "sem valor" e o aviso no
    rodapé. Outros: + no Deslocamento soma no total. (CT-095, CT-096, CT-098)
 5. Rodapé: total sempre à vista; abrir os detalhes (serviço, conta e valor);
    "Mudar valor" para outro número; mudar uma quantidade; "Usar o calculado";
-   salvar. Abrir um atendimento salvo antes desta versão e salvar sem mexer.
+   "Pronto" (ou a seta): o resumo mostra as peças e o valor; salvar. Abrir
+   um atendimento salvo antes desta versão e salvar sem mexer.
    **Esperado:** abre com os serviços e preços de antes, e nada some. Excluir
-   os atendimentos TESTE. (CT-097, CT-099)
+   os atendimentos TESTE. (CT-097, CT-099, CT-101)
 
 ## Execução 001 — Verificação manual do RF-001 (pré-merge do PR #44)
 
@@ -742,3 +746,4 @@ versão nova, assinada com a mesma chave, instala por cima sem perder dados.
 | 2026-11-17 | 1.30 | Wilson Gorosthides | Pilha: SQL da tabela `precos` e os passos da tabela de preços (#123, RF-013 parte 1). |
 | 2026-11-17 | 1.31 | Wilson Gorosthides | Pilha: SQL da `precos` (#123) confirmado como aplicado; entram os passos do valor calculado (#124, RF-013 parte 2). |
 | 2026-11-17 | 1.32 | Wilson Gorosthides | Pilha: SQL das colunas de peça, variante, serviço e retrátil em `precos` e os passos do seletor de peças (#134, PR de interface). |
+| 2026-11-17 | 1.33 | Wilson Gorosthides | Pilha #134: atendimento rápido, peças e valor na tela própria (CT-101); SQL das colunas de `precos` confirmado como aplicado. |

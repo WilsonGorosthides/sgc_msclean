@@ -194,6 +194,7 @@ lib/
 │   ├── agenda_screen.dart          # tela inicial (RF-010): dia por período, faixa da semana, mês em calendário
 │   ├── atendimento_form_screen.dart # registro e edição de atendimento a partir do dia (RF-005)
 │   ├── home_screen.dart            # lista de clientes + barra de busca (aberta a partir da agenda)
+│   ├── pecas_e_valor_screen.dart   # Peças e valor (#134): o seletor de peças com o rodapé do total, aberto pelo resumo do atendimento
 │   ├── tabela_de_precos_screen.dart # tabela de preços (RF-013): listar, adicionar, editar, remover; lista sugerida (aberta a partir da agenda)
 │   ├── sem_conexao.dart            # aviso de "sem conexão" e selo "aguardando envio" (RNF-007)
 │   └── client_form_screen.dart     # formulário de cadastro (RF-001; reusável na edição, com o histórico do cliente no topo, RF-011)
@@ -367,6 +368,7 @@ A auditoria registrou cobertura real de 0% — o único teste era o template pad
 | 2026-11-17 | 2.26 | Wilson Gorosthides | Tabela de preços (RF-013 parte 1, #123): §4 com a tabela `precos` (SQL a aplicar, RLS `mvp_acesso_total_anon`, realtime) e a regra de serviços independentes; árvore §5 com `item_de_preco.dart` e `tabela_de_precos_screen.dart`. |
 | 2026-11-17 | 2.27 | Wilson Gorosthides | Valor calculado (RF-013 parte 2, #124): §4 com a chave `servicos` no jsonb `pecas` (preço copiado no registro, sem mudança de schema) e o SQL da `precos` como aplicado; árvore §5 com `utils/calculo.dart`. |
 | 2026-11-17 | 2.28 | Wilson Gorosthides | Seletor de peças (#134): §4 com as colunas `peca`, `variante`, `servico` e `retratil` em `precos` (SQL a aplicar, com o preenchimento pelos nomes e as linhas de retrátil sem valor) e as chaves novas da peça no jsonb; árvore §5 com `models/familia.dart` e a pasta `widgets/`. |
+| 2026-11-17 | 2.29 | Wilson Gorosthides | Árvore §5 com `screens/pecas_e_valor_screen.dart`: no atendimento, o seletor de peças sai do formulário para uma tela própria, aberta por uma linha de resumo (#134). |
 
 ## 12. Ambiente de Desenvolvimento
 Os seguintes softwares e configurações são necessários para iniciar o desenvolvimento:

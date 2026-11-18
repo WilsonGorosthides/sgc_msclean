@@ -611,7 +611,7 @@
 
 ### CT-101 — Atendimento rápido: peças e valor em tela própria
 - **Critério:** "O registro continua **rápido**: peças e valor não são exigidos e ficam numa **linha de resumo** que abre a tela **Peças e valor** (o seletor do RF-013, com o rodapé do total); ao voltar, o resumo mostra as peças e o valor a cobrar, e o atendimento é salvo pelo botão do próprio formulário."
-- **Tipo:** Widget · **Situação:** a implementar
+- **Tipo:** Widget · **Situação:** implementado — `atendimento_form_screen_test: atendimento rápido: peças e valor numa linha que abre a tela` · `atendimento_form_screen_test: voltar da tela de peças pela seta mantém o que foi marcado` · `atendimento_form_screen_test: exige cliente e período; hora é opcional`
 - **Pré-condições:** tabela com higienizar sofá 3 lugares (R$ 200).
 - **Passos:**
   1. Abrir um atendimento novo.
@@ -1005,7 +1005,7 @@
 
 ### CT-097 — Rodapé fixo com total, detalhes e salvar
 - **Critério:** "Um **rodapé fixo** mostra o total em destaque, a lista detalhada (serviço, legenda e valor de cada linha) e o botão de salvar; o valor segue sugestão, com \"Usar o calculado\" depois de sobrescrito."
-- **Tipo:** Widget · **Situação:** implementado — `calculo_test: linhas do total com legenda e valor` · `atendimento_form_screen_test: rodapé fixo: total, detalhes e salvar sem rolar` · `atendimento_form_screen_test: valor mudado prevalece; usar o calculado volta ao total` · `atendimento_form_screen_test: sem serviço, valor mudado com vírgula; vazio grava sem valor` · `barra_do_sistema_test: formulário de atendimento termina acima da barra`
+- **Tipo:** Widget · **Situação:** implementado — `calculo_test: linhas do total com legenda e valor` · `atendimento_form_screen_test: rodapé fixo: total, detalhes e salvar sem rolar` · `atendimento_form_screen_test: valor mudado prevalece; usar o calculado volta ao total` · `atendimento_form_screen_test: sem serviço, valor mudado com vírgula; vazio grava sem valor` · `barra_do_sistema_test: formulário de atendimento termina acima da barra` · `barra_do_sistema_test: tela de peças e valor termina acima da barra`
 - **Pré-condições:** tabela com higienizar sofá 3 lugares (R$ 200).
 - **Passos:**
   1. Marcar o serviço; abrir os detalhes.
@@ -1322,4 +1322,5 @@ falso, que pode estar "fora do ar", e um armazenamento em memória no lugar do
 | 2026-11-17 | 1.40 | Wilson Gorosthides | CT-093 a CT-100 do seletor de peças (RF-013, issue #134). "A implementar". |
 | 2026-11-17 | 1.41 | Wilson Gorosthides | CT-093 a CT-100 passam a "implementado" (issue #134); CT-043, CT-044 e CT-087 a CT-092 apontam para os testes do seletor e do rodapé que substituíram os da interação anterior. |
 | 2026-11-17 | 1.42 | Wilson Gorosthides | CT-101 do RF-005: atendimento rápido, peças e valor em tela própria (issue #134). "A implementar". |
+| 2026-11-17 | 1.43 | Wilson Gorosthides | CT-101 passa a "implementado"; CT-097 ganha o teste da tela Peças e valor acima da barra (issue #134). |
 | 2026-11-17 | 1.36 | Wilson Gorosthides | CT-055 ganha o teste da linha repetida pelo banco (bug #128: atendimento em dobro na agenda). |
