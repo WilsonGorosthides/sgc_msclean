@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../models/familia.dart';
 import '../models/item_de_preco.dart';
 import '../services/supabase_service.dart';
 import '../theme/app_colors.dart';
@@ -244,7 +245,36 @@ class _EditorDePrecoState extends State<_EditorDePreco> {
           ? ''
           : valorEmReais(widget.item!.valor!).substring(3)); // sem o "R$ "
   late var _unidade = widget.item?.unidade ?? UnidadeDeCobranca.peca;
+  // A que o serviço corresponde no seletor de peças (#134); sem peça = avulso.
+  late Familia? _peca = widget.item?.peca;
+  late String? _variante = widget.item?.variante;
+  late TipoDeServico? _servico = widget.item?.servico;
+  late bool _retratil = widget.item?.retratil ?? false;
+  // O nome se monta de peça, variante e serviço até ela digitar outro.
+  late bool _nomeAutomatico = widget.item == null;
   String? _erroNome;
+
+  void _escolher(VoidCallback mudanca) {
+    setState(() {
+      mudanca();
+      final f = _peca;
+      if (f == null) {
+        _variante = null;
+        _servico = null;
+        _retratil = false;
+      } else {
+        if (!f.variantes.contains(_variante)) _variante = null;
+        if (!f.retratil) _retratil = false;
+        // tapete por m²; as demais peças, por peça (cortina por folha)
+        _unidade = f == Familia.tapete
+            ? UnidadeDeCobranca.m2
+            : UnidadeDeCobranca.peca;
+      }
+      if (_nomeAutomatico && f != null && _servico != null) {
+        _nome.text = nomeDoServico(f, _variante, _retratil, _servico!);
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -265,6 +295,10 @@ class _EditorDePrecoState extends State<_EditorDePreco> {
       unidade: _unidade,
       valor: lerValor(_valor.text),
       ordem: widget.item?.ordem ?? widget.ordem,
+      peca: _peca,
+      variante: _variante,
+      servico: _peca == null ? null : _servico,
+      retratil: _retratil,
     ));
   }
 
@@ -287,9 +321,67 @@ class _EditorDePrecoState extends State<_EditorDePreco> {
                 errorText: _erroNome,
               ),
               onChanged: (_) {
+                _nomeAutomatico = false;
                 if (_erroNome != null) setState(() => _erroNome = null);
               },
             ),
+            const SizedBox(height: AppSpacing.lg),
+            Text('Peça', style: Theme.of(context).textTheme.labelLarge),
+            const SizedBox(height: AppSpacing.xs),
+            Wrap(
+              spacing: AppSpacing.xs,
+              runSpacing: AppSpacing.xs,
+              children: [
+                for (final f in Familia.values)
+                  ChoiceChip(
+                    key: Key('preco_peca_${f.codigo ?? 'avulso'}'),
+                    label: Text(f.codigo == null ? 'Avulso' : f.rotulo),
+                    selected: _peca == f ||
+                        (f.codigo == null && _peca == null),
+                    onSelected: (_) =>
+                        _escolher(() => _peca = f.codigo == null ? null : f),
+                  ),
+              ],
+            ),
+            if (_peca != null && _peca!.variantes.isNotEmpty) ...[
+              const SizedBox(height: AppSpacing.md),
+              Wrap(
+                spacing: AppSpacing.xs,
+                runSpacing: AppSpacing.xs,
+                children: [
+                  for (final v in _peca!.variantes)
+                    ChoiceChip(
+                      key: Key('preco_variante_$v'),
+                      label: Text(_peca!.nomeDaVariante(v)),
+                      selected: _variante == v,
+                      onSelected: (_) => _escolher(() => _variante = v),
+                    ),
+                ],
+              ),
+            ],
+            if (_peca != null) ...[
+              const SizedBox(height: AppSpacing.md),
+              Wrap(
+                spacing: AppSpacing.xs,
+                children: [
+                  for (final t in TipoDeServico.values)
+                    ChoiceChip(
+                      key: Key('preco_servico_${t.codigo}'),
+                      label: Text(t.rotulo),
+                      selected: _servico == t,
+                      onSelected: (_) => _escolher(() => _servico = t),
+                    ),
+                ],
+              ),
+            ],
+            if (_peca?.retratil ?? false)
+              SwitchListTile(
+                key: const Key('preco_retratil'),
+                contentPadding: EdgeInsets.zero,
+                title: const Text('Retrátil / reclinável'),
+                value: _retratil,
+                onChanged: (v) => _escolher(() => _retratil = v),
+              ),
             const SizedBox(height: AppSpacing.lg),
             Wrap(
               spacing: AppSpacing.sm,
