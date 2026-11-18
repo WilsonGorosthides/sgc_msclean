@@ -15,7 +15,7 @@ import '../utils/calculo.dart';
 import '../utils/telefone.dart';
 import '../utils/validators.dart';
 import '../widgets/rodape_do_total.dart';
-import '../widgets/seletor_de_pecas.dart';
+import 'pecas_e_valor_screen.dart';
 
 // Formulário de atendimento (RF-005, entrega enxuta da issue #77). Parte de um
 // dia da agenda: a data vem pronta e não se digita. Cliente e período são
@@ -64,10 +64,12 @@ class _AtendimentoFormScreenState extends State<AtendimentoFormScreen> {
   final _buscaController = TextEditingController();
 
   Periodo? _periodo;
-  late final _horaController =
-      TextEditingController(text: widget.atendimento?.hora ?? '');
-  late final _localController =
-      TextEditingController(text: widget.atendimento?.local ?? '');
+  late final _horaController = TextEditingController(
+    text: widget.atendimento?.hora ?? '',
+  );
+  late final _localController = TextEditingController(
+    text: widget.atendimento?.local ?? '',
+  );
   // Peças com os serviços e preços copiados (seletor de peças, #134).
   late List<Peca> _pecas = widget.atendimento?.pecas ?? const [];
 
@@ -112,7 +114,8 @@ class _AtendimentoFormScreenState extends State<AtendimentoFormScreen> {
       builder: (dialogo) => AlertDialog(
         title: const Text('Excluir atendimento?'),
         content: Text(
-            'Remover o atendimento de $nome em ${dataPorExtenso(a.data)}?'),
+          'Remover o atendimento de $nome em ${dataPorExtenso(a.data)}?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogo).pop(false),
@@ -159,17 +162,16 @@ class _AtendimentoFormScreenState extends State<AtendimentoFormScreen> {
       // Valor registrado diferente do calculado (ou sem serviços): foi
       // combinado à mão e fica como está.
       final calculo = calcularValor(a.pecas);
-      if (a.valor != null &&
-          (!calculo.temValor || a.valor != calculo.total)) {
+      if (a.valor != null && (!calculo.temValor || a.valor != calculo.total)) {
         _valorManual = a.valor;
       }
     }
     _assinaturaPrecos = _service.getPrecosStream().listen(
-          (dados) {
-            if (mounted) setState(() => _tabela = dados);
-          },
-          onError: (Object _) {}, // sem tabela, o valor é só digitado
-        );
+      (dados) {
+        if (mounted) setState(() => _tabela = dados);
+      },
+      onError: (Object _) {}, // sem tabela, o valor é só digitado
+    );
   }
 
   @override
@@ -183,21 +185,21 @@ class _AtendimentoFormScreenState extends State<AtendimentoFormScreen> {
   }
 
   void _escolherCliente(ClientModel c) => setState(() {
-        _cliente = c;
-        _nomeNovo = null;
-        _telefoneNovo = null;
-        _faltaCliente = false;
-        // Local vem do endereço cadastrado (mesmo resumo da lista), editável.
-        if (!_editando) _localController.text = c.endereco.resumo;
-      });
+    _cliente = c;
+    _nomeNovo = null;
+    _telefoneNovo = null;
+    _faltaCliente = false;
+    // Local vem do endereço cadastrado (mesmo resumo da lista), editável.
+    if (!_editando) _localController.text = c.endereco.resumo;
+  });
 
   void _anotarSoNome() => setState(() {
-        _nomeNovo = _buscaController.text.trim();
-        _telefoneNovo = null;
-        _cliente = null;
-        _faltaCliente = false;
-        if (!_editando) _localController.text = '';
-      });
+    _nomeNovo = _buscaController.text.trim();
+    _telefoneNovo = null;
+    _cliente = null;
+    _faltaCliente = false;
+    if (!_editando) _localController.text = '';
+  });
 
   // Contato do celular (RF-016, CT-074): se o número já é de um cliente,
   // escolhe esse cliente; senão, anota nome e telefone para criar ao salvar.
@@ -220,11 +222,28 @@ class _AtendimentoFormScreenState extends State<AtendimentoFormScreen> {
   }
 
   void _trocarCliente() => setState(() {
-        _cliente = null;
-        _nomeNovo = null;
-        _telefoneNovo = null;
-        _buscaController.clear();
-      });
+    _cliente = null;
+    _nomeNovo = null;
+    _telefoneNovo = null;
+    _buscaController.clear();
+  });
+
+  Future<void> _abrirPecas() async {
+    final resultado = await Navigator.of(context).push<PecasEValor>(
+      MaterialPageRoute(
+        builder: (_) => PecasEValorScreen(
+          pecas: _pecas,
+          tabela: _tabela,
+          valorManual: _valorManual,
+        ),
+      ),
+    );
+    if (resultado == null || !mounted) return;
+    setState(() {
+      _pecas = resultado.pecas;
+      _valorManual = resultado.valorManual;
+    });
+  }
 
   Future<void> _salvar() async {
     final camposOk = _formKey.currentState!.validate();
@@ -289,21 +308,17 @@ class _AtendimentoFormScreenState extends State<AtendimentoFormScreen> {
             ),
         ],
       ),
-      // Total, detalhes e salvar sempre à vista (#134).
-      bottomNavigationBar: RodapeDoTotal(
-        pecas: _pecas,
-        valorManual: _valorManual,
-        aoMudarValor: (v) => setState(() => _valorManual = v),
-        aoSalvar: _salvando ? null : _salvar,
-        rotuloSalvar: 'Salvar atendimento',
-      ),
       body: Form(
         key: _formKey,
         child: ListView(
           // Do Android 15 em diante a tela vai por baixo da barra de
           // navegação; sem somar a barra, o Salvar fica coberto (#118).
-          // o rodapé fixo já fica acima da barra de navegação (#118)
-          padding: const EdgeInsets.all(AppSpacing.lg),
+          padding: EdgeInsets.fromLTRB(
+            AppSpacing.lg,
+            AppSpacing.lg,
+            AppSpacing.lg,
+            AppSpacing.lg + MediaQuery.paddingOf(context).bottom,
+          ),
           children: [
             // DATA: vem do dia da agenda; não se digita (CT-040). Na edição,
             // toca-se para trocar o dia (CT-067).
@@ -316,19 +331,25 @@ class _AtendimentoFormScreenState extends State<AtendimentoFormScreen> {
                     child: Text(
                       dataPorExtenso(_data),
                       key: const Key('data_atendimento'),
-                      style: textos.titleMedium
-                          ?.copyWith(color: AppColors.primaria),
+                      style: textos.titleMedium?.copyWith(
+                        color: AppColors.primaria,
+                      ),
                     ),
                   ),
                   if (_editando)
-                    const Icon(Icons.edit_calendar_outlined,
-                        color: AppColors.primaria),
+                    const Icon(
+                      Icons.edit_calendar_outlined,
+                      color: AppColors.primaria,
+                    ),
                 ],
               ),
             ),
             const SizedBox(height: AppSpacing.xl),
 
-            _Secao(titulo: 'Cliente', erro: _faltaCliente ? 'Escolha um cliente' : null),
+            _Secao(
+              titulo: 'Cliente',
+              erro: _faltaCliente ? 'Escolha um cliente' : null,
+            ),
             if (_cliente != null || _nomeNovo != null)
               _ClienteEscolhido(
                 nome: _cliente?.nome ?? _nomeNovo!,
@@ -341,13 +362,17 @@ class _AtendimentoFormScreenState extends State<AtendimentoFormScreen> {
                 clientes: widget.clientes,
                 aoEscolher: _escolherCliente,
                 aoAnotarSoNome: _anotarSoNome,
-                aoTrazerDosContatos:
-                    _contatos.disponivel ? _trazerDosContatos : null,
+                aoTrazerDosContatos: _contatos.disponivel
+                    ? _trazerDosContatos
+                    : null,
                 aoDigitar: () => setState(() {}),
               ),
             const SizedBox(height: AppSpacing.xl),
 
-            _Secao(titulo: 'Período', erro: _faltaPeriodo ? 'Escolha o período' : null),
+            _Secao(
+              titulo: 'Período',
+              erro: _faltaPeriodo ? 'Escolha o período' : null,
+            ),
             Row(
               children: [
                 for (final p in Periodo.values) ...[
@@ -388,14 +413,78 @@ class _AtendimentoFormScreenState extends State<AtendimentoFormScreen> {
             ),
             const SizedBox(height: AppSpacing.xl),
 
-            const _Secao(titulo: 'Peças e serviços'),
-            SeletorDePecas(
-              pecas: widget.atendimento?.pecas ?? const [],
-              tabela: _tabela,
-              aoMudar: (pecas) => setState(() => _pecas = pecas),
+            // PEÇAS E VALOR (#134, CT-101): uma linha de resumo; o seletor
+            // fica numa tela própria, para anotar continuar rápido.
+            const _Secao(titulo: 'Peças e valor'),
+            _ResumoDePecas(
+              pecas: _pecas,
+              valor: RodapeDoTotal.valorACobrar(_pecas, _valorManual),
+              aoTocar: _abrirPecas,
+            ),
+            const SizedBox(height: AppSpacing.xl),
+
+            FilledButton.icon(
+              key: const Key('botao_salvar'),
+              onPressed: _salvando ? null : _salvar,
+              icon: const Icon(Icons.check),
+              label: const Text('Salvar atendimento'),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// Linha de resumo das peças e do valor: abre a tela Peças e valor.
+class _ResumoDePecas extends StatelessWidget {
+  const _ResumoDePecas({
+    required this.pecas,
+    required this.valor,
+    required this.aoTocar,
+  });
+
+  final List<Peca> pecas;
+  final double? valor;
+  final VoidCallback aoTocar;
+
+  @override
+  Widget build(BuildContext context) {
+    final textos = Theme.of(context).textTheme;
+    final vazio = pecas.isEmpty && valor == null;
+    return Card(
+      key: const Key('abrir_pecas'),
+      margin: EdgeInsets.zero,
+      child: ListTile(
+        onTap: aoTocar,
+        leading: Icon(
+          vazio ? Icons.add_circle_outline : Icons.weekend_outlined,
+          color: AppColors.primaria,
+        ),
+        title: Text(
+          vazio
+              ? 'Adicionar peças e valor'
+              : pecas.isEmpty
+              ? 'Sem peças'
+              : pecas.map((p) => p.resumo).join(', '),
+          key: const Key('resumo_pecas'),
+          style: vazio
+              ? textos.titleMedium?.copyWith(color: AppColors.primaria)
+              : textos.titleMedium,
+        ),
+        subtitle: vazio
+            ? Text(
+                'opcional — dá para anotar só o cliente e o período',
+                style: textos.bodySmall?.copyWith(color: AppColors.tintaFraca),
+              )
+            : Text(
+                valor == null ? 'sem valor' : valorEmReais(valor!),
+                key: const Key('resumo_valor'),
+                style: textos.titleSmall?.copyWith(
+                  color: valor == null ? AppColors.tarde : AppColors.tinta,
+                ),
+              ),
+        trailing: const Icon(Icons.chevron_right),
       ),
     );
   }
@@ -417,8 +506,10 @@ class _Secao extends StatelessWidget {
           Text(titulo, style: textos.titleMedium),
           if (erro != null) ...[
             const SizedBox(width: AppSpacing.sm),
-            Text(erro!,
-                style: textos.bodySmall?.copyWith(color: AppColors.alerta)),
+            Text(
+              erro!,
+              style: textos.bodySmall?.copyWith(color: AppColors.alerta),
+            ),
           ],
         ],
       ),
@@ -470,8 +561,10 @@ class _EscolhaDeCliente extends StatelessWidget {
             dense: true,
             leading: CircleAvatar(
               backgroundColor: AppColors.primariaFundo,
-              child: Text(c.nome.isEmpty ? '?' : c.nome[0].toUpperCase(),
-                  style: const TextStyle(color: AppColors.primaria)),
+              child: Text(
+                c.nome.isEmpty ? '?' : c.nome[0].toUpperCase(),
+                style: const TextStyle(color: AppColors.primaria),
+              ),
             ),
             title: Text(c.nome),
             subtitle: c.endereco.vazio ? null : Text(c.endereco.resumo),
@@ -487,8 +580,10 @@ class _EscolhaDeCliente extends StatelessWidget {
               child: Icon(Icons.person_add_alt, color: AppColors.tarde),
             ),
             title: Text('Anotar só o nome: "$termo"'),
-            subtitle: Text('Cria cliente provisório — telefone e endereço depois',
-                style: textos.bodySmall?.copyWith(color: AppColors.tintaFraca)),
+            subtitle: Text(
+              'Cria cliente provisório — telefone e endereço depois',
+              style: textos.bodySmall?.copyWith(color: AppColors.tintaFraca),
+            ),
             onTap: aoAnotarSoNome,
           ),
         if (aoTrazerDosContatos != null)
@@ -524,16 +619,22 @@ class _ClienteEscolhido extends StatelessWidget {
       margin: EdgeInsets.zero,
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor:
-              provisorio ? AppColors.tardeFundo : AppColors.primariaFundo,
-          child: Text(nome.isEmpty ? '?' : nome[0].toUpperCase(),
-              style: TextStyle(
-                  color: provisorio ? AppColors.tarde : AppColors.primaria)),
+          backgroundColor: provisorio
+              ? AppColors.tardeFundo
+              : AppColors.primariaFundo,
+          child: Text(
+            nome.isEmpty ? '?' : nome[0].toUpperCase(),
+            style: TextStyle(
+              color: provisorio ? AppColors.tarde : AppColors.primaria,
+            ),
+          ),
         ),
         title: Text(nome, style: textos.titleMedium),
         subtitle: provisorio
-            ? Text('provisório',
-                style: textos.labelSmall?.copyWith(color: AppColors.tarde))
+            ? Text(
+                'provisório',
+                style: textos.labelSmall?.copyWith(color: AppColors.tarde),
+              )
             : null,
         trailing: TextButton(
           key: const Key('trocar_cliente'),
@@ -561,8 +662,9 @@ class _CartaoPeriodo extends StatelessWidget {
   Widget build(BuildContext context) {
     final textos = Theme.of(context).textTheme;
     final cor = periodo == Periodo.manha ? AppColors.primaria : AppColors.tarde;
-    final fundo =
-        periodo == Periodo.manha ? AppColors.primariaFundo : AppColors.tardeFundo;
+    final fundo = periodo == Periodo.manha
+        ? AppColors.primariaFundo
+        : AppColors.tardeFundo;
     return Material(
       key: Key('escolher_${periodo.name}'),
       color: selecionado ? fundo : AppColors.superficie,
@@ -580,10 +682,14 @@ class _CartaoPeriodo extends StatelessWidget {
           padding: const EdgeInsets.all(AppSpacing.md),
           child: Column(
             children: [
-              Text(periodo.rotulo,
-                  style: textos.titleMedium?.copyWith(color: cor)),
               Text(
-                periodo == Periodo.manha ? 'até o meio-dia' : 'depois do almoço',
+                periodo.rotulo,
+                style: textos.titleMedium?.copyWith(color: cor),
+              ),
+              Text(
+                periodo == Periodo.manha
+                    ? 'até o meio-dia'
+                    : 'depois do almoço',
                 style: textos.bodySmall?.copyWith(color: AppColors.tintaFraca),
               ),
             ],

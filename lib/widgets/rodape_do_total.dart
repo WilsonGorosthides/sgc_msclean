@@ -21,6 +21,8 @@ class RodapeDoTotal extends StatefulWidget {
     required this.aoMudarValor,
     required this.aoSalvar,
     required this.rotuloSalvar,
+    this.chaveSalvar = 'botao_salvar',
+    this.iconeSalvar = Icons.check,
   });
 
   final List<Peca> pecas;
@@ -31,6 +33,8 @@ class RodapeDoTotal extends StatefulWidget {
   // Nulo = salvando (botão desabilitado).
   final VoidCallback? aoSalvar;
   final String rotuloSalvar;
+  final String chaveSalvar;
+  final IconData iconeSalvar;
 
   // O que vai ser gravado: o informado, ou o calculado se algum serviço
   // tem valor; senão, sem valor.
@@ -165,11 +169,11 @@ class _RodapeDoTotalState extends State<RodapeDoTotal> {
               ),
               const SizedBox(height: AppSpacing.sm),
               FilledButton.icon(
-                key: const Key('botao_salvar'),
+                key: Key(widget.chaveSalvar),
                 onPressed: widget.aoSalvar,
                 style: FilledButton.styleFrom(
                     minimumSize: const Size.fromHeight(AppSpacing.xxl * 1.75)),
-                icon: const Icon(Icons.check),
+                icon: Icon(widget.iconeSalvar),
                 label: Text(widget.rotuloSalvar),
               ),
             ],
