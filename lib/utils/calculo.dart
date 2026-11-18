@@ -71,19 +71,41 @@ CalculoDoValor calcularValor(List<Peca> pecas) {
 }
 
 // Preço de um serviço da peça (#134): a linha da tabela com a mesma peça,
-// variante, retrátil e serviço, copiada para o registro. Sem essa linha, uma
+// variante, retrátil e serviço, copiada para o registro. Retrátil sem preço
+// próprio usa o da mesma peça comum, com "retrátil" no nome. Sem linha, uma
 // cópia sem valor com o nome da combinação — o total avisa, e nunca se usa o
-// preço de outra variante.
+// preço de outros lugares ou de outro tamanho.
 ItemDePreco precoDoServico(List<ItemDePreco> tabela, Familia familia,
     String? variante, bool retratil, TipoDeServico servico) {
-  for (final linha in tabela) {
-    if (linha.peca == familia &&
-        linha.servico == servico &&
-        linha.variante == variante &&
-        linha.retratil == retratil) {
-      return linha.copia();
+  ItemDePreco? achar(bool r) {
+    for (final linha in tabela) {
+      if (linha.peca == familia &&
+          linha.servico == servico &&
+          linha.variante == variante &&
+          linha.retratil == r) {
+        return linha;
+      }
     }
+    return null;
   }
+
+  final propria = achar(retratil);
+  if (propria != null && (!retratil || propria.valor != null)) {
+    return propria.copia();
+  }
+  final comum = retratil ? achar(false) : null;
+  if (comum != null && comum.valor != null) {
+    return ItemDePreco(
+      nome: nomeDoServico(familia, variante, true, servico),
+      unidade: comum.unidade,
+      valor: comum.valor,
+      peca: familia,
+      variante: variante,
+      servico: servico,
+      retratil: true,
+    );
+  }
+  if (propria != null) return propria.copia();
   return ItemDePreco(
     nome: nomeDoServico(familia, variante, retratil, servico),
     unidade: familia == Familia.tapete
@@ -124,10 +146,22 @@ LinhaDoTotal _linha(Peca peca, ItemDePreco servico) {
     final area = peca.area;
     if (area == null) return LinhaDoTotal(servico.nome, 'falta medida', null);
     final vezes = peca.quantidade > 1 ? '${peca.quantidade} × ' : '';
-    return LinhaDoTotal(
-        servico.nome, '$vezes${_numero(area)} m² × $preco', valor);
+    return LinhaDoTotal(servico.nome,
+        '$vezes${_numero(area)} m² × $preco${_ajuste(servico)}', valor);
   }
-  return LinhaDoTotal(servico.nome, '${peca.quantidade} × $preco', valor);
+  return LinhaDoTotal(
+      servico.nome, '${peca.quantidade} × $preco${_ajuste(servico)}', valor);
+}
+
+// " · tabela R$ 170,00 · tecido linho" no serviço ajustado (CT-102).
+String _ajuste(ItemDePreco servico) {
+  if (!servico.ajustado) return '';
+  final tabela = servico.valorDaTabela;
+  return [
+    '',
+    tabela == null ? 'tabela sem valor' : 'tabela ${valorEmReais(tabela)}',
+    if (servico.justificativa != null) servico.justificativa!,
+  ].join(' · ');
 }
 
 // 6.0 → "6"; 4.5 → "4,5".

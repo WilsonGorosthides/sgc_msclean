@@ -77,12 +77,16 @@ class Peca {
       unidade: item.unidade,
       valor: item.valor,
       servico: pelo,
+      ajustado: item.ajustado,
+      valorDaTabela: item.valorDaTabela,
+      justificativa: item.justificativa,
     );
   }
 
   // Mapa para o jsonb `pecas`; as medidas e os serviços só entram quando
   // existem. Do serviço vai o que o cálculo usa: nome, unidade e o valor da
-  // tabela no momento do registro.
+  // tabela no momento do registro; se ela ajustou o preço (CT-102), também
+  // o da tabela e a justificativa.
   Map<String, dynamic> toMap() => {
         'tipo': tipo,
         'quantidade': quantidade,
@@ -98,6 +102,12 @@ class Peca {
                 'unidade': s.unidade.codigo,
                 'valor': s.valor,
                 if (s.servico != null) 'servico': s.servico!.codigo,
+                if (s.ajustado) ...{
+                  'ajustado': true,
+                  'valor_tabela': s.valorDaTabela,
+                  if (s.justificativa != null)
+                    'justificativa': s.justificativa,
+                },
               },
           ],
       };

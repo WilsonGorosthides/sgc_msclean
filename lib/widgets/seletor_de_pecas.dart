@@ -15,7 +15,9 @@ import '../utils/calculo.dart';
 // selo ×N), o ajuste da peça por − / + (sem digitar) e, em cada peça, os
 // serviços Higienizar e Impermeabilizar — independentes, marcáveis juntos
 // (combo) ou só um. O preço sai da tabela pela peça + variante + serviço e é
-// copiado na peça: mudar a tabela depois não muda o que foi registrado.
+// copiado na peça: mudar a tabela depois não muda o que foi registrado. O
+// preço de cada serviço marcado pode ser ajustado só no registro, com
+// justificativa opcional (CT-102).
 //
 // Não rola sozinho: vive dentro do formulário de quem o usa. Cada mudança
 // devolve a lista inteira de peças por [aoMudar].
@@ -296,6 +298,17 @@ class _SeletorDePecasState extends State<SeletorDePecas> {
       );
     }
   });
+
+  // Preço do serviço só neste registro (CT-102): abre o diálogo e, se ela
+  // confirmar, troca a cópia pelo serviço ajustado (ou de volta ao da tabela).
+  Future<void> _ajustar(ItemDePreco atual, void Function(ItemDePreco) aplicar)
+      async {
+    final novo = await showDialog<ItemDePreco>(
+      context: context,
+      builder: (_) => _DialogoDoAjuste(servico: atual),
+    );
+    if (novo != null && mounted) _mudou(() => aplicar(novo));
+  }
 
   void _trocarVariante(_Cartao c, int passo) {
     final vs = c.familia.variantes;
@@ -680,27 +693,58 @@ class _SeletorDePecasState extends State<SeletorDePecas> {
                         color: AppColors.tintaFraca,
                       ),
                     ),
+                    if (a.itens.firstOrNull?.ajustado ?? false)
+                      _Ajustado(
+                        chave: 'avulso_${a.rotulo}_ajustado',
+                        servico: a.itens.first,
+                      ),
                   ],
                 ),
               ),
-              _Passos(
-                chave: 'avulso_${a.rotulo}_quantidade',
-                chaveMenos: 'avulso_${a.rotulo}_menos',
-                chaveMais: 'avulso_${a.rotulo}_mais',
-                texto: '${a.quantidade}',
-                aoMenos: a.quantidade == 0
-                    ? null
-                    : () => _mudou(() => a.quantidade--),
-                aoMais: () => _mudou(() {
-                  if (!c.avulsos.contains(a)) c.avulsos.add(a);
-                  a.quantidade++;
-                }),
-              ),
+              if (a.quantidade > 0 && a.itens.isNotEmpty)
+                IconButton(
+                  key: Key('avulso_${a.rotulo}_ajustar'),
+                  tooltip: 'Ajustar o preço',
+                  icon: const Icon(
+                    Icons.edit_outlined,
+                    color: AppColors.primaria,
+                  ),
+                  onPressed: () =>
+                      _ajustar(a.itens.first, (novo) => a.itens[0] = novo),
+                ),
+              // deslocamento é cobrado uma vez: liga/desliga, como no app
+              // de referência (#134)
+              if (_ligaDesliga(a.rotulo))
+                Switch(
+                  key: Key('avulso_${a.rotulo}_liga'),
+                  value: a.quantidade > 0,
+                  onChanged: (v) => _mudou(() {
+                    if (!c.avulsos.contains(a)) c.avulsos.add(a);
+                    a.quantidade = v ? 1 : 0;
+                  }),
+                )
+              else
+                _Passos(
+                  chave: 'avulso_${a.rotulo}_quantidade',
+                  chaveMenos: 'avulso_${a.rotulo}_menos',
+                  chaveMais: 'avulso_${a.rotulo}_mais',
+                  texto: '${a.quantidade}',
+                  aoMenos: a.quantidade == 0
+                      ? null
+                      : () => _mudou(() => a.quantidade--),
+                  aoMais: () => _mudou(() {
+                    if (!c.avulsos.contains(a)) c.avulsos.add(a);
+                    a.quantidade++;
+                  }),
+                ),
             ],
           ),
         ),
     ];
   }
+
+  static bool _ligaDesliga(String nome) =>
+      nome.trim().toLowerCase().startsWith('deslocamento');
 
   Widget _quantidade(int i, _Cartao c) => _Passos(
     chave: 'cartao_${i}_quantidade',
@@ -769,7 +813,7 @@ class _SeletorDePecasState extends State<SeletorDePecas> {
           precoDoServico(widget.tabela, c.familia, c.variante, c.retratil, t);
       preco = _preco(item.valor, m2: item.unidade == UnidadeDeCobranca.m2);
     }
-    return Material(
+    final botao = Material(
       key: Key('cartao_${i}_${t.codigo}'),
       color: marcado ? v.fundo : AppColors.superficie,
       shape: RoundedRectangleBorder(
@@ -808,6 +852,92 @@ class _SeletorDePecasState extends State<SeletorDePecas> {
         ),
       ),
     );
+    if (!marcado) return botao;
+    // marcado: o preço pode ser ajustado só neste registro (CT-102); no
+    // colchão, por tamanho
+    if (c.familia == Familia.colchao) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          botao,
+          for (final e in c.tamanhos.entries)
+            if (e.value > 0) _precoDoTamanho(context, c, e.key, e.value, t),
+        ],
+      );
+    }
+    final servico = c.marcados[t]!;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        botao,
+        Row(
+          children: [
+            Expanded(
+              child: servico.ajustado
+                  ? _Ajustado(
+                      chave: 'cartao_${i}_${t.codigo}_ajustado',
+                      servico: servico,
+                    )
+                  : const SizedBox.shrink(),
+            ),
+            TextButton.icon(
+              key: Key('cartao_${i}_${t.codigo}_ajustar'),
+              onPressed: () =>
+                  _ajustar(c.marcados[t]!, (novo) => c.marcados[t] = novo),
+              icon: const Icon(Icons.edit_outlined),
+              label: const Text('Ajustar preço'),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _precoDoTamanho(
+    BuildContext context,
+    _Cartao c,
+    String? tamanho,
+    int quantidade,
+    TipoDeServico t,
+  ) {
+    final textos = Theme.of(context).textTheme;
+    final servico = _copiaColchao(c, tamanho, t);
+    final rotulo = tamanho == null
+        ? 'Sem tamanho'
+        : '${tamanho[0].toUpperCase()}${tamanho.substring(1)}';
+    final base = 'colchao_${tamanho}_${t.codigo}';
+    return Padding(
+      padding: const EdgeInsets.only(left: AppSpacing.md),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '$rotulo: $quantidade × ${_preco(servico.valor)}',
+                  key: Key('${base}_preco'),
+                  style: textos.bodyMedium?.copyWith(
+                    fontFeatures: AppTypography.digitosTabulares,
+                  ),
+                ),
+                if (servico.ajustado)
+                  _Ajustado(chave: '${base}_ajustado', servico: servico),
+              ],
+            ),
+          ),
+          IconButton(
+            key: Key('${base}_ajustar'),
+            tooltip: 'Ajustar o preço',
+            icon: const Icon(Icons.edit_outlined, color: AppColors.primaria),
+            onPressed: () => _ajustar(
+              servico,
+              (novo) => c.copiasColchao['$tamanho|${t.codigo}'] = novo,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   static String _preco(double? valor, {bool m2 = false}) {
@@ -841,6 +971,135 @@ class _IconeFamilia extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadius.pequeno),
       ),
       child: Icon(v.icone, color: v.cor),
+    );
+  }
+}
+
+// "ajustado · tabela R$ 200,00 · tecido linho" sob o serviço ajustado.
+class _Ajustado extends StatelessWidget {
+  const _Ajustado({required this.chave, required this.servico});
+
+  final String chave;
+  final ItemDePreco servico;
+
+  @override
+  Widget build(BuildContext context) {
+    final tabela = servico.valorDaTabela;
+    return Text(
+      [
+        'ajustado',
+        tabela == null ? 'tabela sem valor' : 'tabela ${valorEmReais(tabela)}',
+        if (servico.justificativa != null) servico.justificativa!,
+      ].join(' · '),
+      key: Key(chave),
+      style: Theme.of(
+        context,
+      ).textTheme.bodySmall?.copyWith(color: AppColors.primaria),
+    );
+  }
+}
+
+// Diálogo do ajuste (CT-102): o valor só neste registro e a justificativa
+// opcional. Devolve o serviço ajustado, o de volta ao da tabela, ou nada se
+// cancelado. Valor vazio também volta ao da tabela.
+class _DialogoDoAjuste extends StatefulWidget {
+  const _DialogoDoAjuste({required this.servico});
+
+  final ItemDePreco servico;
+
+  @override
+  State<_DialogoDoAjuste> createState() => _DialogoDoAjusteState();
+}
+
+class _DialogoDoAjusteState extends State<_DialogoDoAjuste> {
+  late final _valor = TextEditingController(
+    text: widget.servico.valor == null
+        ? ''
+        : valorEmReais(widget.servico.valor!).substring(3),
+  );
+  late final _motivo = TextEditingController(
+    text: widget.servico.justificativa ?? '',
+  );
+
+  @override
+  void dispose() {
+    _valor.dispose();
+    _motivo.dispose();
+    super.dispose();
+  }
+
+  void _confirmar() {
+    final valor = lerValor(_valor.text);
+    final s = widget.servico;
+    Navigator.of(
+      context,
+    ).pop(valor == null ? s.semAjuste() : s.ajustar(valor, _motivo.text));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = widget.servico;
+    final tabela = s.ajustado ? s.valorDaTabela : s.valor;
+    final textos = Theme.of(context).textTheme;
+    return AlertDialog(
+      title: Text(s.nome),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              tabela == null
+                  ? 'Sem valor na tabela.'
+                  : 'Na tabela: ${valorEmReais(tabela)}',
+              style: textos.bodyMedium?.copyWith(color: AppColors.tintaFraca),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            TextFormField(
+              key: const Key('ajuste_valor'),
+              controller: _valor,
+              autofocus: true,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              style: TextStyle(fontFeatures: AppTypography.digitosTabulares),
+              decoration: const InputDecoration(
+                labelText: 'Preço neste registro',
+                prefixText: 'R\$ ',
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            TextFormField(
+              key: const Key('ajuste_justificativa'),
+              controller: _motivo,
+              textCapitalization: TextCapitalization.sentences,
+              decoration: const InputDecoration(
+                labelText: 'Justificativa (opcional)',
+                hintText: 'ex.: tecido linho, desconto',
+                helperText: 'Muda só aqui; a tabela de preços continua igual.',
+                helperMaxLines: 2,
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancelar'),
+        ),
+        if (s.ajustado)
+          TextButton(
+            key: const Key('ajuste_voltar_tabela'),
+            onPressed: () => Navigator.of(context).pop(s.semAjuste()),
+            child: const Text('Voltar ao da tabela'),
+          ),
+        FilledButton(
+          key: const Key('ajuste_confirmar'),
+          onPressed: _confirmar,
+          child: const Text('Usar este preço'),
+        ),
+      ],
     );
   }
 }

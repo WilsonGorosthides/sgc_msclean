@@ -35,8 +35,15 @@ class ItemDePreco {
   final Familia? peca;
   final String? variante;
   final TipoDeServico? servico;
-  // Sofá ou poltrona retrátil/reclinável: preço próprio.
+  // Sofá ou poltrona retrátil/reclinável: preço próprio, se ela cadastrar
+  // um; senão vale o da mesma peça (#134).
   final bool retratil;
+  // Ajuste só no registro (CT-102): no serviço copiado para a peça, o preço
+  // pode mudar (tecido especial, desconto) sem mexer na tabela. Guarda o
+  // preço da tabela e a justificativa, se ela der uma.
+  final bool ajustado;
+  final double? valorDaTabela;
+  final String? justificativa;
 
   const ItemDePreco({
     this.id,
@@ -48,6 +55,9 @@ class ItemDePreco {
     this.variante,
     this.servico,
     this.retratil = false,
+    this.ajustado = false,
+    this.valorDaTabela,
+    this.justificativa,
   });
 
   bool get semValor => valor == null;
@@ -59,6 +69,8 @@ class ItemDePreco {
     final valor = map['valor'];
     final ordem = map['ordem'];
     final variante = map['variante']?.toString();
+    final daTabela = map['valor_tabela'];
+    final justificativa = map['justificativa']?.toString();
     return ItemDePreco(
       id: map['id']?.toString(),
       nome: (map['nome'] ?? '').toString(),
@@ -69,6 +81,11 @@ class ItemDePreco {
       variante: (variante == null || variante.isEmpty) ? null : variante,
       servico: TipoDeServico.deCodigo(map['servico']),
       retratil: map['retratil'] == true,
+      ajustado: map['ajustado'] == true,
+      valorDaTabela: daTabela is num ? daTabela.toDouble() : null,
+      justificativa: (justificativa == null || justificativa.isEmpty)
+          ? null
+          : justificativa,
     );
   }
 
@@ -95,10 +112,42 @@ class ItemDePreco {
         retratil: retratil,
       );
 
+  // O serviço com outro preço só neste registro (CT-102). Ajustar de novo
+  // mantém o preço da tabela de antes; justificativa em branco não fica.
+  ItemDePreco ajustar(double novo, String? motivo) {
+    final texto = motivo?.trim();
+    return ItemDePreco(
+      nome: nome,
+      unidade: unidade,
+      valor: novo,
+      peca: peca,
+      variante: variante,
+      servico: servico,
+      retratil: retratil,
+      ajustado: true,
+      valorDaTabela: ajustado ? valorDaTabela : valor,
+      justificativa: (texto == null || texto.isEmpty) ? null : texto,
+    );
+  }
+
+  // Volta ao preço da tabela copiado no registro.
+  ItemDePreco semAjuste() => !ajustado
+      ? this
+      : ItemDePreco(
+          nome: nome,
+          unidade: unidade,
+          valor: valorDaTabela,
+          peca: peca,
+          variante: variante,
+          servico: servico,
+          retratil: retratil,
+        );
+
   // Lista inicial (RF-013): sem valor, para ela completar. Higienização e
   // impermeabilização como serviços separados, nunca um como extra do outro.
-  // Cada linha já diz peça, variante e serviço (#134); as de retrátil vêm
-  // sem valor até ela definir o preço. Cortina por folha.
+  // Cada linha já diz peça, variante e serviço (#134). Sem linhas de
+  // retrátil: o retrátil usa o preço comum até ela cadastrar um próprio.
+  // Cortina por folha.
   static List<ItemDePreco> listaSugerida() {
     const hig = TipoDeServico.higienizar;
     const imp = TipoDeServico.impermeabilizar;
@@ -135,13 +184,6 @@ class ItemDePreco {
     servico(Familia.cortina, hig);
     for (final t in Familia.colchao.variantes) {
       servico(Familia.colchao, hig, variante: t);
-    }
-    // retrátil/reclinável: preço próprio, a definir por ela
-    for (final s in [hig, imp]) {
-      for (final v in Familia.sofa.variantes) {
-        servico(Familia.sofa, s, variante: v, retratil: true);
-      }
-      servico(Familia.poltrona, s, retratil: true);
     }
     for (final nome in ['Remoção de odor', 'Remoção de mancha', 'Deslocamento']) {
       itens.add(ItemDePreco(nome: nome, unidade: UnidadeDeCobranca.peca));
