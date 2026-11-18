@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sgc_msclean/models/familia.dart';
 import 'package:sgc_msclean/models/item_de_preco.dart';
 import 'package:sgc_msclean/models/peca.dart';
 import 'package:sgc_msclean/widgets/seletor_de_pecas.dart';

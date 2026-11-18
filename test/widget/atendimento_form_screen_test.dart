@@ -4,7 +4,6 @@ import 'package:mocktail/mocktail.dart';
 import 'package:sgc_msclean/models/atendimento.dart';
 import 'package:sgc_msclean/models/client_model.dart';
 import 'package:sgc_msclean/models/endereco.dart';
-import 'package:sgc_msclean/models/familia.dart';
 import 'package:sgc_msclean/models/item_de_preco.dart';
 import 'package:sgc_msclean/models/peca.dart';
 import 'package:sgc_msclean/screens/atendimento_form_screen.dart';

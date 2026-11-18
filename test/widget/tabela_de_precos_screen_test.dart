@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:sgc_msclean/models/familia.dart';
 import 'package:sgc_msclean/models/item_de_preco.dart';
 import 'package:sgc_msclean/screens/tabela_de_precos_screen.dart';
 

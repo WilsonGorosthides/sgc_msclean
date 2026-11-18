@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../models/familia.dart';
 import '../models/item_de_preco.dart';
 import '../models/peca.dart';
 import '../theme/app_colors.dart';

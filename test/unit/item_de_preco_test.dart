@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sgc_msclean/models/familia.dart';
 import 'package:sgc_msclean/models/item_de_preco.dart';
 
 // Serviço da tabela de preços (RF-013, parte 1, issue #123). Roteiros CT-080,
