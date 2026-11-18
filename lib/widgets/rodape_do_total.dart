@@ -67,10 +67,12 @@ class _RodapeDoTotalState extends State<RodapeDoTotal> {
         widget.valorManual != calculo.total;
     final aviso = textos.bodySmall?.copyWith(color: AppColors.tarde);
 
-    return Material(
-      color: AppColors.superficie,
-      elevation: 8,
-      shadowColor: AppColors.tinta,
+    // separado do formulário por borda, não por sombra (design-system.md §8)
+    return Container(
+      decoration: const BoxDecoration(
+        color: AppColors.superficie,
+        border: Border(top: BorderSide(color: AppColors.bordaForte)),
+      ),
       child: SafeArea(
         top: false,
         child: Padding(
