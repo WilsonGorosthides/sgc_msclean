@@ -609,6 +609,17 @@
   "provisório" na lista. Ao editá-lo, o telefone continua obrigatório (RF-001),
   e é isso que o completa.
 
+### CT-101 — Atendimento rápido: peças e valor em tela própria
+- **Critério:** "O registro continua **rápido**: peças e valor não são exigidos e ficam numa **linha de resumo** que abre a tela **Peças e valor** (o seletor do RF-013, com o rodapé do total); ao voltar, o resumo mostra as peças e o valor a cobrar, e o atendimento é salvo pelo botão do próprio formulário."
+- **Tipo:** Widget · **Situação:** a implementar
+- **Pré-condições:** tabela com higienizar sofá 3 lugares (R$ 200).
+- **Passos:**
+  1. Abrir um atendimento novo.
+  2. Tocar na linha "Adicionar peças e valor", tocar Sofá e Higienizar, e "Pronto".
+  3. Em outro registro, abrir a tela, marcar o serviço e voltar pela seta.
+  4. Salvar.
+- **Resultado esperado:** o formulário não mostra os quadros de peça nem o rodapé do total; a linha abre "Peças e valor"; ao voltar (por "Pronto" ou pela seta), o resumo mostra "sofá 3 lugares" e "R$ 200,00", e o atendimento é gravado com a peça e o valor. Sem abrir a tela, cliente e período bastam para salvar.
+
 ### CT-047 — Local pré-preenchido com o endereço, editável
 - **Critério:** "Quando o Cliente tem endereço cadastrado, o Local vem
   pré-preenchido com o resumo do endereço (mesmo resumo do RF-003), e pode ser
@@ -836,7 +847,8 @@
 
 > Parte 1 (issue #123): a tabela editável, CT-080 a CT-086. Parte 2 (issue
 > #124): o cálculo no atendimento, CT-087 a CT-092. Seletor de peças (issue
-> #134): CT-093 a CT-100.
+> #134): CT-093 a CT-100; o CT-101 (atendimento rápido) fica junto dos casos
+> do RF-005.
 
 ### CT-080 — Serviço da tabela: nome, unidade e valor
 - **Critério:** "A proprietária mantém a **tabela de preços** como uma lista de **serviços**: cada um com **nome** [...], **unidade de cobrança** (peça ou metro quadrado) e **valor**."
@@ -1309,4 +1321,5 @@ falso, que pode estar "fora do ar", e um armazenamento em memória no lugar do
 | 2026-11-17 | 1.39 | Wilson Gorosthides | CT-087 a CT-092 passam a "implementado" (issue #124). |
 | 2026-11-17 | 1.40 | Wilson Gorosthides | CT-093 a CT-100 do seletor de peças (RF-013, issue #134). "A implementar". |
 | 2026-11-17 | 1.41 | Wilson Gorosthides | CT-093 a CT-100 passam a "implementado" (issue #134); CT-043, CT-044 e CT-087 a CT-092 apontam para os testes do seletor e do rodapé que substituíram os da interação anterior. |
+| 2026-11-17 | 1.42 | Wilson Gorosthides | CT-101 do RF-005: atendimento rápido, peças e valor em tela própria (issue #134). "A implementar". |
 | 2026-11-17 | 1.36 | Wilson Gorosthides | CT-055 ganha o teste da linha repetida pelo banco (bug #128: atendimento em dobro na agenda). |
