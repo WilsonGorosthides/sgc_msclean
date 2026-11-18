@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:sgc_msclean/models/familia.dart';
 import 'package:sgc_msclean/models/item_de_preco.dart';
 import 'package:sgc_msclean/screens/tabela_de_precos_screen.dart';
 
@@ -143,6 +144,45 @@ void main() {
           .single as ItemDePreco;
       expect(gravado.id, 'p1');
       expect(gravado.valor, isNull);
+    });
+
+    // CT-100 (#134): o serviço diz a que peça, variante e serviço corresponde.
+    testWidgets('editor grava peça, variante, serviço e retrátil',
+        (tester) async {
+      await bombear(tester);
+
+      await tester.tap(find.byKey(const Key('novo_preco')));
+      await tester.pumpAndSettle();
+      // variante só aparece depois de escolher uma peça que tem variante
+      expect(find.byKey(const Key('preco_variante_4')), findsNothing);
+      await tester.tap(find.byKey(const Key('preco_peca_sofa')));
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('preco_variante_4')));
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('preco_servico_impermeabilizar')));
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('preco_retratil')));
+      await tester.pump();
+
+      // o nome se monta sozinho enquanto ela não digita outro
+      expect(
+          tester
+              .widget<TextField>(find.byKey(const Key('preco_nome')))
+              .controller!
+              .text,
+          'Impermeabilização sofá 4 lugares retrátil');
+      await tester.enterText(find.byKey(const Key('preco_valor')), '260');
+      await tester.tap(find.byKey(const Key('salvar_preco')));
+      await tester.pumpAndSettle();
+
+      final gravado =
+          verify(() => service.addPreco(captureAny())).captured.single
+              as ItemDePreco;
+      expect(gravado.peca, Familia.sofa);
+      expect(gravado.variante, '4');
+      expect(gravado.servico, TipoDeServico.impermeabilizar);
+      expect(gravado.retratil, isTrue);
+      expect(gravado.valor, 260);
     });
 
     testWidgets('remover pede confirmação; cancelar não remove',

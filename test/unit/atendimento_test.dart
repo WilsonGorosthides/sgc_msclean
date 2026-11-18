@@ -221,9 +221,73 @@ void main() {
       expect(Peca.fromMap({'tipo': 'sofá'}).servicos, isEmpty);
     });
 
+    // CT-094/CT-099 (#134): variante e retrátil na peça; serviço antigo
+    // (sem a chave servico) reconhecido pelo nome.
+    test('peça guarda variante e retrátil; serviço antigo reconhecido pelo nome',
+        () {
+      const peca = Peca(
+          tipo: 'sofá',
+          variante: '3',
+          retratil: true,
+          servicos: [
+            ItemDePreco(
+                nome: 'Higienização sofá 3 lugares retrátil',
+                unidade: UnidadeDeCobranca.peca,
+                valor: 230,
+                servico: TipoDeServico.higienizar),
+          ]);
+      final mapa = peca.toMap();
+      expect(mapa['variante'], '3');
+      expect(mapa['retratil'], isTrue);
+      expect((mapa['servicos'] as List).single['servico'], 'higienizar');
+      expect(const Peca(tipo: 'sofá').toMap().containsKey('variante'), isFalse);
+      expect(const Peca(tipo: 'sofá').toMap().containsKey('retratil'), isFalse);
+
+      final lida = Peca.fromMap(mapa);
+      expect(lida.variante, '3');
+      expect(lida.retratil, isTrue);
+      expect(lida.servicos.single.servico, TipoDeServico.higienizar);
+
+      final antiga = Peca.fromMap({
+        'tipo': 'sofá',
+        'quantidade': 1,
+        'servicos': [
+          {'nome': 'Higienização sofá 3 lugares', 'unidade': 'peca', 'valor': 180},
+          {
+            'nome': 'Impermeabilização sofá 3 lugares',
+            'unidade': 'peca',
+            'valor': 150
+          },
+          {'nome': 'Remoção de odor', 'unidade': 'peca', 'valor': null},
+        ],
+      });
+      expect(antiga.variante, isNull);
+      expect(antiga.servicos.map((s) => s.servico), [
+        TipoDeServico.higienizar,
+        TipoDeServico.impermeabilizar,
+        null,
+      ]);
+      expect(antiga.servicos.first.valor, 180);
+    });
+
+    test('resumo leva lugares, tamanho e retrátil', () {
+      expect(const Peca(tipo: 'sofá', variante: '3').resumo, 'sofá 3 lugares');
+      expect(const Peca(tipo: 'sofá', variante: 'canto', retratil: true).resumo,
+          'sofá de canto retrátil');
+      expect(const Peca(tipo: 'colchão', quantidade: 2, variante: 'casal').resumo,
+          '2× colchão casal');
+    });
+
     test('tapete é o tipo medido por metragem; os demais são contados', () {
-      expect(Peca.tipos,
-          ['tapete', 'sofá', 'poltrona', 'cortina', 'colchão', 'outro']);
+      expect(Peca.tipos, [
+        'tapete',
+        'sofá',
+        'poltrona',
+        'cortina',
+        'colchão',
+        'cadeira',
+        'outro'
+      ]);
       expect(Peca.ehMedido('tapete'), isTrue);
       for (final t in Peca.tipos.where((t) => t != 'tapete')) {
         expect(Peca.ehMedido(t), isFalse, reason: t);

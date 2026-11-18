@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sgc_msclean/models/familia.dart';
 import 'package:sgc_msclean/models/item_de_preco.dart';
 
 // Serviço da tabela de preços (RF-013, parte 1, issue #123). Roteiros CT-080,
@@ -56,6 +57,11 @@ void main() {
         'unidade': 'm2',
         'valor': 25.5,
         'ordem': 4,
+        // sem peça, variante e serviço: item avulso (#134)
+        'peca': null,
+        'variante': null,
+        'servico': null,
+        'retratil': false,
       });
       expect(
           const ItemDePreco(nome: 'Odor', unidade: UnidadeDeCobranca.peca)
@@ -75,11 +81,11 @@ void main() {
         'cadeira',
         'tapete',
       ]) {
-        expect(nomes.where((n) => n.startsWith('Higienização') && n.contains(peca)),
+        // as linhas de retrátil (#134) ficam de fora desta conta
+        bool comum(String n) => n.contains(peca) && !n.contains('retrátil');
+        expect(nomes.where((n) => n.startsWith('Higienização') && comum(n)),
             hasLength(1), reason: 'higienização de $peca');
-        expect(
-            nomes.where(
-                (n) => n.startsWith('Impermeabilização') && n.contains(peca)),
+        expect(nomes.where((n) => n.startsWith('Impermeabilização') && comum(n)),
             hasLength(1),
             reason: 'impermeabilização de $peca');
       }
@@ -90,6 +96,89 @@ void main() {
         expect(nomes.any((n) => n.toLowerCase().contains(outro)), isTrue,
             reason: outro);
       }
+    });
+
+    // CT-100 (#134): colunas de peça, variante, serviço e retrátil.
+    test('colunas peca, variante, servico e retratil vão e voltam', () {
+      final item = ItemDePreco.fromMap({
+        'id': 'p7',
+        'nome': 'Impermeabilização sofá 4 lugares retrátil',
+        'unidade': 'peca',
+        'valor': 260,
+        'ordem': 9,
+        'peca': 'sofa',
+        'variante': '4',
+        'servico': 'impermeabilizar',
+        'retratil': true,
+      });
+
+      expect(item.peca, Familia.sofa);
+      expect(item.variante, '4');
+      expect(item.servico, TipoDeServico.impermeabilizar);
+      expect(item.retratil, isTrue);
+      expect(item.toMap(), {
+        'nome': 'Impermeabilização sofá 4 lugares retrátil',
+        'unidade': 'peca',
+        'valor': 260.0,
+        'ordem': 9,
+        'peca': 'sofa',
+        'variante': '4',
+        'servico': 'impermeabilizar',
+        'retratil': true,
+      });
+
+      final avulso = ItemDePreco.fromMap(
+          {'nome': 'Deslocamento', 'unidade': 'peca', 'peca': '?'});
+      expect(avulso.peca, isNull);
+      expect(avulso.servico, isNull);
+      expect(avulso.retratil, isFalse);
+    });
+
+    test('lista sugerida com peça, variante e serviço; retrátil sem valor',
+        () {
+      final lista = ItemDePreco.listaSugerida();
+      ItemDePreco? achar(Familia f, String? v, TipoDeServico s,
+              {bool retratil = false}) =>
+          lista
+              .where((i) =>
+                  i.peca == f &&
+                  i.variante == v &&
+                  i.servico == s &&
+                  i.retratil == retratil)
+              .firstOrNull;
+
+      for (final v in ['2', '3', '4', 'canto']) {
+        for (final s in TipoDeServico.values) {
+          expect(achar(Familia.sofa, v, s), isNotNull, reason: 'sofá $v $s');
+          expect(achar(Familia.sofa, v, s, retratil: true), isNotNull,
+              reason: 'sofá $v $s retrátil');
+        }
+      }
+      expect(achar(Familia.sofa, '3', TipoDeServico.higienizar)!.nome,
+          'Higienização sofá 3 lugares');
+      expect(
+          achar(Familia.sofa, 'canto', TipoDeServico.impermeabilizar,
+                  retratil: true)!
+              .nome,
+          'Impermeabilização sofá de canto retrátil');
+      expect(achar(Familia.poltrona, null, TipoDeServico.impermeabilizar,
+              retratil: true),
+          isNotNull);
+      for (final t in ['solteiro', 'casal', 'queen', 'king']) {
+        expect(achar(Familia.colchao, t, TipoDeServico.higienizar), isNotNull,
+            reason: t);
+      }
+      expect(achar(Familia.tapete, null, TipoDeServico.impermeabilizar)!.unidade,
+          UnidadeDeCobranca.m2);
+      // cortina por folha (decisão de 2026-11-17)
+      expect(achar(Familia.cortina, null, TipoDeServico.higienizar)!.unidade,
+          UnidadeDeCobranca.peca);
+      // avulsos: sem peça nem serviço
+      final avulsos = lista.where((i) => i.peca == null).map((i) => i.nome);
+      expect(avulsos, containsAll(['Remoção de odor', 'Deslocamento']));
+      expect(lista.where((i) => i.peca == null && i.servico != null), isEmpty);
+      expect(lista.where((i) => i.retratil).every((i) => i.valor == null),
+          isTrue);
     });
 
     test('lista sugerida vem sem valor, com ordem crescente e tapete por m²',
