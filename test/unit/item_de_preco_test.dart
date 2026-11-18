@@ -133,7 +133,7 @@ void main() {
       expect(avulso.retratil, isFalse);
     });
 
-    test('lista sugerida com peça, variante e serviço; retrátil sem valor',
+    test('lista sugerida com peça, variante e serviço; sem linhas de retrátil',
         () {
       final lista = ItemDePreco.listaSugerida();
       ItemDePreco? achar(Familia f, String? v, TipoDeServico s,
@@ -149,20 +149,10 @@ void main() {
       for (final v in ['2', '3', '4', 'canto']) {
         for (final s in TipoDeServico.values) {
           expect(achar(Familia.sofa, v, s), isNotNull, reason: 'sofá $v $s');
-          expect(achar(Familia.sofa, v, s, retratil: true), isNotNull,
-              reason: 'sofá $v $s retrátil');
         }
       }
       expect(achar(Familia.sofa, '3', TipoDeServico.higienizar)!.nome,
           'Higienização sofá 3 lugares');
-      expect(
-          achar(Familia.sofa, 'canto', TipoDeServico.impermeabilizar,
-                  retratil: true)!
-              .nome,
-          'Impermeabilização sofá de canto retrátil');
-      expect(achar(Familia.poltrona, null, TipoDeServico.impermeabilizar,
-              retratil: true),
-          isNotNull);
       for (final t in ['solteiro', 'casal', 'queen', 'king']) {
         expect(achar(Familia.colchao, t, TipoDeServico.higienizar), isNotNull,
             reason: t);
@@ -176,8 +166,8 @@ void main() {
       final avulsos = lista.where((i) => i.peca == null).map((i) => i.nome);
       expect(avulsos, containsAll(['Remoção de odor', 'Deslocamento']));
       expect(lista.where((i) => i.peca == null && i.servico != null), isEmpty);
-      expect(lista.where((i) => i.retratil).every((i) => i.valor == null),
-          isTrue);
+      // retrátil usa o preço comum até ela cadastrar um próprio
+      expect(lista.where((i) => i.retratil), isEmpty);
     });
 
     test('lista sugerida vem sem valor, com ordem crescente e tapete por m²',

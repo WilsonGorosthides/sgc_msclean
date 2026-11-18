@@ -221,6 +221,59 @@ void main() {
       expect(Peca.fromMap({'tipo': 'sofá'}).servicos, isEmpty);
     });
 
+    // CT-102 (#134): o preço ajustado só no registro leva o da tabela e a
+    // justificativa junto; sem ajuste, o jsonb não muda.
+    test('ajuste do serviço vai ao jsonb com o preço da tabela e a justificativa',
+        () {
+      const tabela = ItemDePreco(
+          nome: 'Higienização sofá 2 lugares',
+          unidade: UnidadeDeCobranca.peca,
+          valor: 170,
+          servico: TipoDeServico.higienizar);
+      final ajustado = tabela.ajustar(220, 'tecido linho');
+      expect(ajustado.valor, 220);
+      expect(ajustado.valorDaTabela, 170);
+      expect(ajustado.justificativa, 'tecido linho');
+      expect(ajustado.ajustado, isTrue);
+      // ajustar de novo guarda o preço da tabela, não o ajuste anterior
+      expect(ajustado.ajustar(200, null).valorDaTabela, 170);
+      expect(ajustado.ajustar(200, '  ').justificativa, isNull);
+
+      final mapa = Peca(tipo: 'sofá', servicos: [ajustado]).toMap();
+      expect(mapa['servicos'], [
+        {
+          'nome': 'Higienização sofá 2 lugares',
+          'unidade': 'peca',
+          'valor': 220.0,
+          'servico': 'higienizar',
+          'ajustado': true,
+          'valor_tabela': 170.0,
+          'justificativa': 'tecido linho',
+        },
+      ]);
+      final lido = Peca.fromMap(mapa).servicos.single;
+      expect(lido.ajustado, isTrue);
+      expect(lido.valor, 220);
+      expect(lido.valorDaTabela, 170);
+      expect(lido.justificativa, 'tecido linho');
+
+      final volta = lido.semAjuste();
+      expect(volta.valor, 170);
+      expect(volta.ajustado, isFalse);
+      expect(volta.justificativa, isNull);
+      expect(
+          (Peca(tipo: 'sofá', servicos: [volta]).toMap()['servicos'] as List)
+              .single,
+          {
+            'nome': 'Higienização sofá 2 lugares',
+            'unidade': 'peca',
+            'valor': 170.0,
+            'servico': 'higienizar',
+          });
+      // a linha da tabela de preços não leva nada do ajuste
+      expect(ajustado.toMap().containsKey('ajustado'), isFalse);
+    });
+
     // CT-094/CT-099 (#134): variante e retrátil na peça; serviço antigo
     // (sem a chave servico) reconhecido pelo nome.
     test('peça guarda variante e retrátil; serviço antigo reconhecido pelo nome',

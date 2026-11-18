@@ -119,7 +119,32 @@ void main() {
           nome: 'Deslocamento',
           unidade: UnidadeDeCobranca.peca,
           valor: 30);
-      final tabela = [sofa3, sofa3Retratil, casal, tapete, deslocamento];
+      const sofa2 = ItemDePreco(
+          id: 's2',
+          nome: 'Higienização sofá 2 lugares',
+          unidade: UnidadeDeCobranca.peca,
+          valor: 170,
+          peca: Familia.sofa,
+          variante: '2',
+          servico: TipoDeServico.higienizar);
+      const sofa2Retratil = ItemDePreco(
+          id: 's2r',
+          nome: 'Higienização sofá 2 lugares retrátil',
+          unidade: UnidadeDeCobranca.peca,
+          valor: 230,
+          peca: Familia.sofa,
+          variante: '2',
+          servico: TipoDeServico.higienizar,
+          retratil: true);
+      final tabela = [
+        sofa3,
+        sofa3Retratil,
+        sofa2,
+        sofa2Retratil,
+        casal,
+        tapete,
+        deslocamento
+      ];
 
       test('linha da tabela por peça, variante, retrátil e serviço', () {
         final achado = precoDoServico(
@@ -148,11 +173,6 @@ void main() {
         expect(quatro.valor, isNull);
         expect(quatro.nome, 'Higienização sofá 4 lugares');
 
-        final retratil = precoDoServico(
-            tabela, Familia.sofa, '3', true, TipoDeServico.higienizar);
-        expect(retratil.valor, isNull);
-        expect(retratil.nome, 'Higienização sofá 3 lugares retrátil');
-
         final imp = precoDoServico(
             tabela, Familia.sofa, '3', false, TipoDeServico.impermeabilizar);
         expect(imp.valor, isNull);
@@ -162,6 +182,45 @@ void main() {
                     TipoDeServico.impermeabilizar)
                 .unidade,
             UnidadeDeCobranca.m2);
+      });
+
+      // CT-096 (#134, depois do teste no celular): retrátil sem preço
+      // próprio não deixa o serviço sem valor.
+      test('retrátil sem preço próprio usa o da mesma peça', () {
+        final tres = precoDoServico(
+            tabela, Familia.sofa, '3', true, TipoDeServico.higienizar);
+        expect(tres.valor, 200);
+        expect(tres.nome, 'Higienização sofá 3 lugares retrátil');
+        expect(tres.retratil, isTrue);
+
+        final dois = precoDoServico(
+            tabela, Familia.sofa, '2', true, TipoDeServico.higienizar);
+        expect(dois.valor, 230);
+
+        // sem linha comum também: segue sem valor, com o nome retrátil
+        final quatro = precoDoServico(
+            tabela, Familia.sofa, '4', true, TipoDeServico.higienizar);
+        expect(quatro.valor, isNull);
+        expect(quatro.nome, 'Higienização sofá 4 lugares retrátil');
+      });
+
+      // CT-102: o ajuste aparece nos detalhes, ao lado do preço da tabela.
+      test('linha ajustada mostra o preço da tabela e a justificativa', () {
+        final linhas = linhasDoTotal([
+          Peca(tipo: 'sofá', variante: '2', servicos: [
+            sofa2.copia().ajustar(220, 'tecido linho'),
+          ]),
+          Peca(tipo: 'outro', servicos: [deslocamento.copia().ajustar(25, null)]),
+        ]);
+        expect(linhas[0].valor, 220);
+        expect(linhas[0].legenda,
+            '1 × R\$ 220,00 · tabela R\$ 170,00 · tecido linho');
+        expect(linhas[1].legenda, '1 × R\$ 25,00 · tabela R\$ 30,00');
+        expect(
+            calcularValor([
+              Peca(tipo: 'sofá', servicos: [sofa2.copia().ajustar(220, null)])
+            ]).total,
+            220);
       });
 
       test('linhas do total com legenda e valor', () {

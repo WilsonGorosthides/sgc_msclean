@@ -6,7 +6,18 @@ import 'package:sgc_msclean/widgets/seletor_de_pecas.dart';
 
 // Seletor de peças e serviços (RF-013, issue #134): quadros por família,
 // ajuste por − / +, Higienizar e Impermeabilizar por peça, preço pela tabela.
-// Roteiros CT-093 a CT-096, CT-098 e CT-099 em docs/casos-de-teste.md.
+// Roteiros CT-093 a CT-096, CT-098, CT-099 e CT-102 em docs/casos-de-teste.md.
+// Índice do cartão que contém a chave (o colchão muda de posição conforme
+// as famílias que já entraram).
+int _indiceDoCartao(WidgetTester tester, String chave) {
+  final cartao = find.ancestor(
+      of: find.byKey(Key(chave)),
+      matching: find.byWidgetPredicate((w) =>
+          w is Card && (w.key as ValueKey<String>?)?.value.startsWith('cartao_') == true));
+  final k = (tester.widget<Card>(cartao).key! as ValueKey<String>).value;
+  return int.parse(k.substring('cartao_'.length));
+}
+
 void main() {
   ItemDePreco linha(String nome, Familia? peca, String? variante,
           TipoDeServico? servico, double? valor,
@@ -34,6 +45,7 @@ void main() {
         unidade: UnidadeDeCobranca.m2),
     linha('Higienização poltrona', Familia.poltrona, null, hig, 90),
     linha('Deslocamento', null, null, null, 30),
+    linha('Remoção de mancha', null, null, null, 50),
   ];
 
   late List<Peca> mudou;
@@ -228,10 +240,12 @@ void main() {
       expect(texto(tester, 'cartao_0_higienizar_preco'), 'sem valor');
 
       await tocar(tester, 'cartao_0_menos_lugares');
-      await tocar(tester, 'cartao_0_retratil'); // retrátil sem valor
+      // retrátil com a linha sem valor: segue o preço comum
+      await tocar(tester, 'cartao_0_retratil');
       expect(mudou.single.servicos.single.nome,
           'Higienização sofá 3 lugares retrátil');
-      expect(mudou.single.servicos.single.valor, isNull);
+      expect(mudou.single.servicos.single.valor, 200);
+      expect(texto(tester, 'cartao_0_higienizar_preco'), 'R\$ 200,00');
 
       await tocar(tester, 'familia_colchao');
       await tocar(tester, 'colchao_casal_mais');
@@ -242,21 +256,102 @@ void main() {
       expect(colchao.quantidade, 2);
     });
 
-    testWidgets('avulso entra pelo quadro Outros', (tester) async {
+    testWidgets('deslocamento é liga/desliga; os outros avulsos por quantidade',
+        (tester) async {
       await bombear(tester);
       await tocar(tester, 'familia_outros');
 
       expect(find.text('Deslocamento'), findsOneWidget);
-      await tocar(tester, 'avulso_Deslocamento_mais');
+      expect(find.byKey(const Key('avulso_Deslocamento_mais')), findsNothing);
+      await tocar(tester, 'avulso_Deslocamento_liga');
 
       final outro = mudou.single;
       expect(outro.tipo, 'outro');
+      expect(outro.quantidade, 1);
       expect(outro.servicos.single.nome, 'Deslocamento');
       expect(outro.servicos.single.valor, 30);
       expect(texto(tester, 'selo_familia_outros'), '×1');
 
-      await tocar(tester, 'avulso_Deslocamento_menos');
-      expect(mudou, isEmpty);
+      await tocar(tester, 'avulso_Remoção de mancha_mais');
+      await tocar(tester, 'avulso_Remoção de mancha_mais');
+      expect(
+          mudou.firstWhere((p) => p.servicos.single.nome == 'Remoção de mancha')
+              .quantidade,
+          2);
+
+      await tocar(tester, 'avulso_Deslocamento_liga');
+      expect(mudou.single.servicos.single.nome, 'Remoção de mancha');
+    });
+
+    // CT-102: preço do serviço ajustado só neste registro.
+    Future<void> ajustar(WidgetTester tester, String chave, String valor,
+        {String? justificativa}) async {
+      await tester.tap(find.byKey(Key(chave)));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(const Key('ajuste_valor')), valor);
+      if (justificativa != null) {
+        await tester.enterText(
+            find.byKey(const Key('ajuste_justificativa')), justificativa);
+      }
+      await tester.tap(find.byKey(const Key('ajuste_confirmar')));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('ajustar o preço de um serviço só neste registro, com justificativa',
+        (tester) async {
+      await bombear(tester);
+      await tocar(tester, 'familia_sofa');
+      // só o serviço marcado pode ser ajustado
+      expect(find.byKey(const Key('cartao_0_higienizar_ajustar')), findsNothing);
+      await tocar(tester, 'cartao_0_higienizar');
+
+      await ajustar(tester, 'cartao_0_higienizar_ajustar', '220',
+          justificativa: 'tecido linho');
+
+      expect(texto(tester, 'cartao_0_higienizar_preco'), 'R\$ 220,00');
+      expect(find.byKey(const Key('cartao_0_higienizar_ajustado')),
+          findsOneWidget);
+      final s = mudou.single.servicos.single;
+      expect(s.valor, 220);
+      expect(s.valorDaTabela, 200);
+      expect(s.justificativa, 'tecido linho');
+      expect(tabela.first.valor, 200); // a tabela não muda
+
+      // avulso e colchão também, sem justificativa
+      await tocar(tester, 'familia_outros');
+      await tocar(tester, 'avulso_Deslocamento_liga');
+      await ajustar(tester, 'avulso_Deslocamento_ajustar', '45');
+      expect(
+          mudou.firstWhere((p) => p.tipo == 'outro').servicos.single.valor, 45);
+
+      await tocar(tester, 'familia_colchao');
+      await tocar(tester, 'colchao_casal_mais');
+      final colchao = _indiceDoCartao(tester, 'colchao_casal_mais');
+      await tocar(tester, 'cartao_${colchao}_higienizar');
+      await ajustar(tester, 'colchao_casal_higienizar_ajustar', '130',
+          justificativa: 'só um lado');
+      final c = mudou.firstWhere((p) => p.tipo == 'colchão').servicos.single;
+      expect(c.valor, 130);
+      expect(c.valorDaTabela, 150);
+    });
+
+    testWidgets('voltar ao preço da tabela desfaz o ajuste', (tester) async {
+      await bombear(tester);
+      await tocar(tester, 'familia_sofa');
+      await tocar(tester, 'cartao_0_higienizar');
+      await ajustar(tester, 'cartao_0_higienizar_ajustar', '180',
+          justificativa: 'desconto');
+
+      await tester.tap(find.byKey(const Key('cartao_0_higienizar_ajustar')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('ajuste_voltar_tabela')));
+      await tester.pumpAndSettle();
+
+      final s = mudou.single.servicos.single;
+      expect(s.valor, 200);
+      expect(s.ajustado, isFalse);
+      expect(s.justificativa, isNull);
+      expect(find.byKey(const Key('cartao_0_higienizar_ajustado')), findsNothing);
     });
 
     testWidgets('peças de antes abrem e voltam iguais', (tester) async {
