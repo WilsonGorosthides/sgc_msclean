@@ -1,6 +1,7 @@
+import '../models/familia.dart';
 import '../models/item_de_preco.dart';
 import '../models/peca.dart';
-import 'texto.dart';
+import 'agenda.dart';
 
 // Valor do atendimento pela tabela de preços (RF-013, parte 2, issue #124).
 // Funções puras: o formulário mostra o total enquanto ela informa as peças.
@@ -69,14 +70,70 @@ CalculoDoValor calcularValor(List<Peca> pecas) {
   );
 }
 
-// Serviços oferecidos numa peça: os que citam o tipo dela no nome ("sofá" →
-// os de sofá). "Outro", ou um tipo sem nenhum serviço na tabela, mostra todos.
-List<ItemDePreco> servicosDoTipo(List<ItemDePreco> tabela, String tipo) {
-  if (tipo == 'outro') return tabela;
-  final termo = paraBusca(tipo);
-  final doTipo = [
-    for (final s in tabela)
-      if (paraBusca(s.nome).contains(termo)) s,
-  ];
-  return doTipo.isEmpty ? tabela : doTipo;
+// Preço de um serviço da peça (#134): a linha da tabela com a mesma peça,
+// variante, retrátil e serviço, copiada para o registro. Sem essa linha, uma
+// cópia sem valor com o nome da combinação — o total avisa, e nunca se usa o
+// preço de outra variante.
+ItemDePreco precoDoServico(List<ItemDePreco> tabela, Familia familia,
+    String? variante, bool retratil, TipoDeServico servico) {
+  for (final linha in tabela) {
+    if (linha.peca == familia &&
+        linha.servico == servico &&
+        linha.variante == variante &&
+        linha.retratil == retratil) {
+      return linha.copia();
+    }
+  }
+  return ItemDePreco(
+    nome: nomeDoServico(familia, variante, retratil, servico),
+    unidade: familia == Familia.tapete
+        ? UnidadeDeCobranca.m2
+        : UnidadeDeCobranca.peca,
+    peca: familia,
+    variante: variante,
+    servico: servico,
+    retratil: retratil,
+  );
+}
+
+// Itens avulsos da tabela (sem peça), na ordem dela: quadro Outros.
+List<ItemDePreco> avulsos(List<ItemDePreco> tabela) =>
+    [for (final linha in tabela) if (linha.avulso) linha];
+
+// Uma linha da lista detalhada do rodapé: serviço, legenda (a conta) e valor.
+class LinhaDoTotal {
+  const LinhaDoTotal(this.servico, this.legenda, this.valor);
+
+  final String servico;
+  final String legenda;
+  final double? valor;
+}
+
+List<LinhaDoTotal> linhasDoTotal(List<Peca> pecas) => [
+      for (final peca in pecas)
+        for (final s in peca.servicos) _linha(peca, s),
+    ];
+
+LinhaDoTotal _linha(Peca peca, ItemDePreco servico) {
+  final valor = subtotal(peca, servico);
+  if (servico.valor == null) {
+    return LinhaDoTotal(servico.nome, 'sem valor na tabela', null);
+  }
+  final preco = valorEmReais(servico.valor!);
+  if (servico.unidade == UnidadeDeCobranca.m2) {
+    final area = peca.area;
+    if (area == null) return LinhaDoTotal(servico.nome, 'falta medida', null);
+    final vezes = peca.quantidade > 1 ? '${peca.quantidade} × ' : '';
+    return LinhaDoTotal(
+        servico.nome, '$vezes${_numero(area)} m² × $preco', valor);
+  }
+  return LinhaDoTotal(servico.nome, '${peca.quantidade} × $preco', valor);
+}
+
+// 6.0 → "6"; 4.5 → "4,5".
+String _numero(double v) {
+  final texto = v == v.truncateToDouble()
+      ? v.toInt().toString()
+      : v.toStringAsFixed(2).replaceFirst(RegExp(r'0+$'), '');
+  return texto.replaceAll('.', ',');
 }

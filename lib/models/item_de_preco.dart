@@ -1,3 +1,7 @@
+import 'familia.dart';
+
+export 'familia.dart' show Familia, TipoDeServico;
+
 // Unidade de cobrança de um serviço da tabela de preços (RF-013).
 enum UnidadeDeCobranca {
   peca('peca', 'por peça'),
@@ -16,6 +20,9 @@ enum UnidadeDeCobranca {
 // Serviço da tabela de preços (RF-013, parte 1, issue #123). Cada serviço é
 // independente: impermeabilização é um serviço completo, como higienização, e
 // o combo é escolher os dois (ou cadastrar o combo como mais um serviço).
+//
+// Desde a #134, o serviço diz a que peça, variante e serviço corresponde — é
+// por aí que o seletor de peças acha o preço. Sem peça, é um item avulso.
 class ItemDePreco {
   final String? id;
   final String nome;
@@ -24,6 +31,12 @@ class ItemDePreco {
   final double? valor;
   // Posição na lista (a sugerida vem na ordem do negócio; um novo vai ao fim).
   final int ordem;
+  // Peça (família), variante (lugares, tamanho) e serviço; nulos no avulso.
+  final Familia? peca;
+  final String? variante;
+  final TipoDeServico? servico;
+  // Sofá ou poltrona retrátil/reclinável: preço próprio.
+  final bool retratil;
 
   const ItemDePreco({
     this.id,
@@ -31,19 +44,31 @@ class ItemDePreco {
     required this.unidade,
     this.valor,
     this.ordem = 0,
+    this.peca,
+    this.variante,
+    this.servico,
+    this.retratil = false,
   });
 
   bool get semValor => valor == null;
 
+  // Item avulso: entra pelo quadro Outros, sem peça.
+  bool get avulso => peca == null;
+
   factory ItemDePreco.fromMap(Map<String, dynamic> map) {
     final valor = map['valor'];
     final ordem = map['ordem'];
+    final variante = map['variante']?.toString();
     return ItemDePreco(
       id: map['id']?.toString(),
       nome: (map['nome'] ?? '').toString(),
       unidade: UnidadeDeCobranca.deCodigo(map['unidade']),
       valor: valor is num ? valor.toDouble() : null,
       ordem: ordem is num ? ordem.toInt() : 0,
+      peca: Familia.deCodigo(map['peca']),
+      variante: (variante == null || variante.isEmpty) ? null : variante,
+      servico: TipoDeServico.deCodigo(map['servico']),
+      retratil: map['retratil'] == true,
     );
   }
 
@@ -53,38 +78,85 @@ class ItemDePreco {
         'unidade': unidade.codigo,
         'valor': valor,
         'ordem': ordem,
+        'peca': peca?.codigo,
+        'variante': variante,
+        'servico': servico?.codigo,
+        'retratil': retratil,
       };
+
+  // Cópia para o registro (atendimento): o preço de agora, sem id nem ordem.
+  ItemDePreco copia() => ItemDePreco(
+        nome: nome,
+        unidade: unidade,
+        valor: valor,
+        peca: peca,
+        variante: variante,
+        servico: servico,
+        retratil: retratil,
+      );
 
   // Lista inicial (RF-013): sem valor, para ela completar. Higienização e
   // impermeabilização como serviços separados, nunca um como extra do outro.
+  // Cada linha já diz peça, variante e serviço (#134); as de retrátil vêm
+  // sem valor até ela definir o preço. Cortina por folha.
   static List<ItemDePreco> listaSugerida() {
-    const peca = UnidadeDeCobranca.peca;
-    const m2 = UnidadeDeCobranca.m2;
-    const impermeabilizaveis = [
-      'sofá 2 lugares',
-      'sofá 3 lugares',
-      'sofá 4 lugares',
-      'sofá de canto',
-      'poltrona',
-      'cadeira',
-    ];
-    final itens = <(String, UnidadeDeCobranca)>[
-      for (final p in impermeabilizaveis) ('Higienização $p', peca),
-      for (final p in impermeabilizaveis) ('Impermeabilização $p', peca),
-      ('Higienização colchão solteiro', peca),
-      ('Higienização colchão casal', peca),
-      ('Higienização colchão queen', peca),
-      ('Higienização colchão king', peca),
-      ('Higienização de tapete', m2),
-      ('Impermeabilização de tapete', m2),
-      ('Higienização de cortina', m2),
-      ('Remoção de odor', peca),
-      ('Remoção de mancha', peca),
-      ('Deslocamento', peca),
-    ];
+    const hig = TipoDeServico.higienizar;
+    const imp = TipoDeServico.impermeabilizar;
+    final itens = <ItemDePreco>[];
+
+    void servico(Familia f, TipoDeServico s,
+        {String? variante,
+        bool retratil = false,
+        UnidadeDeCobranca unidade = UnidadeDeCobranca.peca}) {
+      itens.add(ItemDePreco(
+        nome: nomeDoServico(f, variante, retratil, s),
+        unidade: unidade,
+        peca: f,
+        variante: variante,
+        servico: s,
+        retratil: retratil,
+      ));
+    }
+
+    for (final s in [hig, imp]) {
+      for (final v in Familia.sofa.variantes) {
+        servico(Familia.sofa, s, variante: v);
+      }
+    }
+    for (final s in [hig, imp]) {
+      servico(Familia.poltrona, s);
+    }
+    for (final s in [hig, imp]) {
+      servico(Familia.cadeira, s);
+    }
+    for (final s in [hig, imp]) {
+      servico(Familia.tapete, s, unidade: UnidadeDeCobranca.m2);
+    }
+    servico(Familia.cortina, hig);
+    for (final t in Familia.colchao.variantes) {
+      servico(Familia.colchao, hig, variante: t);
+    }
+    // retrátil/reclinável: preço próprio, a definir por ela
+    for (final s in [hig, imp]) {
+      for (final v in Familia.sofa.variantes) {
+        servico(Familia.sofa, s, variante: v, retratil: true);
+      }
+      servico(Familia.poltrona, s, retratil: true);
+    }
+    for (final nome in ['Remoção de odor', 'Remoção de mancha', 'Deslocamento']) {
+      itens.add(ItemDePreco(nome: nome, unidade: UnidadeDeCobranca.peca));
+    }
     return [
       for (var i = 0; i < itens.length; i++)
-        ItemDePreco(nome: itens[i].$1, unidade: itens[i].$2, ordem: i),
+        ItemDePreco(
+          nome: itens[i].nome,
+          unidade: itens[i].unidade,
+          ordem: i,
+          peca: itens[i].peca,
+          variante: itens[i].variante,
+          servico: itens[i].servico,
+          retratil: itens[i].retratil,
+        ),
     ];
   }
 }
