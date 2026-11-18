@@ -75,6 +75,23 @@ isenta explicitamente do critério de contraste (§1.4.3), e para ornamento sem 
 Texto que precisa ser lido usa `tinta` ou `tintaFraca`, e a hierarquia do terceiro nível
 passa a ser feita por **tamanho e peso**, não por cor.
 
+### 2.5 Cores de família de peça
+
+O seletor de peças (RF-013, issue #134) identifica cada família por um ícone num
+quadrado colorido. São **rótulos**, não estados: por isso evitam as tonalidades de
+papel da 2.2 (manhã, tarde, sucesso, alerta), que continuam significando só o que
+significam. Cada cor vem com um fundo claro; os dois foram medidos (AA, texto normal).
+
+| família | cor | fundo | contraste sobre branco / sobre o fundo |
+|---|---|---|---|
+| Sofá | `sofa` `#2F5DA8` | `sofaFundo` `#E6EDF8` | 6.46 / 5.48 |
+| Tapete | `tapete` `#66702A` | `tapeteFundo` `#EEF0DE` | 5.36 / 4.64 |
+| Poltrona | `poltrona` `#6B4AA0` | `poltronaFundo` `#EEE9F6` | 6.75 / 5.66 |
+| Cortina | `cortina` `#A23C6E` | `cortinaFundo` `#F7E6EF` | 6.16 / 5.14 |
+| Colchão | `colchao` `#47597A` | `colchaoFundo` `#E8ECF3` | 7.05 / 5.95 |
+| Cadeira | `cadeira` `#7A4E2D` | `cadeiraFundo` `#F3EAE2` | 7.11 / 5.98 |
+| Outros | `tintaFraca` | `fundo` | 4.65 sobre o fundo |
+
 ## 3. Tipografia
 
 Família única: **Archivo** (via `google_fonts`, já no `pubspec.yaml`).
@@ -201,11 +218,26 @@ do dia e serviço concluído, e não nível de hierarquia Material. `secondary` 
 espelham a primária, para que um widget que peça `tertiary` por acidente receba a paleta
 principal em vez de um verde que mentiria sobre o estado do atendimento.
 
+### Widgets de domínio (`lib/widgets/`)
+
+Nascem com a tela que os pede e ficam numa pasta própria quando outra tela vai usar o
+mesmo. A guarda de cor (`design_system_test.dart`) vale para eles como para as telas.
+
+- **`SeletorDePecas`** (#134): quadros por família em grade de quatro colunas, com o
+  ícone no quadrado colorido (2.5) e selo ×N na cor da família; cartões por peça com
+  título forte e legenda em `tintaFraca`; passos − / + com toque de 48 dp e o número
+  em `primaria` com dígitos tabulares; botões Higienizar e Impermeabilizar lado a lado,
+  marcados com borda de 2 px e fundo da família, com o preço embaixo ("sem valor" em
+  `tarde`). Serve ao atendimento e ao orçamento (RF-017).
+- **`RodapeDoTotal`** (#134): faixa fixa em `superficie`, separada por borda
+  `bordaForte` (sem sombra, como o resto do sistema); total no token `display`, avisos
+  em `tarde`, "Mudar valor" e "Usar o calculado" como `TextButton`, salvar como
+  `FilledButton` de largura total.
+
 ### Ainda fora deste documento
 
-- **Widgets reutilizáveis.** O tema cobre os componentes do Material. Widgets próprios
-  do domínio — cartão de atendimento, selo de período, linha de peça — nascem com as
-  telas da agenda, não antes delas.
+- **Outros widgets de domínio.** Cartão de atendimento e selo de período continuam
+  dentro das telas da agenda.
 - **Tema escuro.** O app é claro. A decisão está registrada em `arquitetura.md` §7. Um
   tema escuro exigiria medir a paleta inteira de novo, e não há demanda da usuária.
 - **Figma.** Fora do escopo do projeto, com a justificativa registrada em `arquitetura.md` §7.
@@ -249,3 +281,4 @@ azul-marinho**, a de maior contraste (RNF-008, issue #96).
 | 1.1 | 2026-10-06 | Wilson Gorosthides | Tokens implementados em `lib/theme/` e aplicados: §6 registra a guarda automatizada da regra de "nenhuma cor na tela" (`design_system_test.dart`); §8 deixa de listar componentes como pendência e passa a documentar os doze temas de componente do `AppTheme`, com as justificativas de `ColorScheme` explícito, `surfaceTint` desligado e separação por borda em vez de sombra. Widgets de domínio passam a ser a única pendência de componente. Issue #60. |
 | 1.2 | 2026-11-16 | Wilson Gorosthides | Nova seção 9, Marca (RNF-008, issue #96): arquivos de `assets/marca/` extraídos do PDF, azul-marinho `#252C67` fora dos tokens das telas, só o símbolo no ícone, nome "MS Clean" e como regerar. Histórico passa a ser a seção 10. |
 | 1.3 | 2026-11-16 | Wilson Gorosthides | Seção 9: ícone pequeno dos avisos no celular (`ic_aviso`, silhueta branca da gota), RF-015, issue #95. |
+| 1.4 | 2026-11-17 | Wilson Gorosthides | Nova 2.5, cores de família de peça (seis cores com fundo, medidas em AA) e §8 com os widgets de domínio `SeletorDePecas` e `RodapeDoTotal` em `lib/widgets/`, cobertos pela guarda de cor. Issue #134. |

@@ -42,8 +42,60 @@ como **outro app**: desinstalar o antigo primeiro, para não ficarem dois ícone
 Conferir também que o APK novo abre a agenda **com dados** (a permissão de
 internet passou a valer no release).
 
-Nenhum SQL pendente: o da tabela `precos` (#123) foi aplicado no painel
-(confirmado pelo desenvolvedor em 2026-11-17).
+### SQL a aplicar (antes dos passos)
+
+Seletor de peças (#134), no SQL Editor do painel do Supabase. O SQL da tabela
+`precos` (#123) já foi aplicado (confirmado em 2026-11-17).
+
+```sql
+-- 1. colunas novas, todas opcionais (linha sem peça = item avulso)
+alter table public.precos
+  add column peca     text check (peca in ('sofa', 'tapete', 'poltrona', 'cortina', 'colchao', 'cadeira')),
+  add column variante text,
+  add column servico  text check (servico in ('higienizar', 'impermeabilizar')),
+  add column retratil boolean not null default false;
+
+-- 2. linhas já gravadas pela lista sugerida: preencher pelo nome
+update public.precos set servico = 'higienizar'      where nome ilike 'higieniza%';
+update public.precos set servico = 'impermeabilizar' where nome ilike 'impermeabiliza%';
+update public.precos set peca = 'sofa', variante = '2'     where nome ilike '%sofá 2 lugares%';
+update public.precos set peca = 'sofa', variante = '3'     where nome ilike '%sofá 3 lugares%';
+update public.precos set peca = 'sofa', variante = '4'     where nome ilike '%sofá 4 lugares%';
+update public.precos set peca = 'sofa', variante = 'canto' where nome ilike '%sofá de canto%';
+update public.precos set peca = 'poltrona' where nome ilike '%poltrona%';
+update public.precos set peca = 'cadeira'  where nome ilike '%cadeira%';
+update public.precos set peca = 'tapete'   where nome ilike '%tapete%';
+-- cortina passa a ser por folha (decisão de 2026-11-17)
+update public.precos set peca = 'cortina', unidade = 'peca' where nome ilike '%cortina%';
+update public.precos set peca = 'colchao', variante = 'solteiro' where nome ilike '%colchão solteiro%';
+update public.precos set peca = 'colchao', variante = 'casal'    where nome ilike '%colchão casal%';
+update public.precos set peca = 'colchao', variante = 'queen'    where nome ilike '%colchão queen%';
+update public.precos set peca = 'colchao', variante = 'king'     where nome ilike '%colchão king%';
+update public.precos set retratil = true where nome ilike '%retrátil%';
+-- sem peça é avulso: não tem serviço de peça
+update public.precos set servico = null where peca is null;
+
+-- 3. linhas de retrátil, sem valor (ela define depois), só se a tabela já
+--    foi começada e ainda não tem nenhuma; tabela vazia usa a lista sugerida
+insert into public.precos (nome, unidade, valor, ordem, peca, variante, servico, retratil)
+select v.nome, 'peca', null,
+       (select coalesce(max(ordem), -1) from public.precos) + v.n,
+       v.peca, v.variante, v.servico, true
+from (values
+  (1,  'Higienização sofá 2 lugares retrátil',      'sofa',     '2',     'higienizar'),
+  (2,  'Higienização sofá 3 lugares retrátil',      'sofa',     '3',     'higienizar'),
+  (3,  'Higienização sofá 4 lugares retrátil',      'sofa',     '4',     'higienizar'),
+  (4,  'Higienização sofá de canto retrátil',       'sofa',     'canto', 'higienizar'),
+  (5,  'Higienização poltrona retrátil',            'poltrona', null,    'higienizar'),
+  (6,  'Impermeabilização sofá 2 lugares retrátil', 'sofa',     '2',     'impermeabilizar'),
+  (7,  'Impermeabilização sofá 3 lugares retrátil', 'sofa',     '3',     'impermeabilizar'),
+  (8,  'Impermeabilização sofá 4 lugares retrátil', 'sofa',     '4',     'impermeabilizar'),
+  (9,  'Impermeabilização sofá de canto retrátil',  'sofa',     'canto', 'impermeabilizar'),
+  (10, 'Impermeabilização poltrona retrátil',       'poltrona', null,    'impermeabilizar')
+) as v(n, nome, peca, variante, servico)
+where exists (select 1 from public.precos)
+  and not exists (select 1 from public.precos where retratil);
+```
 
 ### #123 — Tabela de preços editável (RF-013, parte 1)
 
@@ -91,6 +143,31 @@ excluir o atendimento no fim.
    atendimento salvo. **Esperado:** os serviços e o Valor seguem com os preços
    do dia do registro. Excluir o atendimento TESTE e voltar a tabela ao valor
    de antes. (CT-092)
+
+### #134 — Seletor de peças e serviços (RF-013) · **PR de interface, sem merge antes do ok**
+
+Antes: SQL acima aplicado. Testes gravam no banco real: cliente "TESTE", dia
+passado, e excluir o atendimento no fim.
+
+1. Tabela de preços: abrir "Higienização sofá 3 lugares". **Esperado:** peça
+   Sofá, 3 lugares e Higienizar marcados. A lista tem as linhas de retrátil
+   "sem valor" e a cortina "por peça". (CT-100)
+2. Novo atendimento: os quadros vêm na ordem Sofá, Tapete, Poltrona, Cortina,
+   Colchão, Cadeira, Outros. Tocar Sofá duas vezes e Poltrona uma. **Esperado:**
+   selos ×2 e ×1; "Sofá 1" e "Sofá 2". No Sofá 1, − / + nos lugares (2 → 3 → 4
+   → canto), ligar retrátil; tirar o Sofá 2 pelo ×. (CT-093, CT-094)
+3. Tapete: + na largura e no comprimento até 2 × 3. **Esperado:** "6 m²" a
+   cada toque. Colchão: Casal + duas vezes (selo ×2). Cortina e cadeira: − / +.
+   Nenhum teclado aparece. (CT-094)
+4. No sofá de 3 lugares, marcar só Impermeabilizar; depois os dois. Passar a
+   4 lugares, depois voltar e ligar o retrátil. **Esperado:** cada botão mostra
+   o preço; os dois somam; sem linha ou sem valor, "sem valor" e o aviso no
+   rodapé. Outros: + no Deslocamento soma no total. (CT-095, CT-096, CT-098)
+5. Rodapé: total sempre à vista; abrir os detalhes (serviço, conta e valor);
+   "Mudar valor" para outro número; mudar uma quantidade; "Usar o calculado";
+   salvar. Abrir um atendimento salvo antes desta versão e salvar sem mexer.
+   **Esperado:** abre com os serviços e preços de antes, e nada some. Excluir
+   os atendimentos TESTE. (CT-097, CT-099)
 
 ## Execução 001 — Verificação manual do RF-001 (pré-merge do PR #44)
 
@@ -664,3 +741,4 @@ versão nova, assinada com a mesma chave, instala por cima sem perder dados.
 | 2026-11-17 | 1.29 | Wilson Gorosthides | Execução 014 (#128: atendimento em dobro corrigido, aprovado); pilha vazia. |
 | 2026-11-17 | 1.30 | Wilson Gorosthides | Pilha: SQL da tabela `precos` e os passos da tabela de preços (#123, RF-013 parte 1). |
 | 2026-11-17 | 1.31 | Wilson Gorosthides | Pilha: SQL da `precos` (#123) confirmado como aplicado; entram os passos do valor calculado (#124, RF-013 parte 2). |
+| 2026-11-17 | 1.32 | Wilson Gorosthides | Pilha: SQL das colunas de peça, variante, serviço e retrátil em `precos` e os passos do seletor de peças (#134, PR de interface). |

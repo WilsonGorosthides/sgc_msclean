@@ -563,7 +563,7 @@
   (tapete, sofá, poltrona, cortina, colchão, outro), **quantidade** e, quando o
   tipo é medido por metragem, **largura e comprimento**. Uma peça sem medida é
   registrada apenas por quantidade."
-- **Tipo:** Unitário + Widget · **Situação:** implementado — `peca_test: toMap de peça medida leva as medidas; contada só a quantidade` · `peca_test: tapete é o tipo medido por metragem; os demais são contados` · `atendimento_test: toMap grava a linha do banco, sem id e sem criado_em` · `atendimento_form_screen_test: peças: tipo medido mostra as medidas; a lista é gravada` · `atendimento_form_screen_test: remover peça tira a linha`
+- **Tipo:** Unitário + Widget · **Situação:** implementado — `peca_test: toMap de peça medida leva as medidas; contada só a quantidade` · `peca_test: tapete é o tipo medido por metragem; os demais são contados` · `atendimento_test: toMap grava a linha do banco, sem id e sem criado_em` · `seletor_de_pecas_test: tapete: medidas de 0,5 em 0,5 com os m² na hora` · `seletor_de_pecas_test: colchão, cortina, poltrona e cadeira por − / +` · `seletor_de_pecas_test: sofá: lugares de 2 a canto, retrátil e pôr outro sofá`
 - **Pré-condições:** formulário aberto com cliente e período escolhidos.
 - **Passos:**
   1. Serializar uma peça medida e uma contada (função pura).
@@ -576,7 +576,7 @@
 ### CT-044 — Valor informado pela proprietária
 - **Critério:** "O **Valor** [...] **pode ser sobrescrito** pela proprietária
   antes de salvar." (nesta entrega, o valor é só digitado; o cálculo é o RF-013)
-- **Tipo:** Unitário + Widget · **Situação:** implementado — `agenda_test: lerValor aceita virgula ou ponto e devolve nulo para vazio` · `atendimento_form_screen_test: valor digitado com vírgula; campo vazio grava sem valor`
+- **Tipo:** Unitário + Widget · **Situação:** implementado — `agenda_test: lerValor aceita virgula ou ponto e devolve nulo para vazio` · `atendimento_form_screen_test: sem serviço, valor mudado com vírgula; vazio grava sem valor`
 - **Pré-condições:** formulário aberto com cliente e período escolhidos.
 - **Passos:**
   1. Converter "180,50", "180" e "" (função pura).
@@ -901,22 +901,22 @@
 
 ### CT-087 — Serviço sozinho ou combo na peça, com o preço copiado
 - **Critério:** "**Cada serviço é independente**: impermeabilização [...] pode ser orçada e registrada **sozinha**, sem higienização na mesma peça." e "O **combo** [...] é escolher os dois serviços; o valor é a soma."
-- **Tipo:** Unitário + Widget · **Situação:** implementado — `atendimento_test: serviços da peça vão ao jsonb com o preço copiado` · `calculo_test: serviço sozinho ou combo: o total é a soma` · `calculo_test: serviços da peça: os do tipo dela; outro ou sem par mostra todos` · `atendimento_form_screen_test: só impermeabilização na peça grava só ela, com o preço` · `atendimento_form_screen_test: combo: os dois serviços somam; o total segue a quantidade`
+- **Tipo:** Unitário + Widget · **Situação:** implementado — `atendimento_test: serviços da peça vão ao jsonb com o preço copiado` · `calculo_test: serviço sozinho ou combo: o total é a soma` · `calculo_test: linha da tabela por peça, variante, retrátil e serviço` · `seletor_de_pecas_test: higienizar e impermeabilizar marcados separados ou juntos` · `atendimento_form_screen_test: rodapé fixo: total, detalhes e salvar sem rolar`
 - **Pré-condições:** tabela com "Higienização sofá 3 lugares" (R$ 180,00) e "Impermeabilização sofá 3 lugares" (R$ 150,00).
 - **Passos:**
   1. Gravar e ler de volta uma peça com serviços (`Peca.toMap`/`fromMap`).
   2. No formulário, peça sofá: marcar só a impermeabilização e salvar.
   3. Em outro registro, marcar os dois serviços.
-- **Resultado esperado:** o jsonb da peça leva `servicos` com nome, unidade e valor de cada um (sem a chave quando não há serviço); só a impermeabilização é gravada, com R$ 150,00; com os dois, o total é R$ 330,00. Os chips da peça mostram só os serviços do tipo dela ("outro" mostra todos).
+- **Resultado esperado:** o jsonb da peça leva `servicos` com nome, unidade e valor de cada um (sem a chave quando não há serviço); só a impermeabilização é gravada, com R$ 150,00; com os dois, o total é R$ 330,00. Desde a #134, os serviços de cada peça são os botões Higienizar e Impermeabilizar do seletor (CT-095).
 
 ### CT-088 — Serviço por m²: largura × comprimento × valor do metro
 - **Critério:** "Para serviços cobrados por metro quadrado, o sistema calcula a área a partir de largura × comprimento e multiplica pelo valor do metro (ex.: `8 × 4,5 = 36 m²`)."
-- **Tipo:** Unitário + Widget · **Situação:** implementado — `calculo_test: por m²: largura × comprimento × valor do metro` · `calculo_test: por m² sem medida não soma e avisa que falta medida` · `atendimento_form_screen_test: por m²: medidas × valor do metro; outro tipo mostra medidas`
+- **Tipo:** Unitário + Widget · **Situação:** implementado — `calculo_test: por m²: largura × comprimento × valor do metro` · `calculo_test: por m² sem medida não soma e avisa que falta medida` · `seletor_de_pecas_test: tapete: medidas de 0,5 em 0,5 com os m² na hora`
 - **Pré-condições:** "Higienização de tapete" por m² a R$ 12,00.
 - **Passos:**
   1. Calcular um tapete 8 × 4,5 com o serviço (função pura); depois sem uma das medidas; depois dois tapetes iguais.
   2. No formulário, tapete com o serviço, largura 8 e comprimento 4,5.
-- **Resultado esperado:** 36 m² × R$ 12,00 = R$ 432,00; sem medida não soma e avisa "falta medida"; dois tapetes iguais somam R$ 864,00. Uma peça de outro tipo com serviço por m² também mostra as medidas.
+- **Resultado esperado:** 36 m² × R$ 12,00 = R$ 432,00; sem medida não soma e avisa "falta medida"; dois tapetes iguais somam R$ 864,00.
 
 ### CT-089 — Serviço por peça: valor × quantidade
 - **Critério:** "Para serviços cobrados por peça, o sistema multiplica o valor pela quantidade."
@@ -928,7 +928,7 @@
 
 ### CT-090 — Total à vista enquanto informa; serviço sem valor avisa
 - **Critério:** "O valor total é a soma dos serviços, exibido enquanto eles são informados." e "um serviço sem valor não entra no cálculo, e o total avisa que falta valor."
-- **Tipo:** Unitário + Widget · **Situação:** implementado — `calculo_test: serviço sem valor não entra na soma e é avisado` · `atendimento_form_screen_test: combo: os dois serviços somam; o total segue a quantidade` · `atendimento_form_screen_test: serviço sem valor não soma e é avisado`
+- **Tipo:** Unitário + Widget · **Situação:** implementado — `calculo_test: serviço sem valor não entra na soma e é avisado` · `atendimento_form_screen_test: rodapé fixo: total, detalhes e salvar sem rolar` · `atendimento_form_screen_test: serviço sem valor aparece no aviso do rodapé`
 - **Pré-condições:** tabela com um serviço com valor e "Remoção de odor" sem valor.
 - **Passos:**
   1. Somar peças com serviços com e sem valor (função pura).
@@ -937,17 +937,17 @@
 
 ### CT-091 — Valor calculado é sugestão, sobrescrevível
 - **Critério:** "O valor calculado é **sugestão, não imposição**: a proprietária pode sobrescrevê-lo (desconto, combinado diferente) sem alterar a tabela."
-- **Tipo:** Widget · **Situação:** implementado — `atendimento_form_screen_test: valor calculado é sugestão: digitado prevalece; volta ao total`
+- **Tipo:** Widget · **Situação:** implementado — `atendimento_form_screen_test: valor mudado prevalece; usar o calculado volta ao total`
 - **Pré-condições:** tabela com "Higienização sofá 3 lugares" a R$ 180,00.
 - **Passos:**
-  1. Marcar o serviço: o campo Valor acompanha o total.
-  2. Digitar 150 no Valor e mudar a quantidade.
+  1. Marcar o serviço: o valor a cobrar acompanha o total.
+  2. Mudar o valor (rodapé, desde a #134) e mudar a quantidade.
   3. Tocar em "Usar o calculado" e salvar.
 - **Resultado esperado:** o Valor vem "180,00"; digitado, fica 150 mesmo com o total mudando, e grava 150 se salvo assim; "Usar o calculado" volta ao total. A tabela de preços não é gravada.
 
 ### CT-092 — Tabela alterada não muda o atendimento registrado
 - **Critério:** "Alterar a tabela de preços **não altera** o valor de atendimentos e orçamentos já registrados."
-- **Tipo:** Widget · **Situação:** implementado — `atendimento_form_screen_test: tabela alterada não muda o preço copiado no atendimento`
+- **Tipo:** Widget · **Situação:** implementado — `atendimento_form_screen_test: atendimento da versão anterior abre e salva os mesmos preços`
 - **Pré-condições:** atendimento registrado com "Higienização sofá 3 lugares" copiado a R$ 180,00 e valor R$ 180,00; a tabela agora cobra R$ 200,00.
 - **Passos:**
   1. Abrir o atendimento para editar e salvar sem mexer nos serviços.
@@ -955,7 +955,7 @@
 
 ### CT-093 — Peça escolhida em quadros por família
 - **Critério:** "A peça é escolhida em **quadros por família**, com ícone e cor próprios, nesta ordem: sofá, tapete, poltrona, cortina, colchão, cadeira e outros; cada quadro mostra quantas peças daquela família já estão no atendimento (×N)."
-- **Tipo:** Widget · **Situação:** a implementar
+- **Tipo:** Widget · **Situação:** implementado — `seletor_de_pecas_test: quadros na ordem das famílias, com selo ×N`
 - **Pré-condições:** atendimento novo.
 - **Passos:**
   1. Ver os quadros do seletor.
@@ -964,7 +964,7 @@
 
 ### CT-094 — Ajuste da peça sem digitar
 - **Critério:** "A peça é **ajustada sem digitar**, com botões − / + [...]"
-- **Tipo:** Unitário + Widget · **Situação:** a implementar
+- **Tipo:** Unitário + Widget · **Situação:** implementado — `seletor_de_pecas_test: sofá: lugares de 2 a canto, retrátil e pôr outro sofá` · `seletor_de_pecas_test: tapete: medidas de 0,5 em 0,5 com os m² na hora` · `seletor_de_pecas_test: colchão, cortina, poltrona e cadeira por − / +` · `atendimento_test: peça guarda variante e retrátil; serviço antigo reconhecido pelo nome` · `atendimento_test: resumo leva lugares, tamanho e retrátil`
 - **Pré-condições:** atendimento novo.
 - **Passos:**
   1. Sofá: + e − nos lugares, ligar o retrátil, "Pôr outro sofá".
@@ -975,7 +975,7 @@
 
 ### CT-095 — Higienizar e Impermeabilizar em cada peça
 - **Critério:** "Em **cada peça**, os serviços **Higienizar** e **Impermeabilizar** são marcados separadamente ou juntos (combo); nenhum é extra do outro, e a peça pode ter só a impermeabilização."
-- **Tipo:** Widget · **Situação:** a implementar
+- **Tipo:** Widget · **Situação:** implementado — `seletor_de_pecas_test: higienizar e impermeabilizar marcados separados ou juntos` · `atendimento_form_screen_test: rodapé fixo: total, detalhes e salvar sem rolar`
 - **Pré-condições:** tabela com higienizar e impermeabilizar do sofá 3 lugares.
 - **Passos:**
   1. No cartão do sofá, marcar só Impermeabilizar e salvar.
@@ -984,7 +984,7 @@
 
 ### CT-096 — Preço por peça, variante e serviço
 - **Critério:** "O preço de cada serviço marcado vem da linha da tabela com a **mesma peça, variante (lugares, tamanho, retrátil) e serviço** [...] nunca se usa o preço de outra variante."
-- **Tipo:** Unitário + Widget · **Situação:** a implementar
+- **Tipo:** Unitário + Widget · **Situação:** implementado — `calculo_test: linha da tabela por peça, variante, retrátil e serviço` · `calculo_test: sem linha, ou sem valor, fica sem valor; nunca outra variante` · `seletor_de_pecas_test: preço troca com a variante; sem linha fica sem valor` · `atendimento_form_screen_test: serviço sem valor aparece no aviso do rodapé`
 - **Pré-condições:** tabela com higienizar sofá 3 lugares (R$ 200), sofá 4 lugares sem linha, retrátil 3 lugares sem valor, colchão casal (R$ 150), tapete por m² (R$ 12).
 - **Passos:**
   1. Procurar o preço de cada combinação (função pura).
@@ -993,7 +993,7 @@
 
 ### CT-097 — Rodapé fixo com total, detalhes e salvar
 - **Critério:** "Um **rodapé fixo** mostra o total em destaque, a lista detalhada (serviço, legenda e valor de cada linha) e o botão de salvar; o valor segue sugestão, com \"Usar o calculado\" depois de sobrescrito."
-- **Tipo:** Widget · **Situação:** a implementar
+- **Tipo:** Widget · **Situação:** implementado — `calculo_test: linhas do total com legenda e valor` · `atendimento_form_screen_test: rodapé fixo: total, detalhes e salvar sem rolar` · `atendimento_form_screen_test: valor mudado prevalece; usar o calculado volta ao total` · `atendimento_form_screen_test: sem serviço, valor mudado com vírgula; vazio grava sem valor` · `barra_do_sistema_test: formulário de atendimento termina acima da barra`
 - **Pré-condições:** tabela com higienizar sofá 3 lugares (R$ 200).
 - **Passos:**
   1. Marcar o serviço; abrir os detalhes.
@@ -1002,7 +1002,7 @@
 
 ### CT-098 — Avulsos pelo quadro Outros
 - **Critério:** "Os itens avulsos da tabela (sem peça [...]) entram pelo quadro **Outros**, cada um com a sua quantidade."
-- **Tipo:** Widget · **Situação:** a implementar
+- **Tipo:** Widget · **Situação:** implementado — `seletor_de_pecas_test: avulso entra pelo quadro Outros`
 - **Pré-condições:** tabela com "Deslocamento" (avulso, R$ 30).
 - **Passos:**
   1. Tocar em Outros e em + no Deslocamento.
@@ -1010,7 +1010,7 @@
 
 ### CT-099 — Atendimento da versão anterior abre e salva sem perder
 - **Critério:** "Atendimentos registrados antes desta interação abrem com as peças e os preços copiados, e salvar não perde nenhum serviço."
-- **Tipo:** Unitário + Widget · **Situação:** a implementar
+- **Tipo:** Unitário + Widget · **Situação:** implementado — `atendimento_test: peça guarda variante e retrátil; serviço antigo reconhecido pelo nome` · `seletor_de_pecas_test: peças de antes abrem e voltam iguais` · `atendimento_form_screen_test: atendimento da versão anterior abre e salva os mesmos preços`
 - **Pré-condições:** atendimento da #124: sofá sem variante com "Higienização sofá 3 lugares" copiado a R$ 180 e "Remoção de odor" sem valor; tapete 2 × 3.
 - **Passos:**
   1. Ler a peça antiga (função pura).
@@ -1019,7 +1019,7 @@
 
 ### CT-100 — Tabela com peça, variante e serviço
 - **Critério:** "Na tabela de preços, cada serviço informa a **peça**, a **variante** e o **serviço** [...] incluindo as linhas de retrátil sem valor; a cortina é cobrada por folha."
-- **Tipo:** Unitário + Widget · **Situação:** a implementar
+- **Tipo:** Unitário + Widget · **Situação:** implementado — `item_de_preco_test: colunas peca, variante, servico e retratil vão e voltam` · `item_de_preco_test: lista sugerida com peça, variante e serviço; retrátil sem valor` · `tabela_de_precos_screen_test: editor grava peça, variante, serviço e retrátil`
 - **Pré-condições:** nenhuma.
 - **Passos:**
   1. Ler e gravar um item com as colunas novas.
@@ -1308,4 +1308,5 @@ falso, que pode estar "fora do ar", e um armazenamento em memória no lugar do
 | 2026-11-17 | 1.38 | Wilson Gorosthides | CT-087 a CT-092 do RF-013, parte 2 (valor calculado no atendimento), issue #124. "A implementar". |
 | 2026-11-17 | 1.39 | Wilson Gorosthides | CT-087 a CT-092 passam a "implementado" (issue #124). |
 | 2026-11-17 | 1.40 | Wilson Gorosthides | CT-093 a CT-100 do seletor de peças (RF-013, issue #134). "A implementar". |
+| 2026-11-17 | 1.41 | Wilson Gorosthides | CT-093 a CT-100 passam a "implementado" (issue #134); CT-043, CT-044 e CT-087 a CT-092 apontam para os testes do seletor e do rodapé que substituíram os da interação anterior. |
 | 2026-11-17 | 1.36 | Wilson Gorosthides | CT-055 ganha o teste da linha repetida pelo banco (bug #128: atendimento em dobro na agenda). |

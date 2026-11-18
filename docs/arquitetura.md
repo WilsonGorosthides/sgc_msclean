@@ -46,7 +46,7 @@ A tabela é lida via stream ordenada por `nome`. O mapeamento jsonb ⇄ objeto v
     -   `hora` (time, opcional — a proprietária quase nunca anota hora; quando anota, ordena dentro do período)
     -   `cliente_id` (uuid, obrigatório — FK para `clientes.id` com `on delete cascade`: excluir um cliente leva os atendimentos dele; a alternativa `restrict` bloquearia a exclusão de qualquer cliente já atendido, o que não existe na agenda de papel)
     -   `local` (text, opcional — endereço do serviço quando não é o do cadastro)
-    -   `pecas` (**jsonb**, lista — cada peça é `{ "tipo", "quantidade", "largura", "comprimento", "servicos" }`, mesmo molde do `endereco`; o mapeamento vive no value object `Peca`, `lib/models/peca.dart`. `servicos` (RF-013, #124) é a lista dos serviços da tabela escolhidos na peça, cada um `{ "nome", "unidade", "valor" }` **copiado da tabela no registro**: mudar a tabela depois não muda o atendimento. Chave ausente = peça sem serviço)
+    -   `pecas` (**jsonb**, lista — cada peça é `{ "tipo", "quantidade", "largura", "comprimento", "servicos" }`, mesmo molde do `endereco`; o mapeamento vive no value object `Peca`, `lib/models/peca.dart`. `servicos` (RF-013, #124) é a lista dos serviços da tabela escolhidos na peça, cada um `{ "nome", "unidade", "valor" }` **copiado da tabela no registro**: mudar a tabela depois não muda o atendimento. Chave ausente = peça sem serviço. Desde a #134 a peça leva também `variante` e `retratil` quando existem, e cada serviço a chave `servico` (`higienizar`/`impermeabilizar`); um serviço gravado antes, sem a chave, é reconhecido pelo começo do nome)
     -   `valor` (numeric, opcional — valor combinado)
     -   `criado_em` (timestamptz, `default now()` — desempata os atendimentos sem hora: ficam na ordem em que foram registrados)
 
@@ -101,6 +101,60 @@ alter publication supabase_realtime add table public.atendimentos;
 
 Cada serviço é **independente** (regra da proprietária): impermeabilização é uma linha como higienização, nunca um extra dela; o combo é escolher as duas linhas, ou cadastrar o combo como mais uma. Por isso não há coluna de "extra" nem relação entre linhas. A leitura passa pelo `EspelhoLocal` (guardada no aparelho, chave `espelho.precos`, para o cálculo sem internet da #124); a escrita (`addPreco`, `addPrecos`, `updatePreco`, `deletePreco`) vai direto ao banco, como a de clientes, e a tela renova a stream ao voltar. A tabela é lida via stream ordenada por `ordem`.
 
+**Peça, variante e serviço (issue #134).** O seletor de peças acha o preço pela combinação, não pelo nome (que ela pode mudar): quatro colunas opcionais — `peca` (`sofa`, `tapete`, `poltrona`, `cortina`, `colchao`, `cadeira`; nula = item avulso, que entra pelo quadro Outros), `variante` (lugares do sofá `2`/`3`/`4`/`canto`, tamanho do colchão `solteiro`/`casal`/`queen`/`king`), `servico` (`higienizar` ou `impermeabilizar`) e `retratil` (boolean, sofá e poltrona). Sem a linha da combinação, o serviço marcado fica "sem valor" — nunca se usa o preço de outra variante. A cortina passa a ser cobrada por folha. O mapeamento vive em `lib/models/familia.dart` (`Familia`, `TipoDeServico`, `nomeDoServico`).
+
+SQL a aplicar no painel do Supabase (issue #134):
+
+```sql
+-- 1. colunas novas, todas opcionais (linha sem peça = item avulso)
+alter table public.precos
+  add column peca     text check (peca in ('sofa', 'tapete', 'poltrona', 'cortina', 'colchao', 'cadeira')),
+  add column variante text,
+  add column servico  text check (servico in ('higienizar', 'impermeabilizar')),
+  add column retratil boolean not null default false;
+
+-- 2. linhas já gravadas pela lista sugerida: preencher pelo nome
+update public.precos set servico = 'higienizar'      where nome ilike 'higieniza%';
+update public.precos set servico = 'impermeabilizar' where nome ilike 'impermeabiliza%';
+update public.precos set peca = 'sofa', variante = '2'     where nome ilike '%sofá 2 lugares%';
+update public.precos set peca = 'sofa', variante = '3'     where nome ilike '%sofá 3 lugares%';
+update public.precos set peca = 'sofa', variante = '4'     where nome ilike '%sofá 4 lugares%';
+update public.precos set peca = 'sofa', variante = 'canto' where nome ilike '%sofá de canto%';
+update public.precos set peca = 'poltrona' where nome ilike '%poltrona%';
+update public.precos set peca = 'cadeira'  where nome ilike '%cadeira%';
+update public.precos set peca = 'tapete'   where nome ilike '%tapete%';
+-- cortina passa a ser por folha (decisão de 2026-11-17)
+update public.precos set peca = 'cortina', unidade = 'peca' where nome ilike '%cortina%';
+update public.precos set peca = 'colchao', variante = 'solteiro' where nome ilike '%colchão solteiro%';
+update public.precos set peca = 'colchao', variante = 'casal'    where nome ilike '%colchão casal%';
+update public.precos set peca = 'colchao', variante = 'queen'    where nome ilike '%colchão queen%';
+update public.precos set peca = 'colchao', variante = 'king'     where nome ilike '%colchão king%';
+update public.precos set retratil = true where nome ilike '%retrátil%';
+-- sem peça é avulso: não tem serviço de peça
+update public.precos set servico = null where peca is null;
+
+-- 3. linhas de retrátil, sem valor (ela define depois), só se a tabela já
+--    foi começada e ainda não tem nenhuma; tabela vazia usa a lista sugerida
+insert into public.precos (nome, unidade, valor, ordem, peca, variante, servico, retratil)
+select v.nome, 'peca', null,
+       (select coalesce(max(ordem), -1) from public.precos) + v.n,
+       v.peca, v.variante, v.servico, true
+from (values
+  (1,  'Higienização sofá 2 lugares retrátil',      'sofa',     '2',     'higienizar'),
+  (2,  'Higienização sofá 3 lugares retrátil',      'sofa',     '3',     'higienizar'),
+  (3,  'Higienização sofá 4 lugares retrátil',      'sofa',     '4',     'higienizar'),
+  (4,  'Higienização sofá de canto retrátil',       'sofa',     'canto', 'higienizar'),
+  (5,  'Higienização poltrona retrátil',            'poltrona', null,    'higienizar'),
+  (6,  'Impermeabilização sofá 2 lugares retrátil', 'sofa',     '2',     'impermeabilizar'),
+  (7,  'Impermeabilização sofá 3 lugares retrátil', 'sofa',     '3',     'impermeabilizar'),
+  (8,  'Impermeabilização sofá 4 lugares retrátil', 'sofa',     '4',     'impermeabilizar'),
+  (9,  'Impermeabilização sofá de canto retrátil',  'sofa',     'canto', 'impermeabilizar'),
+  (10, 'Impermeabilização poltrona retrátil',       'poltrona', null,    'impermeabilizar')
+) as v(n, nome, peca, variante, servico)
+where exists (select 1 from public.precos)
+  and not exists (select 1 from public.precos where retratil);
+```
+
 SQL aplicado no painel do Supabase (issue #123; confirmado pelo desenvolvedor em 2026-11-17):
 
 ```sql
@@ -133,6 +187,7 @@ lib/
 │   ├── atendimento.dart            # Atendimento e Periodo (manhã/tarde): a linha da agenda
 │   ├── peca.dart                   # Peca: value object das peças do serviço (jsonb), com o resumo do cartão
 │   ├── item_de_preco.dart          # ItemDePreco e UnidadeDeCobranca: serviço da tabela de preços e a lista sugerida (RF-013)
+│   ├── familia.dart                # Familia (sofá, tapete...), TipoDeServico e nomeDoServico: a chave peça + variante + serviço (#134)
 │   ├── client_model.dart           # ClientModel: id, nome, endereco (Endereco), telefones
 │   └── endereco.dart               # Endereco: value object do endereço estruturado (jsonb)
 ├── screens/
@@ -149,6 +204,9 @@ lib/
 │   ├── bateria.dart                # pedido de liberação da economia de bateria (RF-015, #101): regra + canal com a MainActivity
 │   ├── armazem_local.dart          # onde o espelho grava: shared_preferences (produção) ou memória (testes)
 │   └── maps_launcher.dart          # abre o endereco no Google Maps (RF-009, url_launcher)
+├── widgets/
+│   ├── seletor_de_pecas.dart       # SeletorDePecas (#134): quadros por família, ajuste por − / +, Higienizar/Impermeabilizar por peça; reutilizável pelo orçamento (RF-017)
+│   └── rodape_do_total.dart        # RodapeDoTotal (#134): total em destaque, detalhes, avisos, valor sobrescrevível e salvar
 ├── theme/
 │   ├── app_colors.dart             # paleta (contrastes WCAG medidos em comentário)
 │   ├── app_spacing.dart            # AppSpacing (escala de 4) e AppRadius
@@ -158,7 +216,7 @@ lib/
     ├── avisos.dart                 # função pura planejarAvisos (RF-015): quais avisos e quando
     ├── telefone.dart               # formatarTelefone, mesmoTelefone, clienteComTelefone (RF-016)
     ├── historico.dart              # histórico do cliente (RF-011): atendimentos até hoje, último valor, "há quanto tempo"
-    ├── calculo.dart                # valor pela tabela de preços (RF-013): subtotal por peça ou m², total, serviços do tipo da peça
+    ├── calculo.dart                # valor pela tabela de preços (RF-013): preço por peça + variante + serviço, subtotal, total e linhas do rodapé
     ├── texto.dart                  # paraBusca: minúsculas e sem acento (busca, RF-004)
     ├── agenda.dart                 # funções puras da agenda: semana, grade do mês, contagem, ordem do dia, nomes em PT-BR, valor em reais
     └── validators.dart             # validações puras dos formulários (obrigatório, telefone, hora)
@@ -308,6 +366,7 @@ A auditoria registrou cobertura real de 0% — o único teste era o template pad
 | 2026-11-17 | 2.25 | Wilson Gorosthides | Histórico do cliente (RF-011, #81): árvore §5 com `utils/historico.dart` e o histórico no formulário do cliente; §7 com a decisão de calcular no app, sobre a stream de atendimentos, sem schema novo. |
 | 2026-11-17 | 2.26 | Wilson Gorosthides | Tabela de preços (RF-013 parte 1, #123): §4 com a tabela `precos` (SQL a aplicar, RLS `mvp_acesso_total_anon`, realtime) e a regra de serviços independentes; árvore §5 com `item_de_preco.dart` e `tabela_de_precos_screen.dart`. |
 | 2026-11-17 | 2.27 | Wilson Gorosthides | Valor calculado (RF-013 parte 2, #124): §4 com a chave `servicos` no jsonb `pecas` (preço copiado no registro, sem mudança de schema) e o SQL da `precos` como aplicado; árvore §5 com `utils/calculo.dart`. |
+| 2026-11-17 | 2.28 | Wilson Gorosthides | Seletor de peças (#134): §4 com as colunas `peca`, `variante`, `servico` e `retratil` em `precos` (SQL a aplicar, com o preenchimento pelos nomes e as linhas de retrátil sem valor) e as chaves novas da peça no jsonb; árvore §5 com `models/familia.dart` e a pasta `widgets/`. |
 
 ## 12. Ambiente de Desenvolvimento
 Os seguintes softwares e configurações são necessários para iniciar o desenvolvimento:
