@@ -835,7 +835,8 @@
 ## RF-013 — Tabela de Preços e Cálculo do Valor
 
 > Parte 1 (issue #123): a tabela editável, CT-080 a CT-086. Parte 2 (issue
-> #124): o cálculo no atendimento, CT-087 a CT-092.
+> #124): o cálculo no atendimento, CT-087 a CT-092. Seletor de peças (issue
+> #134): CT-093 a CT-100.
 
 ### CT-080 — Serviço da tabela: nome, unidade e valor
 - **Critério:** "A proprietária mantém a **tabela de preços** como uma lista de **serviços**: cada um com **nome** [...], **unidade de cobrança** (peça ou metro quadrado) e **valor**."
@@ -951,6 +952,80 @@
 - **Passos:**
   1. Abrir o atendimento para editar e salvar sem mexer nos serviços.
 - **Resultado esperado:** o serviço segue com R$ 180,00 (o preço copiado), o total e o Valor mostram 180,00 e o update grava R$ 180,00.
+
+### CT-093 — Peça escolhida em quadros por família
+- **Critério:** "A peça é escolhida em **quadros por família**, com ícone e cor próprios, nesta ordem: sofá, tapete, poltrona, cortina, colchão, cadeira e outros; cada quadro mostra quantas peças daquela família já estão no atendimento (×N)."
+- **Tipo:** Widget · **Situação:** a implementar
+- **Pré-condições:** atendimento novo.
+- **Passos:**
+  1. Ver os quadros do seletor.
+  2. Tocar em Sofá duas vezes e em Poltrona uma.
+- **Resultado esperado:** sete quadros na ordem sofá, tapete, poltrona, cortina, colchão, cadeira, outros; sem selo antes de tocar; depois, Sofá com ×2 (dois cartões de sofá) e Poltrona com ×1.
+
+### CT-094 — Ajuste da peça sem digitar
+- **Critério:** "A peça é **ajustada sem digitar**, com botões − / + [...]"
+- **Tipo:** Unitário + Widget · **Situação:** a implementar
+- **Pré-condições:** atendimento novo.
+- **Passos:**
+  1. Sofá: + e − nos lugares, ligar o retrátil, "Pôr outro sofá".
+  2. Tapete: + na largura e no comprimento.
+  3. Colchão: + em Casal duas vezes. Cortina: + nas folhas. Poltrona e cadeira: + na quantidade.
+  4. Salvar.
+- **Resultado esperado:** lugares andam 2 → 3 → 4 → de canto e voltam, sem passar dos limites; o tapete mostra os m² a cada toque (passo de 0,5 m); o colchão Casal vira uma peça com quantidade 2; as peças gravadas levam tipo, quantidade, variante, retrátil e medidas. Nenhum campo de texto é preciso.
+
+### CT-095 — Higienizar e Impermeabilizar em cada peça
+- **Critério:** "Em **cada peça**, os serviços **Higienizar** e **Impermeabilizar** são marcados separadamente ou juntos (combo); nenhum é extra do outro, e a peça pode ter só a impermeabilização."
+- **Tipo:** Widget · **Situação:** a implementar
+- **Pré-condições:** tabela com higienizar e impermeabilizar do sofá 3 lugares.
+- **Passos:**
+  1. No cartão do sofá, marcar só Impermeabilizar e salvar.
+  2. Em outro registro, marcar os dois.
+- **Resultado esperado:** só a impermeabilização é gravada; com os dois, as duas linhas somam; cada botão mostra o preço do serviço.
+
+### CT-096 — Preço por peça, variante e serviço
+- **Critério:** "O preço de cada serviço marcado vem da linha da tabela com a **mesma peça, variante (lugares, tamanho, retrátil) e serviço** [...] nunca se usa o preço de outra variante."
+- **Tipo:** Unitário + Widget · **Situação:** a implementar
+- **Pré-condições:** tabela com higienizar sofá 3 lugares (R$ 200), sofá 4 lugares sem linha, retrátil 3 lugares sem valor, colchão casal (R$ 150), tapete por m² (R$ 12).
+- **Passos:**
+  1. Procurar o preço de cada combinação (função pura).
+  2. No seletor, marcar Higienizar num sofá de 3 lugares; passar a 4 lugares; voltar a 3 e ligar o retrátil.
+- **Resultado esperado:** 3 lugares acha R$ 200; ao mudar a variante, o serviço marcado troca de preço; 4 lugares e retrátil ficam "sem valor" com o aviso; colchão casal × 2 soma R$ 300; tapete 2 × 3 soma R$ 72.
+
+### CT-097 — Rodapé fixo com total, detalhes e salvar
+- **Critério:** "Um **rodapé fixo** mostra o total em destaque, a lista detalhada (serviço, legenda e valor de cada linha) e o botão de salvar; o valor segue sugestão, com \"Usar o calculado\" depois de sobrescrito."
+- **Tipo:** Widget · **Situação:** a implementar
+- **Pré-condições:** tabela com higienizar sofá 3 lugares (R$ 200).
+- **Passos:**
+  1. Marcar o serviço; abrir os detalhes.
+  2. Mudar o valor para 180; mudar os lugares; tocar em "Usar o calculado"; salvar.
+- **Resultado esperado:** o rodapé fica à vista sem rolar e mostra "R$ 200,00"; os detalhes listam "Higienização sofá 3 lugares", a legenda e o valor; o valor mudado fica mesmo com o total mudando; "Usar o calculado" volta ao total, que é gravado.
+
+### CT-098 — Avulsos pelo quadro Outros
+- **Critério:** "Os itens avulsos da tabela (sem peça [...]) entram pelo quadro **Outros**, cada um com a sua quantidade."
+- **Tipo:** Widget · **Situação:** a implementar
+- **Pré-condições:** tabela com "Deslocamento" (avulso, R$ 30).
+- **Passos:**
+  1. Tocar em Outros e em + no Deslocamento.
+- **Resultado esperado:** o total soma R$ 30 e o atendimento grava uma peça "outro" com o serviço Deslocamento.
+
+### CT-099 — Atendimento da versão anterior abre e salva sem perder
+- **Critério:** "Atendimentos registrados antes desta interação abrem com as peças e os preços copiados, e salvar não perde nenhum serviço."
+- **Tipo:** Unitário + Widget · **Situação:** a implementar
+- **Pré-condições:** atendimento da #124: sofá sem variante com "Higienização sofá 3 lugares" copiado a R$ 180 e "Remoção de odor" sem valor; tapete 2 × 3.
+- **Passos:**
+  1. Ler a peça antiga (função pura).
+  2. Abrir o atendimento e salvar sem mexer.
+- **Resultado esperado:** a higienização é reconhecida como Higienizar, com R$ 180; a remoção de odor segue na peça; o update grava os mesmos serviços e preços.
+
+### CT-100 — Tabela com peça, variante e serviço
+- **Critério:** "Na tabela de preços, cada serviço informa a **peça**, a **variante** e o **serviço** [...] incluindo as linhas de retrátil sem valor; a cortina é cobrada por folha."
+- **Tipo:** Unitário + Widget · **Situação:** a implementar
+- **Pré-condições:** nenhuma.
+- **Passos:**
+  1. Ler e gravar um item com as colunas novas.
+  2. Montar a lista sugerida.
+  3. No editor da tabela, criar "Impermeabilização sofá 4 lugares" escolhendo peça, variante e serviço.
+- **Resultado esperado:** as colunas `peca`, `variante`, `servico` e `retratil` vão e voltam; a lista sugerida traz higienizar e impermeabilizar com peça e variante, as linhas de retrátil sem valor e a cortina por peça; o editor grava peça, variante e serviço escolhidos.
 
 ## RF-014 — Estados de Conclusão do Atendimento
 
@@ -1232,4 +1307,5 @@ falso, que pode estar "fora do ar", e um armazenamento em memória no lugar do
 | 2026-11-17 | 1.37 | Wilson Gorosthides | CT-080 a CT-086 passam a "implementado" (issue #123). |
 | 2026-11-17 | 1.38 | Wilson Gorosthides | CT-087 a CT-092 do RF-013, parte 2 (valor calculado no atendimento), issue #124. "A implementar". |
 | 2026-11-17 | 1.39 | Wilson Gorosthides | CT-087 a CT-092 passam a "implementado" (issue #124). |
+| 2026-11-17 | 1.40 | Wilson Gorosthides | CT-093 a CT-100 do seletor de peças (RF-013, issue #134). "A implementar". |
 | 2026-11-17 | 1.36 | Wilson Gorosthides | CT-055 ganha o teste da linha repetida pelo banco (bug #128: atendimento em dobro na agenda). |
