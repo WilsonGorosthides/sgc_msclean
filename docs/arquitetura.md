@@ -46,7 +46,7 @@ A tabela é lida via stream ordenada por `nome`. O mapeamento jsonb ⇄ objeto v
     -   `hora` (time, opcional — a proprietária quase nunca anota hora; quando anota, ordena dentro do período)
     -   `cliente_id` (uuid, obrigatório — FK para `clientes.id` com `on delete cascade`: excluir um cliente leva os atendimentos dele; a alternativa `restrict` bloquearia a exclusão de qualquer cliente já atendido, o que não existe na agenda de papel)
     -   `local` (text, opcional — endereço do serviço quando não é o do cadastro)
-    -   `pecas` (**jsonb**, lista — cada peça é `{ "tipo", "quantidade", "largura", "comprimento", "servicos" }`, mesmo molde do `endereco`; o mapeamento vive no value object `Peca`, `lib/models/peca.dart`. `servicos` (RF-013, #124) é a lista dos serviços da tabela escolhidos na peça, cada um `{ "nome", "unidade", "valor" }` **copiado da tabela no registro**: mudar a tabela depois não muda o atendimento. Chave ausente = peça sem serviço. Desde a #134 a peça leva também `variante` e `retratil` quando existem, e cada serviço a chave `servico` (`higienizar`/`impermeabilizar`); um serviço gravado antes, sem a chave, é reconhecido pelo começo do nome)
+    -   `pecas` (**jsonb**, lista — cada peça é `{ "tipo", "quantidade", "largura", "comprimento", "servicos" }`, mesmo molde do `endereco`; o mapeamento vive no value object `Peca`, `lib/models/peca.dart`. `servicos` (RF-013, #124) é a lista dos serviços da tabela escolhidos na peça, cada um `{ "nome", "unidade", "valor" }` **copiado da tabela no registro**: mudar a tabela depois não muda o atendimento. Chave ausente = peça sem serviço. Desde a #134 a peça leva também `variante` e `retratil` quando existem, e cada serviço a chave `servico` (`higienizar`/`impermeabilizar`); um serviço gravado antes, sem a chave, é reconhecido pelo começo do nome. Serviço com o preço ajustado só no registro (CT-102) leva ainda `ajustado: true`, `valor_tabela` (o preço da tabela copiado) e, se ela der, `justificativa`; `valor` é o ajustado)
     -   `valor` (numeric, opcional — valor combinado)
     -   `criado_em` (timestamptz, `default now()` — desempata os atendimentos sem hora: ficam na ordem em que foram registrados)
 
@@ -101,7 +101,7 @@ alter publication supabase_realtime add table public.atendimentos;
 
 Cada serviço é **independente** (regra da proprietária): impermeabilização é uma linha como higienização, nunca um extra dela; o combo é escolher as duas linhas, ou cadastrar o combo como mais uma. Por isso não há coluna de "extra" nem relação entre linhas. A leitura passa pelo `EspelhoLocal` (guardada no aparelho, chave `espelho.precos`, para o cálculo sem internet da #124); a escrita (`addPreco`, `addPrecos`, `updatePreco`, `deletePreco`) vai direto ao banco, como a de clientes, e a tela renova a stream ao voltar. A tabela é lida via stream ordenada por `ordem`.
 
-**Peça, variante e serviço (issue #134).** O seletor de peças acha o preço pela combinação, não pelo nome (que ela pode mudar): quatro colunas opcionais — `peca` (`sofa`, `tapete`, `poltrona`, `cortina`, `colchao`, `cadeira`; nula = item avulso, que entra pelo quadro Outros), `variante` (lugares do sofá `2`/`3`/`4`/`canto`, tamanho do colchão `solteiro`/`casal`/`queen`/`king`), `servico` (`higienizar` ou `impermeabilizar`) e `retratil` (boolean, sofá e poltrona). Sem a linha da combinação, o serviço marcado fica "sem valor" — nunca se usa o preço de outra variante. A cortina passa a ser cobrada por folha. O mapeamento vive em `lib/models/familia.dart` (`Familia`, `TipoDeServico`, `nomeDoServico`).
+**Peça, variante e serviço (issue #134).** O seletor de peças acha o preço pela combinação, não pelo nome (que ela pode mudar): quatro colunas opcionais — `peca` (`sofa`, `tapete`, `poltrona`, `cortina`, `colchao`, `cadeira`; nula = item avulso, que entra pelo quadro Outros), `variante` (lugares do sofá `2`/`3`/`4`/`canto`, tamanho do colchão `solteiro`/`casal`/`queen`/`king`), `servico` (`higienizar` ou `impermeabilizar`) e `retratil` (boolean, sofá e poltrona). Sem a linha da combinação, o serviço marcado fica "sem valor" — nunca se usa o preço de outros lugares ou de outro tamanho. Retrátil sem linha própria com valor usa o preço da mesma peça comum (decisão de 2026-11-18, depois do teste no celular). A cortina passa a ser cobrada por folha. O mapeamento vive em `lib/models/familia.dart` (`Familia`, `TipoDeServico`, `nomeDoServico`).
 
 SQL a aplicar no painel do Supabase (issue #134):
 
@@ -153,6 +153,62 @@ from (values
 ) as v(n, nome, peca, variante, servico)
 where exists (select 1 from public.precos)
   and not exists (select 1 from public.precos where retratil);
+```
+
+Valores de partida (issue #134, depois do teste no celular; **dados, não schema** — a aplicar no painel): os preços do app de referência para ela ajustar depois; só preenche o que está sem valor e tira as linhas de retrátil sem valor.
+
+```sql
+-- #134: valores de partida copiados do app de referência (ela ajusta depois
+-- na tela Tabela de preços). Só preenche o que ainda está sem valor: preço
+-- que ela já informou não é sobrescrito.
+
+-- 1) Peças: valores do app de referência.
+--    Impermeabilização = produto + aplicação do app (190 + 90 até 3 lugares;
+--    250 + 90 no sofá grande: o app só lista a aplicação "até 3 lugares",
+--    então os 90 do grande são suposição).
+update public.precos p set valor = v.valor
+from (values
+  ('sofa',    '2',        'higienizar',      170),
+  ('sofa',    '3',        'higienizar',      200),
+  ('sofa',    '4',        'higienizar',      250),
+  ('sofa',    'canto',    'higienizar',      300),
+  ('sofa',    '2',        'impermeabilizar', 280),
+  ('sofa',    '3',        'impermeabilizar', 280),
+  ('sofa',    '4',        'impermeabilizar', 340),
+  ('sofa',    'canto',    'impermeabilizar', 340),
+  ('poltrona', null,      'higienizar',       90),
+  ('cadeira',  null,      'higienizar',       30),
+  ('tapete',   null,      'higienizar',       25),
+  ('colchao', 'solteiro', 'higienizar',      110),
+  ('colchao', 'casal',    'higienizar',      160),
+  ('colchao', 'queen',    'higienizar',      180),
+  ('colchao', 'king',     'higienizar',      210)
+) as v(peca, variante, servico, valor)
+where p.peca = v.peca
+  and p.variante is not distinct from v.variante
+  and p.servico = v.servico
+  and not p.retratil
+  and p.valor is null;
+
+-- 2) Avulsos: tratamento de odor 70, mancha 50 (por mancha), deslocamento 40.
+update public.precos set valor = 70 where peca is null and nome = 'Remoção de odor'   and valor is null;
+update public.precos set valor = 50 where peca is null and nome = 'Remoção de mancha' and valor is null;
+update public.precos set valor = 40 where peca is null and nome = 'Deslocamento'      and valor is null;
+
+-- 3) Retrátil: as linhas sem valor saem; o retrátil passa a usar o preço
+--    da mesma peça comum até ela cadastrar um preço próprio.
+delete from public.precos where retratil and valor is null;
+
+-- 4) OPCIONAL — o app de referência NÃO tem estes; são estimativas minhas
+--    (proporção imp/hig do sofá ≈ 1,6). Apague este bloco se preferir que
+--    fiquem "sem valor" até ela definir.
+update public.precos set valor = 150 where peca = 'poltrona' and servico = 'impermeabilizar' and not retratil and valor is null;
+update public.precos set valor = 50  where peca = 'cadeira'  and servico = 'impermeabilizar' and not retratil and valor is null;
+update public.precos set valor = 40  where peca = 'tapete'   and servico = 'impermeabilizar' and valor is null;
+update public.precos set valor = 60  where peca = 'cortina'  and servico = 'higienizar'      and valor is null;
+
+-- conferir: o que ainda ficou sem valor
+select nome, unidade from public.precos where valor is null order by ordem;
 ```
 
 SQL aplicado no painel do Supabase (issue #123; confirmado pelo desenvolvedor em 2026-11-17):
@@ -369,6 +425,7 @@ A auditoria registrou cobertura real de 0% — o único teste era o template pad
 | 2026-11-17 | 2.27 | Wilson Gorosthides | Valor calculado (RF-013 parte 2, #124): §4 com a chave `servicos` no jsonb `pecas` (preço copiado no registro, sem mudança de schema) e o SQL da `precos` como aplicado; árvore §5 com `utils/calculo.dart`. |
 | 2026-11-17 | 2.28 | Wilson Gorosthides | Seletor de peças (#134): §4 com as colunas `peca`, `variante`, `servico` e `retratil` em `precos` (SQL a aplicar, com o preenchimento pelos nomes e as linhas de retrátil sem valor) e as chaves novas da peça no jsonb; árvore §5 com `models/familia.dart` e a pasta `widgets/`. |
 | 2026-11-17 | 2.29 | Wilson Gorosthides | Árvore §5 com `screens/pecas_e_valor_screen.dart`: no atendimento, o seletor de peças sai do formulário para uma tela própria, aberta por uma linha de resumo (#134). |
+| 2026-11-18 | 2.30 | Wilson Gorosthides | §4: chaves `ajustado`, `valor_tabela` e `justificativa` do serviço no jsonb (preço ajustado só no registro, CT-102); retrátil sem preço próprio usa o comum; SQL de dados com os valores de partida do app de referência (#134). |
 
 ## 12. Ambiente de Desenvolvimento
 Os seguintes softwares e configurações são necessários para iniciar o desenvolvimento:

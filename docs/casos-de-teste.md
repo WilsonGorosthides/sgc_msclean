@@ -996,7 +996,7 @@
 
 ### CT-096 — Preço por peça, variante e serviço
 - **Critério:** "O preço de cada serviço marcado vem da linha da tabela com a **mesma peça, variante (lugares, tamanho) e serviço** [...] No sofá ou na poltrona **retrátil/reclinável**, vale a linha retrátil quando ela tem valor; senão, o preço da mesma peça não retrátil."
-- **Tipo:** Unitário + Widget · **Situação:** a implementar (retrátil, #134 depois do teste no celular)
+- **Tipo:** Unitário + Widget · **Situação:** implementado — `calculo_test: linha da tabela por peça, variante, retrátil e serviço` · `calculo_test: sem linha, ou sem valor, fica sem valor; nunca outra variante` · `calculo_test: retrátil sem preço próprio usa o da mesma peça` · `seletor_de_pecas_test: preço troca com a variante; sem linha fica sem valor` · `atendimento_form_screen_test: serviço sem valor aparece no aviso do rodapé`
 - **Pré-condições:** tabela com higienizar sofá 3 lugares (R$ 200), sofá 4 lugares sem linha, retrátil 3 lugares sem valor, retrátil 2 lugares (R$ 230) e sofá 2 lugares (R$ 170), colchão casal (R$ 150), tapete por m² (R$ 12).
 - **Passos:**
   1. Procurar o preço de cada combinação (função pura).
@@ -1014,7 +1014,7 @@
 
 ### CT-098 — Avulsos pelo quadro Outros
 - **Critério:** "Os itens avulsos da tabela (sem peça [...]) entram pelo quadro **Outros**, cada um com a sua quantidade; o **deslocamento** é liga/desliga (cobrado uma vez)."
-- **Tipo:** Widget · **Situação:** a implementar (deslocamento liga/desliga, #134 depois do teste no celular)
+- **Tipo:** Widget · **Situação:** implementado — `seletor_de_pecas_test: deslocamento é liga/desliga; os outros avulsos por quantidade`
 - **Pré-condições:** tabela com "Deslocamento" (avulso, R$ 40) e "Remoção de mancha" (avulso, R$ 50).
 - **Passos:**
   1. Tocar em Outros, ligar o Deslocamento e tocar + duas vezes na Remoção de mancha.
@@ -1032,7 +1032,7 @@
 
 ### CT-100 — Tabela com peça, variante e serviço
 - **Critério:** "Na tabela de preços, cada serviço informa a **peça**, a **variante** e o **serviço** [...] sem linhas de retrátil (ela cadastra uma quando tiver preço próprio); a cortina é cobrada por folha."
-- **Tipo:** Unitário + Widget · **Situação:** a implementar (lista sem retrátil, #134 depois do teste no celular)
+- **Tipo:** Unitário + Widget · **Situação:** implementado — `item_de_preco_test: colunas peca, variante, servico e retratil vão e voltam` · `item_de_preco_test: lista sugerida com peça, variante e serviço; sem linhas de retrátil` · `tabela_de_precos_screen_test: editor grava peça, variante, serviço e retrátil`
 - **Pré-condições:** nenhuma.
 - **Passos:**
   1. Ler e gravar um item com as colunas novas.
@@ -1042,7 +1042,7 @@
 
 ### CT-102 — Preço de um serviço ajustado só no registro
 - **Critério:** "O **preço de cada serviço** marcado pode ser **ajustado só neste registro** (tecido especial, desconto, combinado), com uma **justificativa opcional**; o serviço e os detalhes do total mostram o valor ajustado ao lado do preço da tabela, e "Voltar ao da tabela" desfaz. A tabela não muda."
-- **Tipo:** Unitário + Widget · **Situação:** a implementar
+- **Tipo:** Unitário + Widget · **Situação:** implementado — `atendimento_test: ajuste do serviço vai ao jsonb com o preço da tabela e a justificativa` · `calculo_test: linha ajustada mostra o preço da tabela e a justificativa` · `seletor_de_pecas_test: ajustar o preço de um serviço só neste registro, com justificativa` · `seletor_de_pecas_test: voltar ao preço da tabela desfaz o ajuste`
 - **Pré-condições:** tabela com higienizar sofá 2 lugares (R$ 170) e "Deslocamento" (avulso, R$ 40).
 - **Passos:**
   1. Marcar Higienizar no sofá de 2 lugares e tocar em "Ajustar" no serviço.
@@ -1336,4 +1336,5 @@ falso, que pode estar "fora do ar", e um armazenamento em memória no lugar do
 | 2026-11-17 | 1.42 | Wilson Gorosthides | CT-101 do RF-005: atendimento rápido, peças e valor em tela própria (issue #134). "A implementar". |
 | 2026-11-17 | 1.43 | Wilson Gorosthides | CT-101 passa a "implementado"; CT-097 ganha o teste da tela Peças e valor acima da barra (issue #134). |
 | 2026-11-18 | 1.44 | Wilson Gorosthides | Depois do teste no celular (#134): CT-096 (retrátil usa o preço comum), CT-098 (deslocamento liga/desliga) e CT-100 (lista sem retrátil) revistos; CT-102 novo (preço do serviço ajustado só no registro, com justificativa). "A implementar". |
+| 2026-11-18 | 1.45 | Wilson Gorosthides | CT-096, CT-098, CT-100 e CT-102 passam a "implementado" (issue #134, ajustes depois do teste no celular). |
 | 2026-11-17 | 1.36 | Wilson Gorosthides | CT-055 ganha o teste da linha repetida pelo banco (bug #128: atendimento em dobro na agenda). |
