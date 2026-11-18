@@ -40,40 +40,40 @@ class SeletorDePecas extends StatefulWidget {
 ({IconData icone, Color cor, Color fundo}) visualDaFamilia(Familia f) =>
     switch (f) {
       Familia.sofa => (
-          icone: Icons.weekend_outlined,
-          cor: AppColors.sofa,
-          fundo: AppColors.sofaFundo
-        ),
+        icone: Icons.weekend_outlined,
+        cor: AppColors.sofa,
+        fundo: AppColors.sofaFundo,
+      ),
       Familia.tapete => (
-          icone: Icons.texture,
-          cor: AppColors.tapete,
-          fundo: AppColors.tapeteFundo
-        ),
+        icone: Icons.texture,
+        cor: AppColors.tapete,
+        fundo: AppColors.tapeteFundo,
+      ),
       Familia.poltrona => (
-          icone: Icons.chair_outlined,
-          cor: AppColors.poltrona,
-          fundo: AppColors.poltronaFundo
-        ),
+        icone: Icons.chair_outlined,
+        cor: AppColors.poltrona,
+        fundo: AppColors.poltronaFundo,
+      ),
       Familia.cortina => (
-          icone: Icons.curtains_outlined,
-          cor: AppColors.cortina,
-          fundo: AppColors.cortinaFundo
-        ),
+        icone: Icons.curtains_outlined,
+        cor: AppColors.cortina,
+        fundo: AppColors.cortinaFundo,
+      ),
       Familia.colchao => (
-          icone: Icons.bed_outlined,
-          cor: AppColors.colchao,
-          fundo: AppColors.colchaoFundo
-        ),
+        icone: Icons.bed_outlined,
+        cor: AppColors.colchao,
+        fundo: AppColors.colchaoFundo,
+      ),
       Familia.cadeira => (
-          icone: Icons.chair_alt_outlined,
-          cor: AppColors.cadeira,
-          fundo: AppColors.cadeiraFundo
-        ),
+        icone: Icons.chair_alt_outlined,
+        cor: AppColors.cadeira,
+        fundo: AppColors.cadeiraFundo,
+      ),
       Familia.outros => (
-          icone: Icons.more_horiz,
-          cor: AppColors.tintaFraca,
-          fundo: AppColors.fundo
-        ),
+        icone: Icons.more_horiz,
+        cor: AppColors.tintaFraca,
+        fundo: AppColors.fundo,
+      ),
     };
 
 // Item avulso no cartão Outros: os serviços (um da tabela, ou os de uma peça
@@ -108,11 +108,11 @@ class _Cartao {
   final List<_Avulso> avulsos = [];
 
   int get selo => switch (familia) {
-        Familia.colchao => tamanhos.values.fold(0, (a, b) => a + b),
-        Familia.outros => avulsos.fold(0, (a, b) => a + b.quantidade),
-        Familia.sofa || Familia.tapete => 1,
-        _ => quantidade,
-      };
+    Familia.colchao => tamanhos.values.fold(0, (a, b) => a + b),
+    Familia.outros => avulsos.fold(0, (a, b) => a + b.quantidade),
+    Familia.sofa || Familia.tapete => 1,
+    _ => quantidade,
+  };
 }
 
 class _SeletorDePecasState extends State<SeletorDePecas> {
@@ -141,10 +141,11 @@ class _SeletorDePecasState extends State<SeletorDePecas> {
       }
       if (f == Familia.outros) {
         final c = outros ??= _Cartao(f);
-        c.avulsos.add(_Avulso(
-            p.servicos.isEmpty ? 'outro' : p.servicos.first.nome,
-            [...p.servicos],
-            p.quantidade));
+        c.avulsos.add(
+          _Avulso(p.servicos.isEmpty ? 'outro' : p.servicos.first.nome, [
+            ...p.servicos,
+          ], p.quantidade),
+        );
         continue;
       }
       final c = _Cartao(f)
@@ -185,49 +186,58 @@ class _SeletorDePecasState extends State<SeletorDePecas> {
           var primeiro = true;
           for (final e in c.tamanhos.entries) {
             if (e.value <= 0) continue;
-            pecas.add(Peca(
-              tipo: c.familia.tipo,
-              quantidade: e.value,
-              variante: e.key,
-              servicos: [
-                for (final t in TipoDeServico.values)
-                  if (c.marcados.containsKey(t)) _copiaColchao(c, e.key, t),
-                if (primeiro) ...c.outros,
-              ],
-            ));
+            pecas.add(
+              Peca(
+                tipo: c.familia.tipo,
+                quantidade: e.value,
+                variante: e.key,
+                servicos: [
+                  for (final t in TipoDeServico.values)
+                    if (c.marcados.containsKey(t)) _copiaColchao(c, e.key, t),
+                  if (primeiro) ...c.outros,
+                ],
+              ),
+            );
             primeiro = false;
           }
         case Familia.outros:
           for (final a in c.avulsos) {
             if (a.quantidade <= 0) continue;
-            pecas.add(Peca(
+            pecas.add(
+              Peca(
                 tipo: c.familia.tipo,
                 quantidade: a.quantidade,
-                servicos: [...a.itens]));
+                servicos: [...a.itens],
+              ),
+            );
           }
         default:
           final medido = c.familia == Familia.tapete;
-          pecas.add(Peca(
-            tipo: c.familia.tipo,
-            quantidade: c.quantidade,
-            variante: c.variante,
-            retratil: c.retratil,
-            largura: medido ? c.largura : null,
-            comprimento: medido ? c.comprimento : null,
-            servicos: [
-              for (final t in TipoDeServico.values)
-                if (c.marcados[t] != null) c.marcados[t]!,
-              ...c.outros,
-            ],
-          ));
+          pecas.add(
+            Peca(
+              tipo: c.familia.tipo,
+              quantidade: c.quantidade,
+              variante: c.variante,
+              retratil: c.retratil,
+              largura: medido ? c.largura : null,
+              comprimento: medido ? c.comprimento : null,
+              servicos: [
+                for (final t in TipoDeServico.values)
+                  if (c.marcados[t] != null) c.marcados[t]!,
+                ...c.outros,
+              ],
+            ),
+          );
       }
     }
     return pecas;
   }
 
   ItemDePreco _copiaColchao(_Cartao c, String? tamanho, TipoDeServico t) =>
-      c.copiasColchao.putIfAbsent('$tamanho|${t.codigo}',
-          () => precoDoServico(widget.tabela, Familia.colchao, tamanho, false, t));
+      c.copiasColchao.putIfAbsent(
+        '$tamanho|${t.codigo}',
+        () => precoDoServico(widget.tabela, Familia.colchao, tamanho, false, t),
+      );
 
   void _mudou(VoidCallback mudanca) {
     setState(mudanca);
@@ -237,28 +247,33 @@ class _SeletorDePecasState extends State<SeletorDePecas> {
   // Lugares, tamanho ou retrátil mudaram: os serviços marcados trocam de preço.
   void _reprecificar(_Cartao c) {
     for (final t in [...c.marcados.keys]) {
-      c.marcados[t] =
-          precoDoServico(widget.tabela, c.familia, c.variante, c.retratil, t);
+      c.marcados[t] = precoDoServico(
+        widget.tabela,
+        c.familia,
+        c.variante,
+        c.retratil,
+        t,
+      );
     }
   }
 
   // ---- ações ----
 
   void _tocarFamilia(Familia f) => _mudou(() {
-        final existente = _cartoes.where((c) => c.familia == f).firstOrNull;
-        switch (f) {
-          case Familia.sofa || Familia.tapete:
-            _novo(f);
-          case Familia.colchao || Familia.outros:
-            if (existente == null) _novo(f);
-          default:
-            if (existente == null) {
-              _novo(f);
-            } else {
-              existente.quantidade++;
-            }
+    final existente = _cartoes.where((c) => c.familia == f).firstOrNull;
+    switch (f) {
+      case Familia.sofa || Familia.tapete:
+        _novo(f);
+      case Familia.colchao || Familia.outros:
+        if (existente == null) _novo(f);
+      default:
+        if (existente == null) {
+          _novo(f);
+        } else {
+          existente.quantidade++;
         }
-      });
+    }
+  });
 
   void _novo(Familia f) {
     final c = _Cartao(f);
@@ -268,14 +283,19 @@ class _SeletorDePecasState extends State<SeletorDePecas> {
   }
 
   void _alternar(_Cartao c, TipoDeServico t) => _mudou(() {
-        if (c.marcados.containsKey(t)) {
-          c.marcados.remove(t);
-          c.copiasColchao.removeWhere((k, _) => k.endsWith('|${t.codigo}'));
-        } else {
-          c.marcados[t] =
-              precoDoServico(widget.tabela, c.familia, c.variante, c.retratil, t);
-        }
-      });
+    if (c.marcados.containsKey(t)) {
+      c.marcados.remove(t);
+      c.copiasColchao.removeWhere((k, _) => k.endsWith('|${t.codigo}'));
+    } else {
+      c.marcados[t] = precoDoServico(
+        widget.tabela,
+        c.familia,
+        c.variante,
+        c.retratil,
+        t,
+      );
+    }
+  });
 
   void _trocarVariante(_Cartao c, int passo) {
     final vs = c.familia.variantes;
@@ -305,11 +325,14 @@ class _SeletorDePecasState extends State<SeletorDePecas> {
       final ultimoDaFamilia =
           i == _cartoes.length - 1 || _cartoes[i + 1].familia != c.familia;
       if (ultimoDaFamilia && c.familia == Familia.sofa) {
-        widgets.add(_porOutro('por_outro_sofa', 'Pôr outro sofá', Familia.sofa));
+        widgets.add(
+          _porOutro('por_outro_sofa', 'Pôr outro sofá', Familia.sofa),
+        );
       }
       if (ultimoDaFamilia && c.familia == Familia.tapete) {
         widgets.add(
-            _porOutro('por_outro_tapete', 'Pôr outro tapete', Familia.tapete));
+          _porOutro('por_outro_tapete', 'Pôr outro tapete', Familia.tapete),
+        );
       }
     }
     return Column(
@@ -319,25 +342,28 @@ class _SeletorDePecasState extends State<SeletorDePecas> {
   }
 
   Widget _quadros(BuildContext context) {
-    return LayoutBuilder(builder: (context, limites) {
-      const colunas = 4;
-      final largura =
-          (limites.maxWidth - AppSpacing.sm * (colunas - 1)) / colunas;
-      return Wrap(
-        spacing: AppSpacing.sm,
-        runSpacing: AppSpacing.sm,
-        children: [
-          for (final f in Familia.values)
-            SizedBox(width: largura, child: _quadro(context, f)),
-        ],
-      );
-    });
+    return LayoutBuilder(
+      builder: (context, limites) {
+        const colunas = 4;
+        final largura =
+            (limites.maxWidth - AppSpacing.sm * (colunas - 1)) / colunas;
+        return Wrap(
+          spacing: AppSpacing.sm,
+          runSpacing: AppSpacing.sm,
+          children: [
+            for (final f in Familia.values)
+              SizedBox(width: largura, child: _quadro(context, f)),
+          ],
+        );
+      },
+    );
   }
 
   Widget _quadro(BuildContext context, Familia f) {
     final v = visualDaFamilia(f);
-    final selo =
-        _cartoes.where((c) => c.familia == f).fold(0, (a, c) => a + c.selo);
+    final selo = _cartoes
+        .where((c) => c.familia == f)
+        .fold(0, (a, c) => a + c.selo);
     final textos = Theme.of(context).textTheme;
     return Material(
       key: Key('familia_${f.name}'),
@@ -345,7 +371,9 @@ class _SeletorDePecasState extends State<SeletorDePecas> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.medio),
         side: BorderSide(
-            color: selo > 0 ? v.cor : AppColors.borda, width: selo > 0 ? 2 : 1),
+          color: selo > 0 ? v.cor : AppColors.borda,
+          width: selo > 0 ? 2 : 1,
+        ),
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(AppRadius.medio),
@@ -354,17 +382,24 @@ class _SeletorDePecasState extends State<SeletorDePecas> {
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(
-                  vertical: AppSpacing.md, horizontal: AppSpacing.xs),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _IconeFamilia(familia: f),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(f.rotulo,
+                vertical: AppSpacing.md,
+                horizontal: AppSpacing.xs,
+              ),
+              child: SizedBox(
+                width: double.infinity,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _IconeFamilia(familia: f),
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      f.rotulo,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: textos.labelLarge),
-                ],
+                      style: textos.labelLarge,
+                    ),
+                  ],
+                ),
               ),
             ),
             if (selo > 0)
@@ -373,15 +408,20 @@ class _SeletorDePecasState extends State<SeletorDePecas> {
                 right: AppSpacing.xs,
                 child: Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.sm, vertical: 2),
+                    horizontal: AppSpacing.sm,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: v.cor,
                     borderRadius: BorderRadius.circular(AppRadius.pequeno),
                   ),
-                  child: Text('×$selo',
-                      key: Key('selo_familia_${f.name}'),
-                      style: textos.labelSmall
-                          ?.copyWith(color: AppColors.superficie)),
+                  child: Text(
+                    '×$selo',
+                    key: Key('selo_familia_${f.name}'),
+                    style: textos.labelSmall?.copyWith(
+                      color: AppColors.superficie,
+                    ),
+                  ),
                 ),
               ),
           ],
@@ -409,14 +449,14 @@ class _SeletorDePecasState extends State<SeletorDePecas> {
   }
 
   static String _legenda(Familia f) => switch (f) {
-        Familia.sofa => 'quantos lugares',
-        Familia.tapete => 'largura × comprimento',
-        Familia.poltrona => 'quantas poltronas',
-        Familia.cortina => 'quantas folhas',
-        Familia.colchao => 'quantos de cada tamanho',
-        Familia.cadeira => 'quantas cadeiras',
-        Familia.outros => 'serviços avulsos da tabela',
-      };
+    Familia.sofa => 'quantos lugares',
+    Familia.tapete => 'largura × comprimento',
+    Familia.poltrona => 'quantas poltronas',
+    Familia.cortina => 'quantas folhas',
+    Familia.colchao => 'quantos de cada tamanho',
+    Familia.cadeira => 'quantas cadeiras',
+    Familia.outros => 'serviços avulsos da tabela',
+  };
 
   Widget _cartao(BuildContext context, int i, _Cartao c) {
     final textos = Theme.of(context).textTheme;
@@ -437,9 +477,12 @@ class _SeletorDePecasState extends State<SeletorDePecas> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(_titulo(i, c), style: textos.titleMedium),
-                      Text(_legenda(c.familia),
-                          style: textos.bodySmall
-                              ?.copyWith(color: AppColors.tintaFraca)),
+                      Text(
+                        _legenda(c.familia),
+                        style: textos.bodySmall?.copyWith(
+                          color: AppColors.tintaFraca,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -455,15 +498,13 @@ class _SeletorDePecasState extends State<SeletorDePecas> {
             ..._ajuste(context, i, c),
             if (c.familia != Familia.outros) ...[
               const SizedBox(height: AppSpacing.md),
-              Row(
-                children: [
-                  for (final t in TipoDeServico.values) ...[
-                    if (t != TipoDeServico.values.first)
-                      const SizedBox(width: AppSpacing.sm),
-                    Expanded(child: _botaoServico(context, i, c, t)),
-                  ],
-                ],
-              ),
+              // um embaixo do outro: com a fonte grande do celular, lado a
+              // lado o "Impermeabilizar" quebrava no meio da palavra
+              for (final t in TipoDeServico.values) ...[
+                if (t != TipoDeServico.values.first)
+                  const SizedBox(height: AppSpacing.sm),
+                _botaoServico(context, i, c, t),
+              ],
             ],
             if (c.outros.isNotEmpty) ...[
               const SizedBox(height: AppSpacing.sm),
@@ -546,7 +587,8 @@ class _SeletorDePecasState extends State<SeletorDePecas> {
               style: area > 0
                   ? textos.titleMedium?.copyWith(
                       color: visualDaFamilia(c.familia).cor,
-                      fontFeatures: AppTypography.digitosTabulares)
+                      fontFeatures: AppTypography.digitosTabulares,
+                    )
                   : textos.bodySmall?.copyWith(color: AppColors.tarde),
             ),
           ),
@@ -558,20 +600,10 @@ class _SeletorDePecasState extends State<SeletorDePecas> {
           if ((c.tamanhos[null] ?? 0) > 0) null,
         ];
         return [
-          LayoutBuilder(builder: (context, limites) {
-            final largura = (limites.maxWidth - AppSpacing.sm) / 2;
-            return Wrap(
-              spacing: AppSpacing.sm,
-              runSpacing: AppSpacing.sm,
-              children: [
-                for (final t in tamanhos)
-                  SizedBox(
-                    width: largura,
-                    child: _tamanhoDeColchao(context, c, t),
-                  ),
-              ],
-            );
-          }),
+          for (final t in tamanhos) ...[
+            if (t != tamanhos.first) const SizedBox(height: AppSpacing.sm),
+            _tamanhoDeColchao(context, c, t),
+          ],
         ];
       case Familia.outros:
         return _avulsos(context, c);
@@ -584,17 +616,17 @@ class _SeletorDePecasState extends State<SeletorDePecas> {
         ? 'Sem tamanho'
         : '${t[0].toUpperCase()}${t.substring(1)}';
     return Container(
-      padding: const EdgeInsets.all(AppSpacing.sm),
+      padding: const EdgeInsets.only(left: AppSpacing.md),
       decoration: BoxDecoration(
         color: n > 0 ? AppColors.colchaoFundo : AppColors.superficieAlt,
         borderRadius: BorderRadius.circular(AppRadius.pequeno),
         border: Border.all(color: n > 0 ? AppColors.colchao : AppColors.borda),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Text(rotulo, style: Theme.of(context).textTheme.labelLarge),
-          const SizedBox(height: AppSpacing.xs),
+          Expanded(
+            child: Text(rotulo, style: Theme.of(context).textTheme.bodyLarge),
+          ),
           _Passos(
             chave: 'colchao_${t}_quantidade',
             chaveMenos: 'colchao_${t}_menos',
@@ -603,8 +635,8 @@ class _SeletorDePecasState extends State<SeletorDePecas> {
             aoMenos: n == 0
                 ? null
                 : () => _mudou(() {
-                      c.tamanhos[t] = n - 1;
-                    }),
+                    c.tamanhos[t] = n - 1;
+                  }),
             aoMais: () => _mudou(() => c.tamanhos[t] = n + 1),
           ),
         ],
@@ -625,8 +657,10 @@ class _SeletorDePecasState extends State<SeletorDePecas> {
     ];
     if (linhas.isEmpty) {
       return [
-        Text('Nenhum item avulso na tabela de preços.',
-            style: textos.bodySmall?.copyWith(color: AppColors.tintaFraca)),
+        Text(
+          'Nenhum item avulso na tabela de preços.',
+          style: textos.bodySmall?.copyWith(color: AppColors.tintaFraca),
+        ),
       ];
     }
     return [
@@ -642,8 +676,9 @@ class _SeletorDePecasState extends State<SeletorDePecas> {
                     Text(a.rotulo, style: textos.bodyLarge),
                     Text(
                       _preco(a.itens.firstOrNull?.valor),
-                      style:
-                          textos.bodySmall?.copyWith(color: AppColors.tintaFraca),
+                      style: textos.bodySmall?.copyWith(
+                        color: AppColors.tintaFraca,
+                      ),
                     ),
                   ],
                 ),
@@ -668,23 +703,28 @@ class _SeletorDePecasState extends State<SeletorDePecas> {
   }
 
   Widget _quantidade(int i, _Cartao c) => _Passos(
-        chave: 'cartao_${i}_quantidade',
-        chaveMenos: 'cartao_${i}_menos',
-        chaveMais: 'cartao_${i}_mais',
-        texto: '${c.quantidade}',
-        aoMenos: c.quantidade <= 1 ? null : () => _mudou(() => c.quantidade--),
-        aoMais: () => _mudou(() => c.quantidade++),
-      );
+    chave: 'cartao_${i}_quantidade',
+    chaveMenos: 'cartao_${i}_menos',
+    chaveMais: 'cartao_${i}_mais',
+    texto: '${c.quantidade}',
+    aoMenos: c.quantidade <= 1 ? null : () => _mudou(() => c.quantidade--),
+    aoMais: () => _mudou(() => c.quantidade++),
+  );
 
   Widget _retratil(BuildContext context, int i, _Cartao c) {
     return Row(
       children: [
-        const Icon(Icons.open_in_full, size: AppSpacing.lg + AppSpacing.xs,
-            color: AppColors.tintaFraca),
+        const Icon(
+          Icons.open_in_full,
+          size: AppSpacing.lg + AppSpacing.xs,
+          color: AppColors.tintaFraca,
+        ),
         const SizedBox(width: AppSpacing.sm),
         Expanded(
-          child: Text('Retrátil / reclinável',
-              style: Theme.of(context).textTheme.bodyLarge),
+          child: Text(
+            'Retrátil / reclinável',
+            style: Theme.of(context).textTheme.bodyLarge,
+          ),
         ),
         Switch(
           key: Key('cartao_${i}_retratil'),
@@ -712,7 +752,11 @@ class _SeletorDePecasState extends State<SeletorDePecas> {
   // Botão de serviço: marca/desmarca e mostra o preço (o copiado, se
   // marcado; o da tabela, se não).
   Widget _botaoServico(
-      BuildContext context, int i, _Cartao c, TipoDeServico t) {
+    BuildContext context,
+    int i,
+    _Cartao c,
+    TipoDeServico t,
+  ) {
     final textos = Theme.of(context).textTheme;
     final v = visualDaFamilia(c.familia);
     final marcado = c.marcados.containsKey(t);
@@ -720,7 +764,8 @@ class _SeletorDePecasState extends State<SeletorDePecas> {
     if (c.familia == Familia.colchao) {
       preco = 'conforme o tamanho';
     } else {
-      final item = c.marcados[t] ??
+      final item =
+          c.marcados[t] ??
           precoDoServico(widget.tabela, c.familia, c.variante, c.retratil, t);
       preco = _preco(item.valor, m2: item.unidade == UnidadeDeCobranca.m2);
     }
@@ -730,7 +775,9 @@ class _SeletorDePecasState extends State<SeletorDePecas> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.pequeno),
         side: BorderSide(
-            color: marcado ? v.cor : AppColors.borda, width: marcado ? 2 : 1),
+          color: marcado ? v.cor : AppColors.borda,
+          width: marcado ? 2 : 1,
+        ),
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(AppRadius.pequeno),
@@ -743,22 +790,17 @@ class _SeletorDePecasState extends State<SeletorDePecas> {
                 marcado ? Icons.check_circle : Icons.radio_button_unchecked,
                 color: marcado ? v.cor : AppColors.tintaFraca,
               ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(child: Text(t.rotulo, style: textos.titleMedium)),
               const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(t.rotulo, style: textos.titleSmall),
-                    Text(
-                      preco,
-                      key: Key('cartao_${i}_${t.codigo}_preco'),
-                      style: textos.bodySmall?.copyWith(
-                          color: preco == 'sem valor'
-                              ? AppColors.tarde
-                              : AppColors.tintaFraca,
-                          fontFeatures: AppTypography.digitosTabulares),
-                    ),
-                  ],
+              Text(
+                preco,
+                key: Key('cartao_${i}_${t.codigo}_preco'),
+                style: textos.bodyMedium?.copyWith(
+                  color: preco == 'sem valor'
+                      ? AppColors.tarde
+                      : AppColors.tinta,
+                  fontFeatures: AppTypography.digitosTabulares,
                 ),
               ),
             ],
@@ -773,7 +815,7 @@ class _SeletorDePecasState extends State<SeletorDePecas> {
     return m2 ? '${valorEmReais(valor)}/m²' : valorEmReais(valor);
   }
 
-  static String _metros(double? v) => v == null ? '—' : '${_numero(v)} m';
+  static String _metros(double? v) => v == null ? '0 m' : '${_numero(v)} m';
 
   static String _numero(double v) {
     final texto = v == v.truncateToDouble()
@@ -843,10 +885,12 @@ class _Passos extends StatelessWidget {
             key: Key(chaveMenos ?? _botao('menos')),
             tooltip: 'Menos',
             onPressed: aoMenos ?? () {},
-            icon: Icon(Icons.remove,
-                color: aoMenos == null
-                    ? AppColors.tintaDesabilitada
-                    : AppColors.primaria),
+            icon: Icon(
+              Icons.remove,
+              color: aoMenos == null
+                  ? AppColors.tintaDesabilitada
+                  : AppColors.primaria,
+            ),
           ),
           ConstrainedBox(
             constraints: const BoxConstraints(minWidth: AppSpacing.xxl * 2),
@@ -855,8 +899,9 @@ class _Passos extends StatelessWidget {
               key: Key(chave),
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: AppColors.primaria,
-                  fontFeatures: AppTypography.digitosTabulares),
+                color: AppColors.primaria,
+                fontFeatures: AppTypography.digitosTabulares,
+              ),
             ),
           ),
           IconButton(
