@@ -65,4 +65,34 @@ abstract final class AppColors {
   /// Contraste 5.51 sobre branco, 4.60 sobre [alertaFundo].
   static const Color alerta = Color(0xFFB3452F);
   static const Color alertaFundo = Color(0xFFF8E7E3);
+
+  // --- Cores de familia de peca (design-system.md 2.5, issue #134) ---
+  //
+  // Identificam a familia no seletor de pecas (icone em quadrado colorido):
+  // sao rotulo, nao estado, e por isso evitam as tonalidades de papel acima
+  // (manha, tarde, sucesso, alerta). Outros usa [tintaFraca] sobre [fundo].
+
+  /// Contraste 6.46 sobre branco, 5.48 sobre [sofaFundo].
+  static const Color sofa = Color(0xFF2F5DA8);
+  static const Color sofaFundo = Color(0xFFE6EDF8);
+
+  /// Contraste 5.36 sobre branco, 4.64 sobre [tapeteFundo].
+  static const Color tapete = Color(0xFF66702A);
+  static const Color tapeteFundo = Color(0xFFEEF0DE);
+
+  /// Contraste 6.75 sobre branco, 5.66 sobre [poltronaFundo].
+  static const Color poltrona = Color(0xFF6B4AA0);
+  static const Color poltronaFundo = Color(0xFFEEE9F6);
+
+  /// Contraste 6.16 sobre branco, 5.14 sobre [cortinaFundo].
+  static const Color cortina = Color(0xFFA23C6E);
+  static const Color cortinaFundo = Color(0xFFF7E6EF);
+
+  /// Contraste 7.05 sobre branco, 5.95 sobre [colchaoFundo].
+  static const Color colchao = Color(0xFF47597A);
+  static const Color colchaoFundo = Color(0xFFE8ECF3);
+
+  /// Contraste 7.11 sobre branco, 5.98 sobre [cadeiraFundo].
+  static const Color cadeira = Color(0xFF7A4E2D);
+  static const Color cadeiraFundo = Color(0xFFF3EAE2);
 }
