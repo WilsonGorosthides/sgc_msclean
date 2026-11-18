@@ -82,6 +82,18 @@ void main() {
   String textoDoCampo(WidgetTester tester, String chave) =>
       tester.widget<TextFormField>(find.byKey(Key(chave))).controller!.text;
 
+  // Peças e valor ficam numa tela própria, aberta pela linha de resumo
+  // (CT-101): "Pronto" volta ao formulário com o que foi marcado.
+  Future<void> abrirPecas(WidgetTester tester) async {
+    await tester.tap(find.byKey(const Key('abrir_pecas')));
+    await tester.pumpAndSettle();
+  }
+
+  Future<void> fecharPecas(WidgetTester tester) async {
+    await tester.tap(find.byKey(const Key('pecas_pronto')));
+    await tester.pumpAndSettle();
+  }
+
   Future<Atendimento> salvarECapturar(WidgetTester tester) async {
     await tocar(tester, 'botao_salvar');
     await tester.pump();
@@ -148,6 +160,7 @@ void main() {
       await bombear(tester);
       await tocar(tester, 'escolher_cliente_1');
       await tocar(tester, 'escolher_manha');
+      await abrirPecas(tester);
       expect(textoDe(tester, 'total_a_cobrar'), 'sem valor');
 
       await tocar(tester, 'mudar_valor');
@@ -156,6 +169,8 @@ void main() {
       await tocar(tester, 'confirmar_valor');
       await tester.pumpAndSettle();
       expect(textoDe(tester, 'total_a_cobrar'), 'R\$ 180,50');
+      await fecharPecas(tester);
+      expect(textoDe(tester, 'resumo_valor'), 'R\$ 180,50');
 
       final comValor = await salvarECapturar(tester);
       expect(comValor.valor, 180.5);
@@ -276,8 +291,8 @@ void main() {
       expect(find.text('Bruno Lima'), findsOneWidget);
       expect(textoDoCampo(tester, 'campo_hora'), '15:00');
       expect(textoDoCampo(tester, 'campo_local'), 'Loja do centro');
-      expect(textoDe(tester, 'total_a_cobrar'), 'R\$ 120,00');
-      expect(textoDe(tester, 'cartao_0_quantidade'), '2');
+      expect(textoDe(tester, 'resumo_valor'), 'R\$ 120,00');
+      expect(textoDe(tester, 'resumo_pecas'), '2× poltrona');
 
       await digitar(tester, 'campo_hora', '16:00');
       await tocar(tester, 'botao_salvar');
@@ -420,18 +435,59 @@ void main() {
       await tocar(tester, 'escolher_manha');
     }
 
-    testWidgets('rodapé fixo: total, detalhes e salvar sem rolar',
+    // CT-101: o formulário é rápido; peças e valor numa tela própria.
+    testWidgets('atendimento rápido: peças e valor numa linha que abre a tela',
         (tester) async {
       tabela = [sofa3];
       await pronto(tester);
 
-      // o rodapé não rola com o formulário
+      expect(find.byKey(const Key('familia_sofa')), findsNothing);
+      expect(find.byKey(const Key('total_a_cobrar')), findsNothing);
+      expect(textoDe(tester, 'resumo_pecas'), 'Adicionar peças e valor');
+
+      await abrirPecas(tester);
+      expect(find.text('Peças e valor'), findsOneWidget);
+      await tocar(tester, 'familia_sofa');
+      await tocar(tester, 'cartao_0_higienizar');
+      await fecharPecas(tester);
+
+      expect(textoDe(tester, 'resumo_pecas'), 'sofá 3 lugares');
+      expect(textoDe(tester, 'resumo_valor'), 'R\$ 200,00');
+      final gravado = await salvarECapturar(tester);
+      expect(gravado.valor, 200);
+      expect(gravado.pecas.single.servicos.single.valor, 200);
+    });
+
+    testWidgets('voltar da tela de peças pela seta mantém o que foi marcado',
+        (tester) async {
+      tabela = [sofa3];
+      await pronto(tester);
+      await abrirPecas(tester);
+      await tocar(tester, 'familia_sofa');
+      await tocar(tester, 'cartao_0_higienizar');
+
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+
+      expect(textoDe(tester, 'resumo_valor'), 'R\$ 200,00');
+      // reabrir mostra o que já estava marcado
+      await abrirPecas(tester);
+      expect(textoDe(tester, 'selo_familia_sofa'), '×1');
+    });
+
+    testWidgets('rodapé fixo: total, detalhes e salvar sem rolar',
+        (tester) async {
+      tabela = [sofa3];
+      await pronto(tester);
+      await abrirPecas(tester);
+
+      // o rodapé não rola com a tela de peças
       expect(
           find.descendant(
               of: find.byType(Scrollable),
-              matching: find.byKey(const Key('botao_salvar'))),
+              matching: find.byKey(const Key('pecas_pronto'))),
           findsNothing);
-      expect(tester.getRect(find.byKey(const Key('botao_salvar'))).bottom,
+      expect(tester.getRect(find.byKey(const Key('pecas_pronto'))).bottom,
           lessThanOrEqualTo(2400));
 
       await tocar(tester, 'familia_sofa');
@@ -444,6 +500,7 @@ void main() {
       expect(textoDe(tester, 'linha_total_0_legenda'), '1 × R\$ 200,00');
       expect(textoDe(tester, 'linha_total_0_valor'), 'R\$ 200,00');
 
+      await fecharPecas(tester);
       final gravado = await salvarECapturar(tester);
       expect(gravado.valor, 200);
       expect(gravado.pecas.single.variante, '3');
@@ -454,6 +511,7 @@ void main() {
         (tester) async {
       tabela = [poltrona];
       await pronto(tester);
+      await abrirPecas(tester);
       await tocar(tester, 'familia_poltrona');
       await tocar(tester, 'cartao_0_higienizar');
       expect(textoDe(tester, 'total_a_cobrar'), 'R\$ 90,00');
@@ -473,6 +531,7 @@ void main() {
       expect(textoDe(tester, 'total_a_cobrar'), 'R\$ 180,00');
       expect(find.byKey(const Key('usar_calculado')), findsNothing);
 
+      await fecharPecas(tester);
       final gravado = await salvarECapturar(tester);
       expect(gravado.valor, 180);
       verifyNever(() => service.updatePreco(any()));
@@ -482,6 +541,7 @@ void main() {
     testWidgets('serviço sem valor aparece no aviso do rodapé', (tester) async {
       tabela = [sofa3];
       await pronto(tester);
+      await abrirPecas(tester);
       await tocar(tester, 'familia_sofa');
       await tocar(tester, 'cartao_0_higienizar');
       await tocar(tester, 'cartao_0_mais_lugares');
@@ -518,7 +578,7 @@ void main() {
       when(() => service.updateAtendimento(any())).thenAnswer((_) async {});
       await bombear(tester, atendimento: existente);
 
-      expect(textoDe(tester, 'total_a_cobrar'), 'R\$ 180,00');
+      expect(textoDe(tester, 'resumo_valor'), 'R\$ 180,00');
 
       await tocar(tester, 'botao_salvar');
       await tester.pump();
