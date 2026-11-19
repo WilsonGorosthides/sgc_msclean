@@ -35,8 +35,9 @@ class ItemDePreco {
   final Familia? peca;
   final String? variante;
   final TipoDeServico? servico;
-  // Sofá ou poltrona retrátil/reclinável: preço próprio, se ela cadastrar
-  // um; senão vale o da mesma peça (#134).
+  // Sofá ou poltrona retrátil/reclinável (#134). Na tabela, o `valor` dessa
+  // linha é o acréscimo sobre a mesma peça comum; copiada para o atendimento,
+  // já é o preço final (comum + acréscimo).
   final bool retratil;
   // Ajuste só no registro (CT-102): no serviço copiado para a peça, o preço
   // pode mudar (tecido especial, desconto) sem mexer na tabela. Guarda o
@@ -146,7 +147,8 @@ class ItemDePreco {
   // Lista inicial (RF-013): sem valor, para ela completar. Higienização e
   // impermeabilização como serviços separados, nunca um como extra do outro.
   // Cada linha já diz peça, variante e serviço (#134). Sem linhas de
-  // retrátil: o retrátil usa o preço comum até ela cadastrar um próprio.
+  // retrátil: a linha retrátil é só o acréscimo sobre o preço comum, e ela
+  // cadastra quando quiser.
   // Cortina por folha.
   static List<ItemDePreco> listaSugerida() {
     const hig = TipoDeServico.higienizar;

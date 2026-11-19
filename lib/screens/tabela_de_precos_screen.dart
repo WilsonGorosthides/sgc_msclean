@@ -171,13 +171,18 @@ class _TabelaDePrecosScreenState extends State<TabelaDePrecosScreen> {
       margin: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: ListTile(
         title: Text(item.nome, style: textos.titleMedium),
-        subtitle: Text(item.unidade.rotulo),
+        // a linha retrátil guarda só o acréscimo sobre a peça comum (#134)
+        subtitle: Text(item.retratil
+            ? 'acréscimo sobre o ${item.peca?.tipo ?? 'item'} comum'
+            : item.unidade.rotulo),
         onTap: () => _editar(item),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              item.semValor ? 'sem valor' : valorEmReais(item.valor!),
+              item.semValor
+                  ? 'sem valor'
+                  : '${item.retratil ? '+ ' : ''}${valorEmReais(item.valor!)}',
               style: item.semValor
                   ? textos.bodyMedium?.copyWith(
                       color: AppColors.tarde, fontStyle: FontStyle.italic)
@@ -401,12 +406,18 @@ class _EditorDePrecoState extends State<_EditorDePreco> {
               controller: _valor,
               keyboardType:
                   const TextInputType.numberWithOptions(decimal: true),
+              // retrátil: só a diferença sobre a peça comum (#134)
               decoration: InputDecoration(
-                labelText: _unidade == UnidadeDeCobranca.m2
-                    ? 'Valor do m²'
-                    : 'Valor da peça',
-                prefixText: 'R\$ ',
+                labelText: _retratil
+                    ? 'Acréscimo do retrátil'
+                    : _unidade == UnidadeDeCobranca.m2
+                        ? 'Valor do m²'
+                        : 'Valor da peça',
+                prefixText: _retratil ? '+ R\$ ' : 'R\$ ',
                 hintText: 'sem valor',
+                helperText: _retratil
+                    ? 'Soma ao preço da mesma peça comum.'
+                    : null,
               ),
             ),
           ],

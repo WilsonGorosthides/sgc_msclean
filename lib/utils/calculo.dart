@@ -71,10 +71,12 @@ CalculoDoValor calcularValor(List<Peca> pecas) {
 }
 
 // Preço de um serviço da peça (#134): a linha da tabela com a mesma peça,
-// variante, retrátil e serviço, copiada para o registro. Retrátil sem preço
-// próprio usa o da mesma peça comum, com "retrátil" no nome. Sem linha, uma
-// cópia sem valor com o nome da combinação — o total avisa, e nunca se usa o
-// preço de outros lugares ou de outro tamanho.
+// variante e serviço, copiada para o registro. No retrátil, a linha retrátil
+// guarda só o acréscimo (como no app de referência, + R$ 30): o preço é o da
+// mesma peça comum mais esse acréscimo, com "retrátil" no nome; sem
+// acréscimo, vale o comum. Sem linha comum com valor, uma cópia sem valor com
+// o nome da combinação — o total avisa, e nunca se usa o preço de outros
+// lugares ou de outro tamanho.
 ItemDePreco precoDoServico(List<ItemDePreco> tabela, Familia familia,
     String? variante, bool retratil, TipoDeServico servico) {
   ItemDePreco? achar(bool r) {
@@ -89,23 +91,20 @@ ItemDePreco precoDoServico(List<ItemDePreco> tabela, Familia familia,
     return null;
   }
 
-  final propria = achar(retratil);
-  if (propria != null && (!retratil || propria.valor != null)) {
-    return propria.copia();
-  }
-  final comum = retratil ? achar(false) : null;
-  if (comum != null && comum.valor != null) {
+  final comum = achar(false);
+  if (!retratil && comum != null) return comum.copia();
+  if (retratil && comum?.valor != null) {
+    final acrescimo = achar(true)?.valor ?? 0;
     return ItemDePreco(
       nome: nomeDoServico(familia, variante, true, servico),
-      unidade: comum.unidade,
-      valor: comum.valor,
+      unidade: comum!.unidade,
+      valor: comum.valor! + acrescimo,
       peca: familia,
       variante: variante,
       servico: servico,
       retratil: true,
     );
   }
-  if (propria != null) return propria.copia();
   return ItemDePreco(
     nome: nomeDoServico(familia, variante, retratil, servico),
     unidade: familia == Familia.tapete
