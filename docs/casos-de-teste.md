@@ -1054,6 +1054,36 @@
   4. Num outro registro, ajustar e depois "Voltar ao da tabela".
 - **Resultado esperado:** o serviço mostra R$ 220,00 e "ajustado"; os detalhes trazem "tabela R$ 170,00 · tecido linho" e o total soma R$ 220; o jsonb grava o valor 220, o preço da tabela (170) e a justificativa; a tabela de preços não muda. "Voltar ao da tabela" volta a R$ 170 sem justificativa. Sem justificativa, o ajuste vale do mesmo jeito.
 
+### CT-103 — Tabela dividida em produto, mão de obra e imprevisto
+- **Critério:** "Cada item da tabela pertence a um **grupo**, como no app de referência: **produto**, **mão de obra** ou **imprevisto** (sem grupo informado, mão de obra). A tabela de preços aparece dividida nesses três grupos, e o editor escolhe o grupo. A lista inicial já traz os produtos (impermeabilizante do sofá por lugares, neutralizador de odor, tira-manchas, hidratante de couro) e os imprevistos (segunda lavagem, excesso de pelo, mofo, urina com odor), sem valor."
+- **Tipo:** Unitário + Widget · **Situação:** a implementar (grupos da tabela, #134)
+- **Pré-condições:** nenhuma.
+- **Passos:**
+  1. Ler e gravar um item com a coluna `categoria`; ler um item sem ela.
+  2. Montar a lista sugerida.
+  3. Abrir a tabela com um produto, um serviço e um imprevisto; no editor, criar "Neutralizador de odor" escolhendo o grupo Produto.
+- **Resultado esperado:** `categoria` vai e volta (`produto`, `mao_de_obra`, `imprevisto`); sem ela, o item é mão de obra. A lista sugerida traz o impermeabilizante do sofá de 2, 3, 4 lugares e de canto (produto ligado a impermeabilizar), os produtos avulsos e os imprevistos, todos sem valor. A tela mostra os títulos Produtos, Mão de obra e Imprevistos, cada item no seu grupo; o editor grava o grupo escolhido.
+
+### CT-104 — Produto vem junto com o serviço da peça
+- **Critério:** "Um **produto** da tabela com peça e serviço **vem junto com o serviço**: ao marcar o serviço na peça, entram a linha de mão de obra e os produtos da mesma peça e serviço (com a mesma variante, ou sem variante, que vale para todas). Ex.: impermeabilizar o sofá de 3 lugares traz a aplicação (mão de obra, R$ 90) e o impermeabilizante (produto, R$ 190), como na nota do app de referência; o botão do serviço mostra a soma, e cada linha tem o seu preço e o seu ajuste. O retrátil não muda o produto. Desmarcar o serviço tira os dois."
+- **Tipo:** Unitário + Widget · **Situação:** a implementar (produtos com o serviço, #134)
+- **Pré-condições:** tabela com impermeabilizar sofá 3 lugares (mão de obra, R$ 90) e 4 lugares (R$ 120); "Impermeabilizante sofá 3 lugares" (produto, R$ 190) e "Impermeabilizante sofá 4 lugares" (produto, R$ 250), ligados a impermeabilizar; impermeabilização de tapete (R$ 10/m²) e "Impermeabilizante de tapete" (produto, sem variante, R$ 5/m²).
+- **Passos:**
+  1. Procurar os produtos de cada combinação (função pura).
+  2. No seletor, marcar Impermeabilizar num sofá de 3 lugares; passar a 4 lugares; ligar o retrátil; ajustar o preço do produto; salvar; reabrir; desmarcar.
+  3. Num tapete 2 × 3, marcar Impermeabilizar.
+- **Resultado esperado:** o sofá de 3 lugares traz a aplicação (R$ 90) e o impermeabilizante (R$ 190), e o botão mostra R$ 280,00; em 4 lugares, R$ 120 + R$ 250 = R$ 370,00; o retrátil não muda o produto; o produto ajustado mostra "ajustado"; a peça gravada leva o serviço e o produto, e reabrir não perde o produto; desmarcado, as duas linhas saem. No tapete, o produto sem variante vale: 6 m² × (R$ 10 + R$ 5) = R$ 90.
+
+### CT-105 — Grupo de cada serviço no registro e no total
+- **Critério:** "O registro grava o **grupo de cada serviço** (serviço gravado sem grupo conta como mão de obra), para a nota do orçamento (RF-017) separar produtos, mão de obra e imprevistos. Os avulsos do quadro Outros aparecem separados por grupo; o **deslocamento é mão de obra**. Os detalhes do rodapé mostram o **subtotal de cada grupo** com valor, antes das linhas."
+- **Tipo:** Unitário + Widget · **Situação:** a implementar (grupo no registro, #134)
+- **Pré-condições:** a tabela do CT-104 e os avulsos "Deslocamento" (mão de obra, R$ 20), "Remoção de mancha" (mão de obra, R$ 50), "Tira-manchas" (produto, R$ 15) e "Segunda lavagem" (imprevisto, R$ 60).
+- **Passos:**
+  1. Gravar e ler peças com serviços de cada grupo e um serviço antigo sem grupo; somar por grupo (função pura).
+  2. No seletor, abrir o quadro Outros.
+  3. Com impermeabilizar sofá 3 lugares, tira-manchas, segunda lavagem e o deslocamento, abrir os detalhes do rodapé.
+- **Resultado esperado:** o jsonb leva `categoria` no produto e no imprevisto (a mão de obra fica sem a chave: é o padrão), e o serviço antigo é lido como mão de obra. O quadro Outros mostra os títulos Produtos, Mão de obra e Imprevistos com os avulsos de cada um; o deslocamento segue fora, no bloco próprio. Os detalhes mostram Produtos R$ 205,00, Mão de obra R$ 110,00 (aplicação R$ 90 + deslocamento R$ 20) e Imprevistos R$ 60,00, com o total de R$ 375,00.
+
 ## RF-014 — Estados de Conclusão do Atendimento
 
 ### CT-049 — Dois marcadores independentes
@@ -1344,4 +1374,5 @@ falso, que pode estar "fora do ar", e um armazenamento em memória no lugar do
 | 2026-11-19 | 1.47 | Wilson Gorosthides | CT-096 e CT-100 passam a "implementado" (retrátil como acréscimo, issue #134). |
 | 2026-11-19 | 1.48 | Wilson Gorosthides | Depois do terceiro teste no celular (#134): CT-098 revisto, deslocamento em bloco próprio, já incluído, de R$ 1 em R$ 1 ou digitado. "A implementar". |
 | 2026-11-19 | 1.49 | Wilson Gorosthides | CT-098 passa a "implementado" (deslocamento em bloco próprio, issue #134). |
+| 2026-11-19 | 1.50 | Wilson Gorosthides | CT-103, CT-104 e CT-105 (issue #134): grupos da tabela (produto, mão de obra, imprevisto), produto junto com o serviço da peça e grupo de cada serviço no registro e no rodapé. "A implementar". |
 | 2026-11-17 | 1.36 | Wilson Gorosthides | CT-055 ganha o teste da linha repetida pelo banco (bug #128: atendimento em dobro na agenda). |
