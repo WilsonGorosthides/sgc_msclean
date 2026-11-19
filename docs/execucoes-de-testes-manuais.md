@@ -97,7 +97,7 @@ where exists (select 1 from public.precos)
   and not exists (select 1 from public.precos where retratil);
 ```
 
-**Ainda não aplicado** — valores de partida (#134, revisto em 2026-11-19).
+**Aplicado pelo desenvolvedor em 2026-11-19** — valores de partida (#134, revisto em 2026-11-19).
 São dados, não schema: os preços do app de referência, só onde está sem
 valor; o retrátil da higienização do sofá ganha o acréscimo de R$ 30 e o
 sofá grande impermeabilizado vai a 370. Pode rodar de novo se a versão
@@ -188,7 +188,7 @@ update public.precos set valor = 60  where peca = 'cortina'  and servico = 'higi
 select nome, unidade from public.precos where valor is null order by ordem;
 ```
 
-**Ainda não aplicado** — grupos e produtos (#134, 2026-11-19). **Schema e
+**Aplicado pelo desenvolvedor em 2026-11-19** — grupos e produtos (#134, 2026-11-19). **Schema e
 dados**: rodar depois do bloco dos valores de partida. A impermeabilização do
 sofá vira só a aplicação (90 / 120) e o impermeabilizante entra como produto
 (190 / 250): o total do sofá impermeabilizado continua 280 / 370.
@@ -929,3 +929,4 @@ versão nova, assinada com a mesma chave, instala por cima sem perder dados.
 | 2026-11-19 | 1.35 | Wilson Gorosthides | Pilha #134: SQL dos valores de partida revisto (retrátil + R$ 30, sofá grande impermeabilizado 370) e passos do retrátil como acréscimo. |
 | 2026-11-19 | 1.36 | Wilson Gorosthides | Pilha #134: deslocamento em bloco próprio, já incluído, de R$ 1 em R$ 1 ou digitado; SQL com o deslocamento a 20. |
 | 2026-11-19 | 1.37 | Wilson Gorosthides | Pilha #134: SQL dos grupos e produtos (coluna `categoria`, aplicação 90 / 120 e impermeabilizante 190 / 250, produtos avulsos e imprevistos) e o passo 7 (CT-103 a CT-105). |
+| 2026-11-19 | 1.38 | Wilson Gorosthides | Pilha #134: SQL dos valores de partida e dos grupos e produtos aplicados pelo desenvolvedor no painel. |
