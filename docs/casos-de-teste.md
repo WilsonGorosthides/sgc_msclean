@@ -1056,7 +1056,7 @@
 
 ### CT-103 — Tabela dividida em produto, mão de obra e imprevisto
 - **Critério:** "Cada item da tabela pertence a um **grupo**, como no app de referência: **produto**, **mão de obra** ou **imprevisto** (sem grupo informado, mão de obra). A tabela de preços aparece dividida nesses três grupos, e o editor escolhe o grupo. A lista inicial já traz os produtos (impermeabilizante do sofá por lugares, neutralizador de odor, tira-manchas, hidratante de couro) e os imprevistos (segunda lavagem, excesso de pelo, mofo, urina com odor), sem valor."
-- **Tipo:** Unitário + Widget · **Situação:** a implementar (grupos da tabela, #134)
+- **Tipo:** Unitário + Widget · **Situação:** implementado — `item_de_preco_test: coluna categoria vai e volta; sem ela, mão de obra` · `item_de_preco_test: lista sugerida com produtos e imprevistos, sem valor` · `tabela_de_precos_screen_test: tabela dividida em produtos, mão de obra e imprevistos` · `tabela_de_precos_screen_test: editor grava o grupo escolhido`
 - **Pré-condições:** nenhuma.
 - **Passos:**
   1. Ler e gravar um item com a coluna `categoria`; ler um item sem ela.
@@ -1066,7 +1066,7 @@
 
 ### CT-104 — Produto vem junto com o serviço da peça
 - **Critério:** "Um **produto** da tabela com peça e serviço **vem junto com o serviço**: ao marcar o serviço na peça, entram a linha de mão de obra e os produtos da mesma peça e serviço (com a mesma variante, ou sem variante, que vale para todas). Ex.: impermeabilizar o sofá de 3 lugares traz a aplicação (mão de obra, R$ 90) e o impermeabilizante (produto, R$ 190), como na nota do app de referência; o botão do serviço mostra a soma, e cada linha tem o seu preço e o seu ajuste. O retrátil não muda o produto. Desmarcar o serviço tira os dois."
-- **Tipo:** Unitário + Widget · **Situação:** a implementar (produtos com o serviço, #134)
+- **Tipo:** Unitário + Widget · **Situação:** implementado — `calculo_test: produtos do serviço: mesma peça e serviço, variante igual ou nenhuma` · `seletor_de_pecas_test: produto vem junto com o serviço: botão soma, cada linha com preço e ajuste` · `seletor_de_pecas_test: produto sem variante vale para a peça toda (tapete por m²)`
 - **Pré-condições:** tabela com impermeabilizar sofá 3 lugares (mão de obra, R$ 90) e 4 lugares (R$ 120); "Impermeabilizante sofá 3 lugares" (produto, R$ 190) e "Impermeabilizante sofá 4 lugares" (produto, R$ 250), ligados a impermeabilizar; impermeabilização de tapete (R$ 10/m²) e "Impermeabilizante de tapete" (produto, sem variante, R$ 5/m²).
 - **Passos:**
   1. Procurar os produtos de cada combinação (função pura).
@@ -1076,7 +1076,7 @@
 
 ### CT-105 — Grupo de cada serviço no registro e no total
 - **Critério:** "O registro grava o **grupo de cada serviço** (serviço gravado sem grupo conta como mão de obra), para a nota do orçamento (RF-017) separar produtos, mão de obra e imprevistos. Os avulsos do quadro Outros aparecem separados por grupo; o **deslocamento é mão de obra**. Os detalhes do rodapé mostram o **subtotal de cada grupo** com valor, antes das linhas."
-- **Tipo:** Unitário + Widget · **Situação:** a implementar (grupo no registro, #134)
+- **Tipo:** Unitário + Widget · **Situação:** implementado — `atendimento_test: grupo do serviço vai ao jsonb; sem a chave, mão de obra` · `calculo_test: soma por grupo: produto, mão de obra e imprevisto; sem grupo é mão de obra` · `seletor_de_pecas_test: avulsos do quadro Outros separados por grupo; deslocamento fora` · `seletor_de_pecas_test: detalhes do rodapé mostram o subtotal de cada grupo`
 - **Pré-condições:** a tabela do CT-104 e os avulsos "Deslocamento" (mão de obra, R$ 20), "Remoção de mancha" (mão de obra, R$ 50), "Tira-manchas" (produto, R$ 15) e "Segunda lavagem" (imprevisto, R$ 60).
 - **Passos:**
   1. Gravar e ler peças com serviços de cada grupo e um serviço antigo sem grupo; somar por grupo (função pura).
@@ -1375,4 +1375,5 @@ falso, que pode estar "fora do ar", e um armazenamento em memória no lugar do
 | 2026-11-19 | 1.48 | Wilson Gorosthides | Depois do terceiro teste no celular (#134): CT-098 revisto, deslocamento em bloco próprio, já incluído, de R$ 1 em R$ 1 ou digitado. "A implementar". |
 | 2026-11-19 | 1.49 | Wilson Gorosthides | CT-098 passa a "implementado" (deslocamento em bloco próprio, issue #134). |
 | 2026-11-19 | 1.50 | Wilson Gorosthides | CT-103, CT-104 e CT-105 (issue #134): grupos da tabela (produto, mão de obra, imprevisto), produto junto com o serviço da peça e grupo de cada serviço no registro e no rodapé. "A implementar". |
+| 2026-11-19 | 1.51 | Wilson Gorosthides | CT-103, CT-104 e CT-105 passam a "implementado" (grupos da tabela e produto junto com o serviço, issue #134). |
 | 2026-11-17 | 1.36 | Wilson Gorosthides | CT-055 ganha o teste da linha repetida pelo banco (bug #128: atendimento em dobro na agenda). |

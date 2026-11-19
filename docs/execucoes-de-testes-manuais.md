@@ -188,6 +188,69 @@ update public.precos set valor = 60  where peca = 'cortina'  and servico = 'higi
 select nome, unidade from public.precos where valor is null order by ordem;
 ```
 
+**Ainda não aplicado** — grupos e produtos (#134, 2026-11-19). **Schema e
+dados**: rodar depois do bloco dos valores de partida. A impermeabilização do
+sofá vira só a aplicação (90 / 120) e o impermeabilizante entra como produto
+(190 / 250): o total do sofá impermeabilizado continua 280 / 370.
+
+```sql
+-- #134: grupo de cada item da tabela (produto, mão de obra, imprevisto),
+-- como no app de referência. Rodar DEPOIS dos valores de partida. Pode
+-- rodar mais de uma vez.
+
+-- 1) coluna nova (schema); as linhas que já existem ficam mão de obra
+alter table public.precos
+  add column if not exists categoria text not null default 'mao_de_obra'
+  check (categoria in ('produto', 'mao_de_obra', 'imprevisto'));
+
+-- 2) a impermeabilização do sofá passa a ser só a aplicação (mão de obra):
+--    90 até 3 lugares, 120 no sofá grande (90 + 30). Só troca o valor de
+--    partida somado (280 / 370); preço que ela já mudou fica como está.
+update public.precos set valor = 90
+where peca = 'sofa' and variante in ('2', '3') and servico = 'impermeabilizar'
+  and not retratil and categoria = 'mao_de_obra' and valor = 280;
+update public.precos set valor = 120
+where peca = 'sofa' and variante in ('4', 'canto') and servico = 'impermeabilizar'
+  and not retratil and categoria = 'mao_de_obra' and valor = 370;
+
+-- 3) o produto que vem junto com a impermeabilização do sofá: 190 até 3
+--    lugares, 250 no grande (app de referência)
+insert into public.precos (nome, unidade, valor, ordem, peca, variante, servico, retratil, categoria)
+select v.nome, 'peca', v.valor,
+       (select coalesce(max(ordem), -1) from public.precos) + v.n,
+       'sofa', v.variante, 'impermeabilizar', false, 'produto'
+from (values
+  (1, 'Impermeabilizante sofá 2 lugares',  '2',     190),
+  (2, 'Impermeabilizante sofá 3 lugares',  '3',     190),
+  (3, 'Impermeabilizante sofá 4 lugares',  '4',     250),
+  (4, 'Impermeabilizante sofá de canto',   'canto', 250)
+) as v(n, nome, variante, valor)
+where not exists (
+  select 1 from public.precos p
+  where p.categoria = 'produto' and p.peca = 'sofa'
+    and p.servico = 'impermeabilizar' and p.variante = v.variante
+);
+
+-- 4) produtos avulsos e imprevistos, sem valor (ela completa na tela)
+insert into public.precos (nome, unidade, valor, ordem, retratil, categoria)
+select v.nome, 'peca', null,
+       (select coalesce(max(ordem), -1) from public.precos) + v.n,
+       false, v.categoria
+from (values
+  (1, 'Neutralizador de odor',            'produto'),
+  (2, 'Tira-manchas',                     'produto'),
+  (3, 'Hidratante de couro',              'produto'),
+  (4, 'Segunda lavagem (sujeira pesada)', 'imprevisto'),
+  (5, 'Excesso de pelo de pet',           'imprevisto'),
+  (6, 'Tratamento de mofo',               'imprevisto'),
+  (7, 'Urina com odor',                   'imprevisto')
+) as v(n, nome, categoria)
+where not exists (select 1 from public.precos p where p.nome = v.nome);
+
+-- conferir: a tabela por grupo
+select categoria, nome, valor from public.precos order by categoria, ordem;
+```
+
 ### #123 — Tabela de preços editável (RF-013, parte 1)
 
 Testes manuais gravam no banco real (o mesmo do celular): usar serviços com
@@ -276,6 +339,17 @@ passado, e excluir o atendimento no fim.
    rodapé também; o total soma 220. Ajustar um colchão (pelo lápis) e digitar
    o valor do Deslocamento; depois "Voltar ao da tabela" num deles. Salvar, reabrir: os
    ajustes continuam. A tabela de preços não mudou. (CT-102)
+7. Grupos e produtos (depois do SQL dos grupos): na Tabela de preços,
+   **Esperado:** títulos Produtos, Mão de obra e Imprevistos; o
+   "Impermeabilizante sofá 3 lugares" em Produtos com "vem com:
+   impermeabilizar", R$ 190,00; a "Impermeabilização sofá 3 lugares" em Mão
+   de obra com R$ 90,00. No editor, o grupo aparece e muda. Num registro, sofá
+   de 3 lugares com Impermeabilizar: o botão mostra **R$ 280,00**, embaixo
+   "Mão de obra · R$ 90,00" e o impermeabilizante R$ 190,00 com o lápis
+   próprio; passar a 4 lugares: R$ 370,00. Em Outros, os avulsos por grupo; o
+   Deslocamento segue no bloco próprio. Abrir os detalhes do rodapé:
+   subtotais Produtos, Mão de obra (com o deslocamento) e Imprevistos.
+   Salvar, reabrir: o produto continua. (CT-103, CT-104, CT-105)
 
 ## Execução 001 — Verificação manual do RF-001 (pré-merge do PR #44)
 
@@ -854,3 +928,4 @@ versão nova, assinada com a mesma chave, instala por cima sem perder dados.
 | 2026-11-18 | 1.34 | Wilson Gorosthides | Pilha #134: SQL dos valores de partida (a aplicar), retrátil com o preço comum, deslocamento liga/desliga e o passo 6 do ajuste por serviço (CT-102). |
 | 2026-11-19 | 1.35 | Wilson Gorosthides | Pilha #134: SQL dos valores de partida revisto (retrátil + R$ 30, sofá grande impermeabilizado 370) e passos do retrátil como acréscimo. |
 | 2026-11-19 | 1.36 | Wilson Gorosthides | Pilha #134: deslocamento em bloco próprio, já incluído, de R$ 1 em R$ 1 ou digitado; SQL com o deslocamento a 20. |
+| 2026-11-19 | 1.37 | Wilson Gorosthides | Pilha #134: SQL dos grupos e produtos (coluna `categoria`, aplicação 90 / 120 e impermeabilizante 190 / 250, produtos avulsos e imprevistos) e o passo 7 (CT-103 a CT-105). |

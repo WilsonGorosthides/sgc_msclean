@@ -46,7 +46,7 @@ A tabela é lida via stream ordenada por `nome`. O mapeamento jsonb ⇄ objeto v
     -   `hora` (time, opcional — a proprietária quase nunca anota hora; quando anota, ordena dentro do período)
     -   `cliente_id` (uuid, obrigatório — FK para `clientes.id` com `on delete cascade`: excluir um cliente leva os atendimentos dele; a alternativa `restrict` bloquearia a exclusão de qualquer cliente já atendido, o que não existe na agenda de papel)
     -   `local` (text, opcional — endereço do serviço quando não é o do cadastro)
-    -   `pecas` (**jsonb**, lista — cada peça é `{ "tipo", "quantidade", "largura", "comprimento", "servicos" }`, mesmo molde do `endereco`; o mapeamento vive no value object `Peca`, `lib/models/peca.dart`. `servicos` (RF-013, #124) é a lista dos serviços da tabela escolhidos na peça, cada um `{ "nome", "unidade", "valor" }` **copiado da tabela no registro**: mudar a tabela depois não muda o atendimento. Chave ausente = peça sem serviço. Desde a #134 a peça leva também `variante` e `retratil` quando existem, e cada serviço a chave `servico` (`higienizar`/`impermeabilizar`); um serviço gravado antes, sem a chave, é reconhecido pelo começo do nome. Serviço com o preço ajustado só no registro (CT-102) leva ainda `ajustado: true`, `valor_tabela` (o preço da tabela copiado) e, se ela der, `justificativa`; `valor` é o ajustado)
+    -   `pecas` (**jsonb**, lista — cada peça é `{ "tipo", "quantidade", "largura", "comprimento", "servicos" }`, mesmo molde do `endereco`; o mapeamento vive no value object `Peca`, `lib/models/peca.dart`. `servicos` (RF-013, #124) é a lista dos serviços da tabela escolhidos na peça, cada um `{ "nome", "unidade", "valor" }` **copiado da tabela no registro**: mudar a tabela depois não muda o atendimento. Chave ausente = peça sem serviço. Desde a #134 a peça leva também `variante` e `retratil` quando existem, e cada serviço a chave `servico` (`higienizar`/`impermeabilizar`); um serviço gravado antes, sem a chave, é reconhecido pelo começo do nome. Serviço com o preço ajustado só no registro (CT-102) leva ainda `ajustado: true`, `valor_tabela` (o preço da tabela copiado) e, se ela der, `justificativa`; `valor` é o ajustado. O grupo do serviço (#134) vai na chave `categoria` só quando não é mão de obra (`produto` ou `imprevisto`): sem a chave, inclusive nos registros de antes e no deslocamento, é mão de obra. O produto que veio com um serviço leva também a chave `servico` dele)
     -   `valor` (numeric, opcional — valor combinado)
     -   `criado_em` (timestamptz, `default now()` — desempata os atendimentos sem hora: ficam na ordem em que foram registrados)
 
@@ -102,6 +102,9 @@ alter publication supabase_realtime add table public.atendimentos;
 Cada serviço é **independente** (regra da proprietária): impermeabilização é uma linha como higienização, nunca um extra dela; o combo é escolher as duas linhas, ou cadastrar o combo como mais uma. Por isso não há coluna de "extra" nem relação entre linhas. A leitura passa pelo `EspelhoLocal` (guardada no aparelho, chave `espelho.precos`, para o cálculo sem internet da #124); a escrita (`addPreco`, `addPrecos`, `updatePreco`, `deletePreco`) vai direto ao banco, como a de clientes, e a tela renova a stream ao voltar. A tabela é lida via stream ordenada por `ordem`.
 
 **Peça, variante e serviço (issue #134).** O seletor de peças acha o preço pela combinação, não pelo nome (que ela pode mudar): quatro colunas opcionais — `peca` (`sofa`, `tapete`, `poltrona`, `cortina`, `colchao`, `cadeira`; nula = item avulso, que entra pelo quadro Outros), `variante` (lugares do sofá `2`/`3`/`4`/`canto`, tamanho do colchão `solteiro`/`casal`/`queen`/`king`), `servico` (`higienizar` ou `impermeabilizar`) e `retratil` (boolean, sofá e poltrona). Sem a linha da combinação, o serviço marcado fica "sem valor" — nunca se usa o preço de outros lugares ou de outro tamanho. No retrátil, o `valor` da linha retrátil é só o **acréscimo** sobre a mesma peça comum (como no app de referência, + R$ 30 na higienização do sofá); o serviço copiado para o atendimento já leva o preço final (comum + acréscimo), e sem acréscimo vale o comum (decisões de 2026-11-18 e 2026-11-19, depois dos testes no celular). O avulso cujo nome contém "deslocamento" tem bloco próprio no seletor, fora do quadro Outros, e é gravado como uma peça `outro` com quantidade 1; o valor mudado no registro usa as chaves do ajuste (CT-098). A cortina passa a ser cobrada por folha. O mapeamento vive em `lib/models/familia.dart` (`Familia`, `TipoDeServico`, `nomeDoServico`).
+
+**Grupo do item (issue #134).** Coluna `categoria` (`produto`, `mao_de_obra` ou `imprevisto`; padrão `mao_de_obra`), como no app de referência, que separa produtos, mão de obra e imprevistos na tabela e na nota. A tela da tabela mostra os três grupos. Uma linha de **produto com peça e serviço** não é o preço do serviço: ela **vem junto** quando o serviço é marcado na peça (mesma peça e serviço; mesma variante, ou variante nula, que vale para a peça toda; o retrátil não muda o produto) e é copiada para o registro ao lado do serviço, cada uma com o seu ajuste. Assim, impermeabilizar o sofá registra a aplicação (mão de obra) e o impermeabilizante (produto), como na nota do app de referência (decisão do desenvolvedor de 2026-11-19, depois do terceiro teste no celular). Produto sem peça e imprevisto são avulsos do quadro Outros, que os mostra por grupo. O deslocamento é mão de obra: identificado pelo nome no seletor, gravado sem a chave `categoria`. A soma por grupo (`subtotaisPorGrupo`, `lib/utils/calculo.dart`) aparece nos detalhes do rodapé e é o que a nota do orçamento (RF-017, #125) vai separar. Antes de mudar o formato, lembrar da fila do aparelho (§10): registros antigos sem a chave continuam válidos.
+
 
 SQL a aplicar no painel do Supabase (issue #134):
 
@@ -239,6 +242,66 @@ update public.precos set valor = 60  where peca = 'cortina'  and servico = 'higi
 
 -- conferir: o que ainda ficou sem valor
 select nome, unidade from public.precos where valor is null order by ordem;
+```
+
+Grupos e produtos (issue #134, 2026-11-19; **schema e dados** — a aplicar no painel, depois dos valores de partida): a coluna `categoria`, a impermeabilização do sofá reduzida à aplicação (90 / 120) e o impermeabilizante como produto (190 / 250), mais os produtos avulsos e os imprevistos sem valor.
+
+```sql
+-- #134: grupo de cada item da tabela (produto, mão de obra, imprevisto),
+-- como no app de referência. Rodar DEPOIS dos valores de partida. Pode
+-- rodar mais de uma vez.
+
+-- 1) coluna nova (schema); as linhas que já existem ficam mão de obra
+alter table public.precos
+  add column if not exists categoria text not null default 'mao_de_obra'
+  check (categoria in ('produto', 'mao_de_obra', 'imprevisto'));
+
+-- 2) a impermeabilização do sofá passa a ser só a aplicação (mão de obra):
+--    90 até 3 lugares, 120 no sofá grande (90 + 30). Só troca o valor de
+--    partida somado (280 / 370); preço que ela já mudou fica como está.
+update public.precos set valor = 90
+where peca = 'sofa' and variante in ('2', '3') and servico = 'impermeabilizar'
+  and not retratil and categoria = 'mao_de_obra' and valor = 280;
+update public.precos set valor = 120
+where peca = 'sofa' and variante in ('4', 'canto') and servico = 'impermeabilizar'
+  and not retratil and categoria = 'mao_de_obra' and valor = 370;
+
+-- 3) o produto que vem junto com a impermeabilização do sofá: 190 até 3
+--    lugares, 250 no grande (app de referência)
+insert into public.precos (nome, unidade, valor, ordem, peca, variante, servico, retratil, categoria)
+select v.nome, 'peca', v.valor,
+       (select coalesce(max(ordem), -1) from public.precos) + v.n,
+       'sofa', v.variante, 'impermeabilizar', false, 'produto'
+from (values
+  (1, 'Impermeabilizante sofá 2 lugares',  '2',     190),
+  (2, 'Impermeabilizante sofá 3 lugares',  '3',     190),
+  (3, 'Impermeabilizante sofá 4 lugares',  '4',     250),
+  (4, 'Impermeabilizante sofá de canto',   'canto', 250)
+) as v(n, nome, variante, valor)
+where not exists (
+  select 1 from public.precos p
+  where p.categoria = 'produto' and p.peca = 'sofa'
+    and p.servico = 'impermeabilizar' and p.variante = v.variante
+);
+
+-- 4) produtos avulsos e imprevistos, sem valor (ela completa na tela)
+insert into public.precos (nome, unidade, valor, ordem, retratil, categoria)
+select v.nome, 'peca', null,
+       (select coalesce(max(ordem), -1) from public.precos) + v.n,
+       false, v.categoria
+from (values
+  (1, 'Neutralizador de odor',            'produto'),
+  (2, 'Tira-manchas',                     'produto'),
+  (3, 'Hidratante de couro',              'produto'),
+  (4, 'Segunda lavagem (sujeira pesada)', 'imprevisto'),
+  (5, 'Excesso de pelo de pet',           'imprevisto'),
+  (6, 'Tratamento de mofo',               'imprevisto'),
+  (7, 'Urina com odor',                   'imprevisto')
+) as v(n, nome, categoria)
+where not exists (select 1 from public.precos p where p.nome = v.nome);
+
+-- conferir: a tabela por grupo
+select categoria, nome, valor from public.precos order by categoria, ordem;
 ```
 
 SQL aplicado no painel do Supabase (issue #123; confirmado pelo desenvolvedor em 2026-11-17):
@@ -458,6 +521,7 @@ A auditoria registrou cobertura real de 0% — o único teste era o template pad
 | 2026-11-18 | 2.30 | Wilson Gorosthides | §4: chaves `ajustado`, `valor_tabela` e `justificativa` do serviço no jsonb (preço ajustado só no registro, CT-102); retrátil sem preço próprio usa o comum; SQL de dados com os valores de partida do app de referência (#134). |
 | 2026-11-19 | 2.31 | Wilson Gorosthides | §4: a linha retrátil de `precos` guarda o acréscimo sobre a peça comum (+ R$ 30 no app de referência); SQL de dados revisto (retrátil + 30, impermeabilização do sofá grande 370) (#134). |
 | 2026-11-19 | 2.32 | Wilson Gorosthides | §4: deslocamento em bloco próprio, gravado como peça `outro` com o valor ajustável; SQL de dados com o deslocamento a 20 (#134). |
+| 2026-11-19 | 2.33 | Wilson Gorosthides | §4: coluna `categoria` em `precos` (produto, mão de obra, imprevisto), produto que vem junto com o serviço da peça, chave `categoria` no jsonb `pecas` (ausente = mão de obra, inclusive o deslocamento) e o SQL dos grupos (issue #134). |
 
 ## 12. Ambiente de Desenvolvimento
 Os seguintes softwares e configurações são necessários para iniciar o desenvolvimento:
