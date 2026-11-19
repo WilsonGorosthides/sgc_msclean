@@ -52,7 +52,9 @@ void main() {
   late List<Peca> mudou;
 
   Future<void> bombear(WidgetTester tester,
-      {List<Peca> pecas = const [], List<ItemDePreco>? precos}) async {
+      {List<Peca> pecas = const [],
+      List<ItemDePreco>? precos,
+      bool incluirDeslocamento = false}) async {
     tester.view.physicalSize = const Size(1200, 4000);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
@@ -62,9 +64,11 @@ void main() {
       home: Scaffold(
         body: SingleChildScrollView(
           child: SeletorDePecas(
+            key: UniqueKey(), // bombear de novo abre um seletor novo
             pecas: pecas,
             tabela: precos ?? tabela,
             aoMudar: (p) => mudou = p,
+            incluirDeslocamento: incluirDeslocamento,
           ),
         ),
       ),
@@ -257,22 +261,44 @@ void main() {
       expect(colchao.quantidade, 2);
     });
 
-    testWidgets('deslocamento é liga/desliga; os outros avulsos por quantidade',
+    // CT-098 (#134, depois do terceiro teste no celular): o deslocamento
+    // fica fora dos Outros, já vem incluído e muda de R$ 1 em R$ 1.
+    testWidgets(
+        'deslocamento fora dos Outros, já incluído, de R\$ 1 em R\$ 1 ou digitado',
         (tester) async {
-      await bombear(tester);
+      await bombear(tester, incluirDeslocamento: true);
+      await tester.pump(); // o deslocamento incluído chega a quem usa
+      expect(mudou.single.tipo, 'outro');
+      expect(mudou.single.quantidade, 1);
+      expect(mudou.single.servicos.single.nome, 'Deslocamento');
+      expect(mudou.single.servicos.single.valor, 30);
+      expect(texto(tester, 'deslocamento_valor'), 'R\$ 30,00');
+
+      // o quadro Outros não lista o deslocamento
       await tocar(tester, 'familia_outros');
-
-      expect(find.text('Deslocamento'), findsOneWidget);
       expect(find.byKey(const Key('avulso_Deslocamento_mais')), findsNothing);
-      await tocar(tester, 'avulso_Deslocamento_liga');
+      expect(find.byKey(const Key('avulso_Deslocamento_liga')), findsNothing);
 
-      final outro = mudou.single;
-      expect(outro.tipo, 'outro');
-      expect(outro.quantidade, 1);
-      expect(outro.servicos.single.nome, 'Deslocamento');
-      expect(outro.servicos.single.valor, 30);
-      expect(texto(tester, 'selo_familia_outros'), '×1');
+      await tocar(tester, 'deslocamento_mais');
+      await tocar(tester, 'deslocamento_mais');
+      await tocar(tester, 'deslocamento_menos');
+      expect(texto(tester, 'deslocamento_valor'), 'R\$ 31,00');
+      var d = mudou.single.servicos.single;
+      expect(d.valor, 31);
+      expect(d.valorDaTabela, 30);
+      expect(mudou.single.quantidade, 1); // não vira quantidade
 
+      // tocar no valor deixa digitar
+      await tester.tap(find.byKey(const Key('deslocamento_valor')));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(const Key('ajuste_valor')), '50');
+      await tester.tap(find.byKey(const Key('ajuste_confirmar')));
+      await tester.pumpAndSettle();
+      d = mudou.single.servicos.single;
+      expect(d.valor, 50);
+      expect(texto(tester, 'deslocamento_valor'), 'R\$ 50,00');
+
+      // os outros avulsos seguem por quantidade
       await tocar(tester, 'avulso_Remoção de mancha_mais');
       await tocar(tester, 'avulso_Remoção de mancha_mais');
       expect(
@@ -280,8 +306,28 @@ void main() {
               .quantidade,
           2);
 
-      await tocar(tester, 'avulso_Deslocamento_liga');
+      // o interruptor tira o deslocamento
+      await tocar(tester, 'deslocamento_cobrar');
       expect(mudou.single.servicos.single.nome, 'Remoção de mancha');
+    });
+
+    testWidgets('sem o pedido, abre sem deslocamento e ele pode ser ligado',
+        (tester) async {
+      await bombear(tester);
+      await tester.pump();
+      expect(mudou, isEmpty);
+      expect(find.byKey(const Key('deslocamento')), findsOneWidget);
+
+      await tocar(tester, 'deslocamento_cobrar');
+      expect(mudou.single.servicos.single.nome, 'Deslocamento');
+      expect(mudou.single.servicos.single.valor, 30);
+
+      // gravado antes: volta ao bloco, não ao quadro Outros
+      final gravadas = [...mudou];
+      await bombear(tester, pecas: gravadas);
+      await tester.pump();
+      expect(texto(tester, 'deslocamento_valor'), 'R\$ 30,00');
+      expect(find.byKey(const Key('selo_familia_outros')), findsNothing);
     });
 
     // CT-102: preço do serviço ajustado só neste registro.
@@ -319,9 +365,8 @@ void main() {
       expect(tabela.first.valor, 200); // a tabela não muda
 
       // avulso e colchão também, sem justificativa
-      await tocar(tester, 'familia_outros');
-      await tocar(tester, 'avulso_Deslocamento_liga');
-      await ajustar(tester, 'avulso_Deslocamento_ajustar', '45');
+      await tocar(tester, 'deslocamento_cobrar');
+      await ajustar(tester, 'deslocamento_valor', '45');
       expect(
           mudou.firstWhere((p) => p.tipo == 'outro').servicos.single.valor, 45);
 
