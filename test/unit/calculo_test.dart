@@ -254,5 +254,116 @@ void main() {
         expect(linhas[2].valor, isNull);
       });
     });
+
+    // CT-104 (#134): o produto vem junto com o serviço da peça.
+    group('produtos do serviço:', () {
+      const imp = TipoDeServico.impermeabilizar;
+      const tabela = [
+        // o produto vem antes na tabela: o preço do serviço não pode pegá-lo
+        ItemDePreco(
+            nome: 'Impermeabilizante sofá 3 lugares',
+            unidade: UnidadeDeCobranca.peca,
+            valor: 190,
+            peca: Familia.sofa,
+            variante: '3',
+            servico: imp,
+            categoria: Categoria.produto),
+        ItemDePreco(
+            nome: 'Impermeabilização sofá 3 lugares',
+            unidade: UnidadeDeCobranca.peca,
+            valor: 90,
+            peca: Familia.sofa,
+            variante: '3',
+            servico: imp),
+        ItemDePreco(
+            nome: 'Impermeabilizante sofá 4 lugares',
+            unidade: UnidadeDeCobranca.peca,
+            valor: 250,
+            peca: Familia.sofa,
+            variante: '4',
+            servico: imp,
+            categoria: Categoria.produto),
+        ItemDePreco(
+            nome: 'Impermeabilizante de tapete',
+            unidade: UnidadeDeCobranca.m2,
+            valor: 5,
+            peca: Familia.tapete,
+            servico: imp,
+            categoria: Categoria.produto),
+      ];
+
+      test('mesma peça e serviço, variante igual ou nenhuma', () {
+        final sofa3 = produtosDoServico(tabela, Familia.sofa, '3', imp);
+        expect(sofa3.map((p) => p.nome), ['Impermeabilizante sofá 3 lugares']);
+        expect(sofa3.single.valor, 190);
+        expect(sofa3.single.categoria, Categoria.produto);
+        expect(produtosDoServico(tabela, Familia.sofa, '4', imp).single.valor,
+            250);
+        expect(produtosDoServico(tabela, Familia.sofa, '2', imp), isEmpty);
+        expect(
+            produtosDoServico(
+                tabela, Familia.sofa, '3', TipoDeServico.higienizar),
+            isEmpty);
+        // sem variante na linha do produto: vale para a peça toda
+        expect(
+            produtosDoServico(tabela, Familia.tapete, null, imp).single.nome,
+            'Impermeabilizante de tapete');
+        // o preço do serviço é o da mão de obra, nunca o do produto
+        final servico =
+            precoDoServico(tabela, Familia.sofa, '3', false, imp);
+        expect(servico.valor, 90);
+        expect(servico.categoria, Categoria.maoDeObra);
+      });
+    });
+
+    // CT-105 (#134): soma por grupo, para a nota do orçamento.
+    test('soma por grupo: produto, mão de obra e imprevisto; sem grupo é mão de obra',
+        () {
+      final pecas = [
+        const Peca(tipo: 'sofá', variante: '3', servicos: [
+          ItemDePreco(
+              nome: 'Impermeabilização sofá 3 lugares',
+              unidade: UnidadeDeCobranca.peca,
+              valor: 90),
+          ItemDePreco(
+              nome: 'Impermeabilizante sofá 3 lugares',
+              unidade: UnidadeDeCobranca.peca,
+              valor: 190,
+              categoria: Categoria.produto),
+        ]),
+        const Peca(tipo: 'outro', servicos: [
+          ItemDePreco(
+              nome: 'Tira-manchas',
+              unidade: UnidadeDeCobranca.peca,
+              valor: 15,
+              categoria: Categoria.produto),
+        ]),
+        const Peca(tipo: 'outro', servicos: [
+          ItemDePreco(
+              nome: 'Segunda lavagem',
+              unidade: UnidadeDeCobranca.peca,
+              valor: 60,
+              categoria: Categoria.imprevisto),
+        ]),
+        Peca.fromMap({
+          'tipo': 'outro',
+          'servicos': [
+            {'nome': 'Deslocamento', 'unidade': 'peca', 'valor': 20},
+          ],
+        }),
+      ];
+
+      expect(subtotaisPorGrupo(pecas), {
+        Categoria.produto: 205.0,
+        Categoria.maoDeObra: 110.0,
+        Categoria.imprevisto: 60.0,
+      });
+      expect(subtotaisPorGrupo(pecas).keys,
+          [Categoria.produto, Categoria.maoDeObra, Categoria.imprevisto]);
+      expect(calcularValor(pecas).total, 375);
+      // grupo sem valor não aparece
+      expect(subtotaisPorGrupo(pecas.sublist(0, 1)).keys,
+          [Categoria.produto, Categoria.maoDeObra]);
+    });
   });
 }

@@ -323,6 +323,50 @@ void main() {
       expect(antiga.servicos.first.valor, 180);
     });
 
+    // CT-105 (#134): o grupo de cada serviço vai ao registro; a mão de obra é
+    // o padrão e fica sem a chave.
+    test('grupo do serviço vai ao jsonb; sem a chave, mão de obra', () {
+      const peca = Peca(tipo: 'sofá', variante: '3', servicos: [
+        ItemDePreco(
+            nome: 'Impermeabilização sofá 3 lugares',
+            unidade: UnidadeDeCobranca.peca,
+            valor: 90,
+            servico: TipoDeServico.impermeabilizar),
+        ItemDePreco(
+            nome: 'Impermeabilizante sofá 3 lugares',
+            unidade: UnidadeDeCobranca.peca,
+            valor: 190,
+            servico: TipoDeServico.impermeabilizar,
+            categoria: Categoria.produto),
+        ItemDePreco(
+            nome: 'Segunda lavagem',
+            unidade: UnidadeDeCobranca.peca,
+            valor: 60,
+            categoria: Categoria.imprevisto),
+      ]);
+
+      final servicos = peca.toMap()['servicos'] as List;
+      expect((servicos[0] as Map).containsKey('categoria'), isFalse);
+      expect((servicos[1] as Map)['categoria'], 'produto');
+      expect((servicos[2] as Map)['categoria'], 'imprevisto');
+
+      final lida = Peca.fromMap(peca.toMap());
+      expect(lida.servicos.map((s) => s.categoria), [
+        Categoria.maoDeObra,
+        Categoria.produto,
+        Categoria.imprevisto,
+      ]);
+      expect(lida.servicos[1].servico, TipoDeServico.impermeabilizar);
+      // gravado antes, sem a chave: mão de obra
+      final antiga = Peca.fromMap({
+        'tipo': 'outro',
+        'servicos': [
+          {'nome': 'Deslocamento', 'unidade': 'peca', 'valor': 20},
+        ],
+      });
+      expect(antiga.servicos.single.categoria, Categoria.maoDeObra);
+    });
+
     test('resumo leva lugares, tamanho e retrátil', () {
       expect(const Peca(tipo: 'sofá', variante: '3').resumo, 'sofá 3 lugares');
       expect(const Peca(tipo: 'sofá', variante: 'canto', retratil: true).resumo,

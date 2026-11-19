@@ -276,5 +276,79 @@ void main() {
 
       expect(find.byKey(const Key('lista_sugerida')), findsNothing);
     });
+
+    // CT-103 (#134): a tabela dividida em grupos, como no app de referência.
+    testWidgets('tabela dividida em produtos, mão de obra e imprevistos',
+        (tester) async {
+      tabela = [
+        sofa,
+        const ItemDePreco(
+          id: 'p4',
+          nome: 'Impermeabilizante sofá 3 lugares',
+          unidade: UnidadeDeCobranca.peca,
+          valor: 190,
+          ordem: 5,
+          peca: Familia.sofa,
+          variante: '3',
+          servico: TipoDeServico.impermeabilizar,
+          categoria: Categoria.produto,
+        ),
+        const ItemDePreco(
+          id: 'p5',
+          nome: 'Segunda lavagem',
+          unidade: UnidadeDeCobranca.peca,
+          ordem: 6,
+          categoria: Categoria.imprevisto,
+        ),
+      ];
+      await bombear(tester);
+
+      double y(Finder f) => tester.getTopLeft(f).dy;
+      final ordem = [
+        y(find.byKey(const Key('grupo_produto'))),
+        y(find.text('Impermeabilizante sofá 3 lugares')),
+        y(find.byKey(const Key('grupo_mao_de_obra'))),
+        y(find.text('Higienização sofá 3 lugares')),
+        y(find.byKey(const Key('grupo_imprevisto'))),
+        y(find.text('Segunda lavagem')),
+      ];
+      for (var i = 1; i < ordem.length; i++) {
+        expect(ordem[i], greaterThan(ordem[i - 1]), reason: 'posição $i');
+      }
+      expect(find.text('Produtos'), findsOneWidget);
+      expect(find.text('Mão de obra'), findsOneWidget);
+      expect(find.text('Imprevistos'), findsOneWidget);
+    });
+
+    testWidgets('editor grava o grupo escolhido', (tester) async {
+      await bombear(tester);
+
+      await tester.tap(find.byKey(const Key('novo_preco')));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+          find.byKey(const Key('preco_nome')), 'Neutralizador de odor');
+      await tester.tap(find.byKey(const Key('preco_categoria_produto')));
+      await tester.pump();
+      await tester.enterText(find.byKey(const Key('preco_valor')), '35');
+      await tester.tap(find.byKey(const Key('salvar_preco')));
+      await tester.pumpAndSettle();
+
+      final gravado =
+          verify(() => service.addPreco(captureAny())).captured.single
+              as ItemDePreco;
+      expect(gravado.categoria, Categoria.produto);
+      expect(gravado.peca, isNull);
+      expect(gravado.valor, 35);
+
+      // editar um item existente abre com o grupo dele
+      await tester.tap(find.text('Higienização sofá 3 lugares'));
+      await tester.pumpAndSettle();
+      expect(
+          tester
+              .widget<ChoiceChip>(
+                  find.byKey(const Key('preco_categoria_mao_de_obra')))
+              .selected,
+          isTrue);
+    });
   });
 }

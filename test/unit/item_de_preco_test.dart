@@ -61,6 +61,8 @@ void main() {
         'variante': null,
         'servico': null,
         'retratil': false,
+        // sem grupo: mão de obra (#134)
+        'categoria': 'mao_de_obra',
       });
       expect(
           const ItemDePreco(nome: 'Odor', unidade: UnidadeDeCobranca.peca)
@@ -124,6 +126,7 @@ void main() {
         'variante': '4',
         'servico': 'impermeabilizar',
         'retratil': true,
+        'categoria': 'mao_de_obra',
       });
 
       final avulso = ItemDePreco.fromMap(
@@ -187,6 +190,67 @@ void main() {
               .where((i) => i.nome.contains('sofá'))
               .every((i) => i.unidade == UnidadeDeCobranca.peca),
           isTrue);
+    });
+
+    // CT-103 (#134): grupos da tabela, como no app de referência.
+    test('coluna categoria vai e volta; sem ela, mão de obra', () {
+      ItemDePreco ler(Object? categoria) => ItemDePreco.fromMap({
+            'nome': 'Item',
+            'unidade': 'peca',
+            if (categoria != null) 'categoria': categoria,
+          });
+
+      expect(ler('produto').categoria, Categoria.produto);
+      expect(ler('imprevisto').categoria, Categoria.imprevisto);
+      expect(ler('mao_de_obra').categoria, Categoria.maoDeObra);
+      expect(ler(null).categoria, Categoria.maoDeObra);
+      expect(ler('?').categoria, Categoria.maoDeObra);
+      expect(ler('produto').toMap()['categoria'], 'produto');
+      expect(ler('imprevisto').toMap()['categoria'], 'imprevisto');
+      expect(
+          [for (final c in Categoria.values) c.titulo],
+          ['Produtos', 'Mão de obra', 'Imprevistos']);
+      // a cópia para o registro e o ajuste não perdem o grupo
+      final produto = ler('produto');
+      expect(produto.copia().categoria, Categoria.produto);
+      expect(produto.ajustar(10, null).categoria, Categoria.produto);
+      expect(produto.ajustar(10, null).semAjuste().categoria,
+          Categoria.produto);
+    });
+
+    test('lista sugerida com produtos e imprevistos, sem valor', () {
+      final lista = ItemDePreco.listaSugerida();
+      Iterable<ItemDePreco> doGrupo(Categoria c) =>
+          lista.where((i) => i.categoria == c);
+
+      // impermeabilizante do sofá, ligado a impermeabilizar, por lugares
+      for (final v in ['2', '3', '4', 'canto']) {
+        final produto = doGrupo(Categoria.produto).where((i) =>
+            i.peca == Familia.sofa &&
+            i.variante == v &&
+            i.servico == TipoDeServico.impermeabilizar);
+        expect(produto, hasLength(1), reason: 'impermeabilizante sofá $v');
+        expect(produto.single.nome, startsWith('Impermeabilizante'));
+      }
+      final produtosAvulsos = [
+        for (final i in doGrupo(Categoria.produto))
+          if (i.peca == null) i.nome,
+      ];
+      for (final nome in ['Neutralizador', 'Tira-manchas', 'Hidratante']) {
+        expect(produtosAvulsos.any((n) => n.startsWith(nome)), isTrue,
+            reason: nome);
+      }
+      final imprevistos = doGrupo(Categoria.imprevisto).toList();
+      expect(imprevistos, hasLength(4));
+      expect(imprevistos.every((i) => i.peca == null), isTrue);
+      // deslocamento e os serviços são mão de obra
+      expect(lista.firstWhere((i) => i.nome == 'Deslocamento').categoria,
+          Categoria.maoDeObra);
+      expect(
+          lista.firstWhere((i) => i.nome == 'Higienização sofá 3 lugares')
+              .categoria,
+          Categoria.maoDeObra);
+      expect(lista.every((i) => i.valor == null), isTrue);
     });
   });
 }

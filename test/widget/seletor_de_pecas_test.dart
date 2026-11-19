@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sgc_msclean/models/item_de_preco.dart';
 import 'package:sgc_msclean/models/peca.dart';
+import 'package:sgc_msclean/utils/calculo.dart';
+import 'package:sgc_msclean/widgets/rodape_do_total.dart';
 import 'package:sgc_msclean/widgets/seletor_de_pecas.dart';
 
 // Seletor de peças e serviços (RF-013, issue #134): quadros por família,
@@ -22,7 +24,8 @@ void main() {
   ItemDePreco linha(String nome, Familia? peca, String? variante,
           TipoDeServico? servico, double? valor,
           {bool retratil = false,
-          UnidadeDeCobranca unidade = UnidadeDeCobranca.peca}) =>
+          UnidadeDeCobranca unidade = UnidadeDeCobranca.peca,
+          Categoria categoria = Categoria.maoDeObra}) =>
       ItemDePreco(
           id: nome,
           nome: nome,
@@ -31,7 +34,8 @@ void main() {
           peca: peca,
           variante: variante,
           servico: servico,
-          retratil: retratil);
+          retratil: retratil,
+          categoria: categoria);
 
   const hig = TipoDeServico.higienizar;
   const imp = TipoDeServico.impermeabilizar;
@@ -436,6 +440,175 @@ void main() {
       expect(sofa.servicos.first.valor, 180);
       expect(mudou.firstWhere((p) => p.tipo == 'tapete').area, 6);
       expect(mudou.firstWhere((p) => p.tipo == 'outro').quantidade, 2);
+    });
+
+    // CT-104 (#134): impermeabilizar traz a aplicação (mão de obra) e o
+    // impermeabilizante (produto), como na nota do app de referência.
+    final comProdutos = [
+      linha('Impermeabilizante sofá 3 lugares', Familia.sofa, '3', imp, 190,
+          categoria: Categoria.produto),
+      linha('Impermeabilização sofá 3 lugares', Familia.sofa, '3', imp, 90),
+      linha('Impermeabilização sofá 4 lugares', Familia.sofa, '4', imp, 120),
+      linha('Impermeabilizante sofá 4 lugares', Familia.sofa, '4', imp, 250,
+          categoria: Categoria.produto),
+      linha('Impermeabilização de tapete', Familia.tapete, null, imp, 10,
+          unidade: UnidadeDeCobranca.m2),
+      linha('Impermeabilizante de tapete', Familia.tapete, null, imp, 5,
+          unidade: UnidadeDeCobranca.m2, categoria: Categoria.produto),
+    ];
+
+    testWidgets('produto vem junto com o serviço: botão soma, cada linha com preço e ajuste',
+        (tester) async {
+      await bombear(tester, precos: comProdutos);
+      await tocar(tester, 'familia_sofa');
+      await tocar(tester, 'cartao_0_impermeabilizar');
+
+      expect(texto(tester, 'cartao_0_impermeabilizar_preco'), 'R\$ 280,00');
+      final produto = texto(tester, 'cartao_0_impermeabilizar_produto_0');
+      expect(produto, contains('Impermeabilizante sofá 3 lugares'));
+      expect(produto, contains('R\$ 190,00'));
+      expect(mudou.single.servicos.map((s) => (s.nome, s.valor, s.categoria)), [
+        ('Impermeabilização sofá 3 lugares', 90.0, Categoria.maoDeObra),
+        ('Impermeabilizante sofá 3 lugares', 190.0, Categoria.produto),
+      ]);
+
+      // 4 lugares: os dois trocam de preço
+      await tocar(tester, 'cartao_0_mais_lugares');
+      expect(texto(tester, 'cartao_0_impermeabilizar_preco'), 'R\$ 370,00');
+      expect(texto(tester, 'cartao_0_impermeabilizar_produto_0'),
+          contains('R\$ 250,00'));
+      // o retrátil não muda o produto
+      await tocar(tester, 'cartao_0_retratil');
+      expect(texto(tester, 'cartao_0_impermeabilizar_produto_0'),
+          contains('R\$ 250,00'));
+      expect(calcularValor(mudou).total, 370);
+
+      // o produto tem o seu ajuste
+      await tester.tap(
+          find.byKey(const Key('cartao_0_impermeabilizar_produto_0_ajustar')));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(const Key('ajuste_valor')), '200');
+      await tester.tap(find.byKey(const Key('ajuste_confirmar')));
+      await tester.pumpAndSettle();
+      expect(
+          find.byKey(const Key('cartao_0_impermeabilizar_produto_0_ajustado')),
+          findsOneWidget);
+      expect(texto(tester, 'cartao_0_impermeabilizar_preco'), 'R\$ 320,00');
+      final gravadas = mudou;
+      expect(gravadas.single.servicos.last.valor, 200);
+      expect(gravadas.single.servicos.last.ajustado, isTrue);
+
+      // reabrir não perde o produto nem o ajuste
+      await bombear(tester, pecas: gravadas, precos: comProdutos);
+      expect(texto(tester, 'cartao_0_impermeabilizar_produto_0'),
+          contains('R\$ 200,00'));
+      expect(texto(tester, 'cartao_0_impermeabilizar_preco'), 'R\$ 320,00');
+      expect(
+          find.byKey(const Key('cartao_0_impermeabilizar_produto_0_ajustado')),
+          findsOneWidget);
+
+      // desmarcar tira os dois
+      await tocar(tester, 'cartao_0_impermeabilizar');
+      expect(mudou.single.servicos, isEmpty);
+      expect(find.byKey(const Key('cartao_0_impermeabilizar_produto_0')),
+          findsNothing);
+    });
+
+    testWidgets('produto sem variante vale para a peça toda (tapete por m²)',
+        (tester) async {
+      await bombear(tester, precos: comProdutos);
+      await tocar(tester, 'familia_tapete');
+      for (var k = 0; k < 4; k++) {
+        await tocar(tester, 'cartao_0_mais_largura');
+      }
+      for (var k = 0; k < 6; k++) {
+        await tocar(tester, 'cartao_0_mais_comprimento');
+      }
+      await tocar(tester, 'cartao_0_impermeabilizar');
+
+      expect(mudou.single.servicos.map((s) => s.nome), [
+        'Impermeabilização de tapete',
+        'Impermeabilizante de tapete',
+      ]);
+      // 6 m² × (R$ 10 + R$ 5)
+      expect(calcularValor(mudou).total, 90);
+    });
+
+    // CT-105 (#134): os avulsos por grupo; o deslocamento segue no bloco.
+    final avulsosPorGrupo = [
+      linha('Deslocamento', null, null, null, 20),
+      linha('Remoção de mancha', null, null, null, 50),
+      linha('Tira-manchas', null, null, null, 15,
+          categoria: Categoria.produto),
+      linha('Segunda lavagem', null, null, null, 60,
+          categoria: Categoria.imprevisto),
+    ];
+
+    testWidgets('avulsos do quadro Outros separados por grupo; deslocamento fora',
+        (tester) async {
+      await bombear(tester, precos: avulsosPorGrupo);
+      await tocar(tester, 'familia_outros');
+
+      double y(Finder f) => tester.getTopLeft(f).dy;
+      final ordem = [
+        y(find.byKey(const Key('outros_grupo_produto'))),
+        y(find.text('Tira-manchas')),
+        y(find.byKey(const Key('outros_grupo_mao_de_obra'))),
+        y(find.text('Remoção de mancha')),
+        y(find.byKey(const Key('outros_grupo_imprevisto'))),
+        y(find.text('Segunda lavagem')),
+      ];
+      for (var i = 1; i < ordem.length; i++) {
+        expect(ordem[i], greaterThan(ordem[i - 1]), reason: 'posição $i');
+      }
+      expect(texto(tester, 'outros_grupo_produto'), 'Produtos');
+      expect(texto(tester, 'outros_grupo_mao_de_obra'), 'Mão de obra');
+      expect(texto(tester, 'outros_grupo_imprevisto'), 'Imprevistos');
+      // o deslocamento só no bloco próprio
+      expect(find.text('Deslocamento'), findsOneWidget);
+      expect(
+          find.descendant(
+              of: find.byKey(const Key('deslocamento')),
+              matching: find.text('Deslocamento')),
+          findsOneWidget);
+
+      await tocar(tester, 'avulso_Segunda lavagem_mais');
+      expect(mudou.single.servicos.single.categoria, Categoria.imprevisto);
+    });
+
+    testWidgets('detalhes do rodapé mostram o subtotal de cada grupo',
+        (tester) async {
+      final pecas = [
+        Peca(tipo: 'sofá', variante: '3', servicos: [
+          comProdutos[1].copia(),
+          comProdutos[0].copia(),
+        ]),
+        Peca(tipo: 'outro', servicos: [avulsosPorGrupo[2].copia()]),
+        Peca(tipo: 'outro', servicos: [avulsosPorGrupo[3].copia()]),
+        Peca(tipo: 'outro', servicos: [avulsosPorGrupo[0].copia()]),
+      ];
+      tester.view.physicalSize = const Size(1200, 2400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+          bottomNavigationBar: RodapeDoTotal(
+            pecas: pecas,
+            valorManual: null,
+            aoMudarValor: (_) {},
+            aoSalvar: () {},
+            rotuloSalvar: 'Salvar',
+          ),
+        ),
+      ));
+
+      expect(find.byKey(const Key('subtotal_produto')), findsNothing);
+      await tocar(tester, 'ver_detalhes');
+      expect(texto(tester, 'subtotal_produto'), 'R\$ 205,00');
+      expect(texto(tester, 'subtotal_mao_de_obra'), 'R\$ 110,00');
+      expect(texto(tester, 'subtotal_imprevisto'), 'R\$ 60,00');
+      expect(texto(tester, 'total_a_cobrar'), 'R\$ 375,00');
     });
   });
 }
