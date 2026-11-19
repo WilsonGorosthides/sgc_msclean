@@ -1012,14 +1012,16 @@
   2. Mudar o valor para 180; mudar os lugares; tocar em "Usar o calculado"; salvar.
 - **Resultado esperado:** o rodapé fica à vista sem rolar e mostra "R$ 200,00"; os detalhes listam "Higienização sofá 3 lugares", a legenda e o valor; o valor mudado fica mesmo com o total mudando; "Usar o calculado" volta ao total, que é gravado.
 
-### CT-098 — Avulsos pelo quadro Outros
-- **Critério:** "Os itens avulsos da tabela (sem peça [...]) entram pelo quadro **Outros**, cada um com a sua quantidade; o **deslocamento** é liga/desliga (cobrado uma vez)."
-- **Tipo:** Widget · **Situação:** implementado — `seletor_de_pecas_test: deslocamento é liga/desliga; os outros avulsos por quantidade`
-- **Pré-condições:** tabela com "Deslocamento" (avulso, R$ 40) e "Remoção de mancha" (avulso, R$ 50).
+### CT-098 — Deslocamento em bloco próprio; avulsos pelo quadro Outros
+- **Critério:** "O **deslocamento** fica fora do quadro Outros, num bloco próprio, e **já vem incluído** quando ela abre Peças e valor de um atendimento ainda sem peças [...]; o valor, o da tabela, sobe e desce de **R$ 1 em R$ 1** com − / + e pode ser **digitado** tocando nele; um interruptor tira o deslocamento [...]. Os outros itens avulsos [...] entram pelo quadro **Outros**, cada um com a sua quantidade."
+- **Tipo:** Widget · **Situação:** a implementar (deslocamento em bloco próprio, #134 depois do terceiro teste no celular)
+- **Pré-condições:** tabela com "Deslocamento" (avulso, R$ 30) e "Remoção de mancha" (avulso, R$ 50).
 - **Passos:**
-  1. Tocar em Outros, ligar o Deslocamento e tocar + duas vezes na Remoção de mancha.
-  2. Desligar o Deslocamento.
-- **Resultado esperado:** o Deslocamento tem um interruptor (sem − / +) e soma R$ 40 uma vez; a mancha soma 2 × R$ 50; desligado, o deslocamento sai do total. O atendimento grava peças "outro" com os serviços.
+  1. Abrir o seletor sem peças, pedindo o deslocamento incluído; abrir o quadro Outros.
+  2. Tocar + duas vezes e − uma vez no deslocamento; tocar no valor e digitar 50.
+  3. Tocar + duas vezes na Remoção de mancha; desligar o deslocamento.
+  4. Abrir o seletor sem pedir o deslocamento incluído.
+- **Resultado esperado:** o deslocamento já está no registro com R$ 30, fora do quadro Outros (que não o lista); vai a R$ 31 e depois R$ 50, marcado como ajustado sobre a tabela; a mancha soma 2 × R$ 50; desligado, o deslocamento sai do total. Sem o pedido, o seletor abre sem deslocamento e ele pode ser ligado no bloco. O atendimento grava peças "outro" com os serviços.
 
 ### CT-099 — Atendimento da versão anterior abre e salva sem perder
 - **Critério:** "Atendimentos registrados antes desta interação abrem com as peças e os preços copiados, e salvar não perde nenhum serviço."
@@ -1340,4 +1342,5 @@ falso, que pode estar "fora do ar", e um armazenamento em memória no lugar do
 | 2026-11-18 | 1.45 | Wilson Gorosthides | CT-096, CT-098, CT-100 e CT-102 passam a "implementado" (issue #134, ajustes depois do teste no celular). |
 | 2026-11-19 | 1.46 | Wilson Gorosthides | Depois do segundo teste no celular (#134): CT-096 e CT-100 revistos, o retrátil passa a ser o preço comum mais um acréscimo. "A implementar". |
 | 2026-11-19 | 1.47 | Wilson Gorosthides | CT-096 e CT-100 passam a "implementado" (retrátil como acréscimo, issue #134). |
+| 2026-11-19 | 1.48 | Wilson Gorosthides | Depois do terceiro teste no celular (#134): CT-098 revisto, deslocamento em bloco próprio, já incluído, de R$ 1 em R$ 1 ou digitado. "A implementar". |
 | 2026-11-17 | 1.36 | Wilson Gorosthides | CT-055 ganha o teste da linha repetida pelo banco (bug #128: atendimento em dobro na agenda). |
