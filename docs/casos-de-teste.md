@@ -853,7 +853,7 @@
 
 ### CT-107 — Resumo do histórico no atendimento
 - **Critério:** "No **atendimento**, ao escolher o cliente, uma linha sob o nome mostra **há quanto tempo** foi a última visita e o **último valor cobrado** ("última vez há 3 meses · R$ 250,00"; quando o valor é de uma visita mais antiga, com a data dela), ou "primeiro atendimento" quando não há visita anterior. Na edição, o próprio atendimento não conta."
-- **Tipo:** Unitário + Widget · **Situação:** a implementar
+- **Tipo:** Unitário + Widget · **Situação:** implementado — `historico_test: resumo do histórico no atendimento: última vez e último valor` · `atendimento_form_screen_test: resumo do histórico sob o cliente escolhido`
 - **Pré-condições:** hoje 17/11/2026; Ana com atendimentos em 17/08/2026 (R$ 250) e 17/10/2026 (sem valor), e um marcado para 20/11/2026; Bruno sem atendimento.
 - **Passos:**
   1. Montar o resumo da Ana, do Bruno e da Ana excluindo o atendimento de 17/10 (função pura).
