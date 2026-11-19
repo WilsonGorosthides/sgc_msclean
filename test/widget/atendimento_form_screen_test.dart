@@ -42,9 +42,13 @@ void main() {
   // Tabela de preços (RF-013, #124): vazia, salvo nos testes do cálculo.
   var tabela = <ItemDePreco>[];
 
+  // Atendimentos já carregados pela agenda (histórico no atendimento, #129).
+  var atendimentos = <Atendimento>[];
+
   setUp(() {
     service = MockSupabaseService();
     tabela = [];
+    atendimentos = [];
     when(() => service.addAtendimento(any())).thenAnswer((_) async {});
     when(() => service.getPrecosStream())
         .thenAnswer((_) => Stream.value([...tabela]));
@@ -66,6 +70,8 @@ void main() {
         clientes: clientes,
         atendimento: atendimento,
         contatos: contatos,
+        atendimentos: atendimentos,
+        hoje: dia,
       ),
     ));
     await tester.pump(); // a tabela de preços chega
@@ -260,6 +266,39 @@ void main() {
       await bombear(tester, chave: const Key('segundo'));
       await tocar(tester, 'escolher_cliente_2');
       expect(textoDoCampo(tester, 'campo_local'), '');
+    });
+
+    testWidgets('resumo do histórico sob o cliente escolhido', (tester) async {
+      final agosto = Atendimento(
+          id: 'ago', data: DateTime(2026, 8, 13), periodo: Periodo.manha,
+          clienteId: '1', valor: 250);
+      final outubro = Atendimento(
+          id: 'out', data: DateTime(2026, 10, 13), periodo: Periodo.tarde,
+          clienteId: '1');
+      atendimentos = [agosto, outubro];
+      String linha() => tester
+          .widget<Text>(find.byKey(const Key('historico_do_cliente')))
+          .data!;
+
+      await bombear(tester);
+      expect(find.byKey(const Key('historico_do_cliente')), findsNothing);
+      await tocar(tester, 'escolher_cliente_1');
+      expect(linha(), 'última vez há 1 mês · R\$ 250,00 em 13/08/26');
+
+      await tocar(tester, 'trocar_cliente');
+      await tocar(tester, 'escolher_cliente_2');
+      expect(linha(), 'primeiro atendimento');
+
+      // nome ainda não cadastrado: sem histórico
+      await tocar(tester, 'trocar_cliente');
+      await digitar(tester, 'busca_cliente', 'Dona Ivete');
+      await tester.pump();
+      await tocar(tester, 'anotar_so_nome');
+      expect(find.byKey(const Key('historico_do_cliente')), findsNothing);
+
+      // na edição, o próprio atendimento não conta
+      await bombear(tester, atendimento: outubro, chave: const Key('edicao'));
+      expect(linha(), 'última vez há 3 meses · R\$ 250,00');
     });
 
     testWidgets('trocar o cliente volta à busca', (tester) async {

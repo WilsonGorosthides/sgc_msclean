@@ -96,6 +96,17 @@ excluir o atendimento no fim.
    formulário e o histórico na tela da cliente. **Esperado:** em vez de
    "outro", aparecem "deslocamento" e "excesso de pelo de pet". (CT-106)
 
+### #129 — Resumo do histórico no atendimento (RF-011)
+
+1. Na agenda, tocar em "Novo atendimento" e escolher uma cliente que já foi
+   atendida. **Esperado:** sob o nome, "última vez há … · R$ …" com o valor da
+   última visita (se o valor for de uma visita mais antiga, com a data dela). (CT-107)
+2. Tocar em "Trocar" e escolher uma cliente sem atendimento. **Esperado:**
+   "primeiro atendimento". (CT-107)
+3. Abrir um atendimento já registrado (passado) dessa primeira cliente.
+   **Esperado:** a linha não conta o próprio atendimento: mostra a visita
+   anterior a ele. (CT-107)
+
 ## Execução 001 — Verificação manual do RF-001 (pré-merge do PR #44)
 
 - **Data:** 2026-07-16
@@ -707,3 +718,4 @@ versão nova, assinada com a mesma chave, instala por cima sem perder dados.
 | 2026-11-19 | 1.38 | Wilson Gorosthides | Pilha #134: SQL dos valores de partida e dos grupos e produtos aplicados pelo desenvolvedor no painel. |
 | 2026-11-19 | 1.39 | Wilson Gorosthides | Execução 015 (seletor de peças, grupos e produtos, pré-merge #134, PR #135): sete passos aprovados no celular; o bloco #134 e o SQL saem da pilha. |
 | 2026-11-19 | 1.40 | Wilson Gorosthides | Pilha: entra o passo do item avulso pelo nome no resumo (#141, CT-106), sem SQL. |
+| 2026-11-19 | 1.41 | Wilson Gorosthides | Pilha: entram os passos do resumo do histórico no atendimento (#129, CT-107), sem SQL. |

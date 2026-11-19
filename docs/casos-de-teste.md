@@ -851,6 +851,16 @@
   1. Abrir o cliente.
 - **Resultado esperado:** "Nenhum atendimento registrado", sem valor nem "há quanto tempo". No cadastro de cliente novo o histórico não aparece.
 
+### CT-107 — Resumo do histórico no atendimento
+- **Critério:** "No **atendimento**, ao escolher o cliente, uma linha sob o nome mostra **há quanto tempo** foi a última visita e o **último valor cobrado** ("última vez há 3 meses · R$ 250,00"; quando o valor é de uma visita mais antiga, com a data dela), ou "primeiro atendimento" quando não há visita anterior. Na edição, o próprio atendimento não conta."
+- **Tipo:** Unitário + Widget · **Situação:** implementado — `historico_test: resumo do histórico no atendimento: última vez e último valor` · `atendimento_form_screen_test: resumo do histórico sob o cliente escolhido`
+- **Pré-condições:** hoje 17/11/2026; Ana com atendimentos em 17/08/2026 (R$ 250) e 17/10/2026 (sem valor), e um marcado para 20/11/2026; Bruno sem atendimento.
+- **Passos:**
+  1. Montar o resumo da Ana, do Bruno e da Ana excluindo o atendimento de 17/10 (função pura).
+  2. Num atendimento novo, escolher a Ana; trocar para o Bruno.
+  3. Editar o atendimento de 17/10 da Ana.
+- **Resultado esperado:** Ana: "última vez há 1 mês · R$ 250,00 em 17/08/26" (a visita de 17/10 é a mais recente, sem valor; o marcado para depois de hoje não conta). Bruno: "primeiro atendimento". Na edição de 17/10: "última vez há 3 meses · R$ 250,00". Nome novo (ainda não cadastrado) não mostra a linha.
+
 ## RF-013 — Tabela de Preços e Cálculo do Valor
 
 > Parte 1 (issue #123): a tabela editável, CT-080 a CT-086. Parte 2 (issue
@@ -1385,4 +1395,5 @@ falso, que pode estar "fora do ar", e um armazenamento em memória no lugar do
 | 2026-11-19 | 1.50 | Wilson Gorosthides | CT-103, CT-104 e CT-105 (issue #134): grupos da tabela (produto, mão de obra, imprevisto), produto junto com o serviço da peça e grupo de cada serviço no registro e no rodapé. "A implementar". |
 | 2026-11-19 | 1.51 | Wilson Gorosthides | CT-103, CT-104 e CT-105 passam a "implementado" (grupos da tabela e produto junto com o serviço, issue #134). |
 | 2026-11-19 | 1.52 | Wilson Gorosthides | CT-106 (issue #141): item avulso pelo nome no resumo das peças, e não "outro". |
+| 2026-11-19 | 1.53 | Wilson Gorosthides | CT-107 (issue #129): resumo do histórico no atendimento, sob o cliente escolhido. |
 | 2026-11-17 | 1.36 | Wilson Gorosthides | CT-055 ganha o teste da linha repetida pelo banco (bug #128: atendimento em dobro na agenda). |

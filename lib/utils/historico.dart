@@ -47,6 +47,30 @@ String haQuantoTempo(DateTime data, DateTime hoje) {
   return 'há $anos ${anos > 1 ? 'anos' : 'ano'}';
 }
 
+// Linha sob o cliente escolhido no atendimento (#129): "última vez há 3 meses
+// · R$ 250,00". Quando o último valor é de uma visita mais antiga, vai com a
+// data dela. [semId]: na edição, o próprio atendimento não conta.
+String resumoDoHistorico(
+  List<Atendimento> todos,
+  String clienteId,
+  DateTime hoje, {
+  String? semId,
+}) {
+  final historico = [
+    for (final a in historicoDoCliente(todos, clienteId, hoje))
+      if (semId == null || a.id != semId) a,
+  ];
+  if (historico.isEmpty) return 'primeiro atendimento';
+  final ultima = historico.first;
+  final texto = 'última vez ${haQuantoTempo(ultima.data, hoje)}';
+  final comValor = ultimoComValor(historico);
+  if (comValor == null) return texto;
+  final valor = valorEmReais(comValor.valor!);
+  return identical(comValor, ultima)
+      ? '$texto · $valor'
+      : '$texto · $valor em ${dataCurta(comValor.data)}';
+}
+
 // "12/08/26"
 String dataCurta(DateTime d) =>
     '${_dois(d.day)}/${_dois(d.month)}/${_dois(d.year % 100)}';

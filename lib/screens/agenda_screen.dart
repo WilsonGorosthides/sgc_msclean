@@ -116,6 +116,8 @@ class _AgendaScreenState extends State<AgendaScreen> {
         data: atendimento?.data ?? _selecionado,
         clientes: _clientes ?? const [],
         atendimento: atendimento,
+        atendimentos: _atendimentos ?? const [],
+        hoje: _agora(),
       ),
     ));
     if (!mounted) return;
