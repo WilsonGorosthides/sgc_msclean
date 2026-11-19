@@ -101,7 +101,7 @@ alter publication supabase_realtime add table public.atendimentos;
 
 Cada serviço é **independente** (regra da proprietária): impermeabilização é uma linha como higienização, nunca um extra dela; o combo é escolher as duas linhas, ou cadastrar o combo como mais uma. Por isso não há coluna de "extra" nem relação entre linhas. A leitura passa pelo `EspelhoLocal` (guardada no aparelho, chave `espelho.precos`, para o cálculo sem internet da #124); a escrita (`addPreco`, `addPrecos`, `updatePreco`, `deletePreco`) vai direto ao banco, como a de clientes, e a tela renova a stream ao voltar. A tabela é lida via stream ordenada por `ordem`.
 
-**Peça, variante e serviço (issue #134).** O seletor de peças acha o preço pela combinação, não pelo nome (que ela pode mudar): quatro colunas opcionais — `peca` (`sofa`, `tapete`, `poltrona`, `cortina`, `colchao`, `cadeira`; nula = item avulso, que entra pelo quadro Outros), `variante` (lugares do sofá `2`/`3`/`4`/`canto`, tamanho do colchão `solteiro`/`casal`/`queen`/`king`), `servico` (`higienizar` ou `impermeabilizar`) e `retratil` (boolean, sofá e poltrona). Sem a linha da combinação, o serviço marcado fica "sem valor" — nunca se usa o preço de outros lugares ou de outro tamanho. No retrátil, o `valor` da linha retrátil é só o **acréscimo** sobre a mesma peça comum (como no app de referência, + R$ 30 na higienização do sofá); o serviço copiado para o atendimento já leva o preço final (comum + acréscimo), e sem acréscimo vale o comum (decisões de 2026-11-18 e 2026-11-19, depois dos testes no celular). A cortina passa a ser cobrada por folha. O mapeamento vive em `lib/models/familia.dart` (`Familia`, `TipoDeServico`, `nomeDoServico`).
+**Peça, variante e serviço (issue #134).** O seletor de peças acha o preço pela combinação, não pelo nome (que ela pode mudar): quatro colunas opcionais — `peca` (`sofa`, `tapete`, `poltrona`, `cortina`, `colchao`, `cadeira`; nula = item avulso, que entra pelo quadro Outros), `variante` (lugares do sofá `2`/`3`/`4`/`canto`, tamanho do colchão `solteiro`/`casal`/`queen`/`king`), `servico` (`higienizar` ou `impermeabilizar`) e `retratil` (boolean, sofá e poltrona). Sem a linha da combinação, o serviço marcado fica "sem valor" — nunca se usa o preço de outros lugares ou de outro tamanho. No retrátil, o `valor` da linha retrátil é só o **acréscimo** sobre a mesma peça comum (como no app de referência, + R$ 30 na higienização do sofá); o serviço copiado para o atendimento já leva o preço final (comum + acréscimo), e sem acréscimo vale o comum (decisões de 2026-11-18 e 2026-11-19, depois dos testes no celular). O avulso cujo nome contém "deslocamento" tem bloco próprio no seletor, fora do quadro Outros, e é gravado como uma peça `outro` com quantidade 1; o valor mudado no registro usa as chaves do ajuste (CT-098). A cortina passa a ser cobrada por folha. O mapeamento vive em `lib/models/familia.dart` (`Familia`, `TipoDeServico`, `nomeDoServico`).
 
 SQL a aplicar no painel do Supabase (issue #134):
 
@@ -195,10 +195,12 @@ update public.precos set valor = 370
 where peca = 'sofa' and variante in ('4', 'canto')
   and servico = 'impermeabilizar' and not retratil and valor = 340;
 
--- 2) Avulsos: tratamento de odor 70, mancha 50 (por mancha), deslocamento 40.
+-- 2) Avulsos: tratamento de odor 70, mancha 50 (por mancha). Deslocamento
+--    20 (decisão de 2026-11-19; o app de referência usa 40): também troca
+--    os 40 da versão anterior deste SQL.
 update public.precos set valor = 70 where peca is null and nome = 'Remoção de odor'   and valor is null;
 update public.precos set valor = 50 where peca is null and nome = 'Remoção de mancha' and valor is null;
-update public.precos set valor = 40 where peca is null and nome = 'Deslocamento'      and valor is null;
+update public.precos set valor = 20 where peca is null and nome = 'Deslocamento'      and (valor is null or valor = 40);
 
 -- 3) Retrátil: a linha retrátil agora guarda só o ACRÉSCIMO sobre o sofá
 --    comum. No app de referência: + R$ 30 na higienização do sofá.
@@ -455,6 +457,7 @@ A auditoria registrou cobertura real de 0% — o único teste era o template pad
 | 2026-11-17 | 2.29 | Wilson Gorosthides | Árvore §5 com `screens/pecas_e_valor_screen.dart`: no atendimento, o seletor de peças sai do formulário para uma tela própria, aberta por uma linha de resumo (#134). |
 | 2026-11-18 | 2.30 | Wilson Gorosthides | §4: chaves `ajustado`, `valor_tabela` e `justificativa` do serviço no jsonb (preço ajustado só no registro, CT-102); retrátil sem preço próprio usa o comum; SQL de dados com os valores de partida do app de referência (#134). |
 | 2026-11-19 | 2.31 | Wilson Gorosthides | §4: a linha retrátil de `precos` guarda o acréscimo sobre a peça comum (+ R$ 30 no app de referência); SQL de dados revisto (retrátil + 30, impermeabilização do sofá grande 370) (#134). |
+| 2026-11-19 | 2.32 | Wilson Gorosthides | §4: deslocamento em bloco próprio, gravado como peça `outro` com o valor ajustável; SQL de dados com o deslocamento a 20 (#134). |
 
 ## 12. Ambiente de Desenvolvimento
 Os seguintes softwares e configurações são necessários para iniciar o desenvolvimento:

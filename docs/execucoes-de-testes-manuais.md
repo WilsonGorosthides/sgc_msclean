@@ -142,10 +142,12 @@ update public.precos set valor = 370
 where peca = 'sofa' and variante in ('4', 'canto')
   and servico = 'impermeabilizar' and not retratil and valor = 340;
 
--- 2) Avulsos: tratamento de odor 70, mancha 50 (por mancha), deslocamento 40.
+-- 2) Avulsos: tratamento de odor 70, mancha 50 (por mancha). Deslocamento
+--    20 (decisão de 2026-11-19; o app de referência usa 40): também troca
+--    os 40 da versão anterior deste SQL.
 update public.precos set valor = 70 where peca is null and nome = 'Remoção de odor'   and valor is null;
 update public.precos set valor = 50 where peca is null and nome = 'Remoção de mancha' and valor is null;
-update public.precos set valor = 40 where peca is null and nome = 'Deslocamento'      and valor is null;
+update public.precos set valor = 20 where peca is null and nome = 'Deslocamento'      and (valor is null or valor = 40);
 
 -- 3) Retrátil: a linha retrátil agora guarda só o ACRÉSCIMO sobre o sofá
 --    comum. No app de referência: + R$ 30 na higienização do sofá.
@@ -257,9 +259,11 @@ passado, e excluir o atendimento no fim.
    4 lugares, depois voltar e ligar o retrátil. **Esperado:** cada botão mostra
    o preço; os dois somam; sem linha ou sem valor, "sem valor" e o aviso no
    rodapé. Ligar o retrátil no sofá de 3 lugares: **o preço vira o do sofá
-   comum + R$ 30** (R$ 230, com "retrátil" no nome). Outros: o Deslocamento é um
-   **interruptor** (R$ 40 uma vez); a mancha vai por − / +. (CT-095, CT-096,
-   CT-098)
+   comum + R$ 30** (R$ 230, com "retrátil" no nome). No registro novo, o
+   **Deslocamento já aparece**, num bloco próprio (fora de Outros), com o
+   valor da tabela; − / + mudam **R$ 1** por toque (20, 21, 22…) e tocar no
+   valor deixa digitar (ex.: 50); o interruptor tira. Em Outros, a mancha
+   vai por − / +. (CT-095, CT-096, CT-098)
 5. Rodapé: total sempre à vista; abrir os detalhes (serviço, conta e valor);
    "Mudar valor" para outro número; mudar uma quantidade; "Usar o calculado";
    "Pronto" (ou a seta): o resumo mostra as peças e o valor; salvar. Abrir
@@ -269,8 +273,8 @@ passado, e excluir o atendimento no fim.
 6. Ajuste por serviço: no sofá de 2 lugares com Higienizar, "Ajustar preço",
    R$ 220 e a justificativa "tecido linho". **Esperado:** o serviço mostra
    R$ 220,00 e "ajustado · tabela R$ 170,00 · tecido linho"; os detalhes do
-   rodapé também; o total soma 220. Ajustar o Deslocamento e um colchão (pelo
-   lápis); depois "Voltar ao da tabela" num deles. Salvar, reabrir: os
+   rodapé também; o total soma 220. Ajustar um colchão (pelo lápis) e digitar
+   o valor do Deslocamento; depois "Voltar ao da tabela" num deles. Salvar, reabrir: os
    ajustes continuam. A tabela de preços não mudou. (CT-102)
 
 ## Execução 001 — Verificação manual do RF-001 (pré-merge do PR #44)
@@ -849,3 +853,4 @@ versão nova, assinada com a mesma chave, instala por cima sem perder dados.
 | 2026-11-17 | 1.33 | Wilson Gorosthides | Pilha #134: atendimento rápido, peças e valor na tela própria (CT-101); SQL das colunas de `precos` confirmado como aplicado. |
 | 2026-11-18 | 1.34 | Wilson Gorosthides | Pilha #134: SQL dos valores de partida (a aplicar), retrátil com o preço comum, deslocamento liga/desliga e o passo 6 do ajuste por serviço (CT-102). |
 | 2026-11-19 | 1.35 | Wilson Gorosthides | Pilha #134: SQL dos valores de partida revisto (retrátil + R$ 30, sofá grande impermeabilizado 370) e passos do retrátil como acréscimo. |
+| 2026-11-19 | 1.36 | Wilson Gorosthides | Pilha #134: deslocamento em bloco próprio, já incluído, de R$ 1 em R$ 1 ou digitado; SQL com o deslocamento a 20. |
