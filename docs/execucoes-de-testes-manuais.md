@@ -42,9 +42,6 @@ como **outro app**: desinstalar o antigo primeiro, para não ficarem dois ícone
 Conferir também que o APK novo abre a agenda **com dados** (a permissão de
 internet passou a valer no release).
 
-Nenhum SQL pendente: o da tabela `precos` (#123) foi aplicado no painel
-(confirmado pelo desenvolvedor em 2026-11-17).
-
 ### #123 — Tabela de preços editável (RF-013, parte 1)
 
 Testes manuais gravam no banco real (o mesmo do celular): usar serviços com
@@ -628,6 +625,36 @@ versão nova, assinada com a mesma chave, instala por cima sem perder dados.
 ### Veredicto
 **Aprovado.** Pilha vazia.
 
+## Execução 015 — Pilha: seletor de peças, grupos e produtos (pré-merge, #134)
+
+- **Data:** 2026-11-19.
+- **Objeto:** seletor de peças e serviços (#134, PR #135, PR de interface),
+  com o retrátil como acréscimo, o deslocamento em bloco próprio, o ajuste
+  do preço por serviço e os grupos da tabela com o produto junto com o
+  serviço. Com SQL: schema de `precos` (aplicado em 2026-11-17), valores de
+  partida e grupos e produtos (aplicados em 2026-11-19).
+- **Ambiente:** APK de release instalado por cima (`adb install -r`) no
+  celular do desenvolvedor, Realme RMX3941, contra o Supabase real do MVP,
+  com rede.
+- **Executor:** o desenvolvedor (resultado informado em 2026-11-19: "testei
+  tudo, aprovado"); o agente gerou e instalou o APK.
+
+### Resultados
+
+| Passo | O que verificou | CT(s) | Resultado |
+|---|---|---|---|
+| 1 | Tabela com peça, variante e serviço; valores de partida; retrátil como "+ R$ 30,00" | CT-100 | Aprovado |
+| 2 | Formulário curto; Peças e valor com os quadros na ordem, selos ×N e ajuste dos lugares | CT-093, CT-094 | Aprovado |
+| 3 | Tapete com os m² a cada toque; colchão, cortina e cadeira por − / +, sem teclado | CT-094, CT-101 | Aprovado |
+| 4 | Higienizar e Impermeabilizar separados ou juntos; preço por variante; retrátil = comum + R$ 30; deslocamento já incluído, de R$ 1 em R$ 1 ou digitado | CT-095, CT-096, CT-098 | Aprovado |
+| 5 | Rodapé com total, detalhes, "Mudar valor" e "Usar o calculado"; atendimento de antes abre e salva sem perder | CT-097, CT-099, CT-101 | Aprovado |
+| 6 | Ajuste do preço por serviço com justificativa; "Voltar ao da tabela"; tabela inalterada | CT-102 | Aprovado |
+| 7 | Tabela em Produtos, Mão de obra e Imprevistos; sofá impermeabilizado com aplicação + impermeabilizante (R$ 280 / R$ 370); Outros por grupo; subtotais no rodapé; produto continua ao reabrir | CT-103, CT-104, CT-105 | Aprovado |
+
+### Veredicto
+**Aprovado.** O bloco #134 e o SQL saem da pilha; seguem pendentes os blocos
+#123 e #124.
+
 ## Histórico de Versões
 
 | Data | Versão | Autor | Descrição da mudança |
@@ -664,3 +691,11 @@ versão nova, assinada com a mesma chave, instala por cima sem perder dados.
 | 2026-11-17 | 1.29 | Wilson Gorosthides | Execução 014 (#128: atendimento em dobro corrigido, aprovado); pilha vazia. |
 | 2026-11-17 | 1.30 | Wilson Gorosthides | Pilha: SQL da tabela `precos` e os passos da tabela de preços (#123, RF-013 parte 1). |
 | 2026-11-17 | 1.31 | Wilson Gorosthides | Pilha: SQL da `precos` (#123) confirmado como aplicado; entram os passos do valor calculado (#124, RF-013 parte 2). |
+| 2026-11-17 | 1.32 | Wilson Gorosthides | Pilha: SQL das colunas de peça, variante, serviço e retrátil em `precos` e os passos do seletor de peças (#134, PR de interface). |
+| 2026-11-17 | 1.33 | Wilson Gorosthides | Pilha #134: atendimento rápido, peças e valor na tela própria (CT-101); SQL das colunas de `precos` confirmado como aplicado. |
+| 2026-11-18 | 1.34 | Wilson Gorosthides | Pilha #134: SQL dos valores de partida (a aplicar), retrátil com o preço comum, deslocamento liga/desliga e o passo 6 do ajuste por serviço (CT-102). |
+| 2026-11-19 | 1.35 | Wilson Gorosthides | Pilha #134: SQL dos valores de partida revisto (retrátil + R$ 30, sofá grande impermeabilizado 370) e passos do retrátil como acréscimo. |
+| 2026-11-19 | 1.36 | Wilson Gorosthides | Pilha #134: deslocamento em bloco próprio, já incluído, de R$ 1 em R$ 1 ou digitado; SQL com o deslocamento a 20. |
+| 2026-11-19 | 1.37 | Wilson Gorosthides | Pilha #134: SQL dos grupos e produtos (coluna `categoria`, aplicação 90 / 120 e impermeabilizante 190 / 250, produtos avulsos e imprevistos) e o passo 7 (CT-103 a CT-105). |
+| 2026-11-19 | 1.38 | Wilson Gorosthides | Pilha #134: SQL dos valores de partida e dos grupos e produtos aplicados pelo desenvolvedor no painel. |
+| 2026-11-19 | 1.39 | Wilson Gorosthides | Execução 015 (seletor de peças, grupos e produtos, pré-merge #134, PR #135): sete passos aprovados no celular; o bloco #134 e o SQL saem da pilha. |

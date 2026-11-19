@@ -81,15 +81,289 @@ void main() {
       expect(calcularValor(const [Peca(tipo: 'sofá')]).temServicos, isFalse);
     });
 
-    test('serviços da peça: os do tipo dela; outro ou sem par mostra todos', () {
-      final tabela = [tapeteM2, poltrona, higSofa, impSofa, odor];
+    // CT-096 (#134): o preço casa peça + variante + retrátil + serviço.
+    group('preço pela tabela:', () {
+      const sofa3 = ItemDePreco(
+          id: 's3',
+          nome: 'Higienização sofá 3 lugares',
+          unidade: UnidadeDeCobranca.peca,
+          valor: 200,
+          peca: Familia.sofa,
+          variante: '3',
+          servico: TipoDeServico.higienizar);
+      const sofa3Retratil = ItemDePreco(
+          id: 's3r',
+          nome: 'Higienização sofá 3 lugares retrátil',
+          unidade: UnidadeDeCobranca.peca,
+          peca: Familia.sofa,
+          variante: '3',
+          servico: TipoDeServico.higienizar,
+          retratil: true);
+      const casal = ItemDePreco(
+          id: 'cc',
+          nome: 'Higienização colchão casal',
+          unidade: UnidadeDeCobranca.peca,
+          valor: 150,
+          peca: Familia.colchao,
+          variante: 'casal',
+          servico: TipoDeServico.higienizar);
+      const tapete = ItemDePreco(
+          id: 'tp',
+          nome: 'Higienização de tapete',
+          unidade: UnidadeDeCobranca.m2,
+          valor: 12,
+          peca: Familia.tapete,
+          servico: TipoDeServico.higienizar);
+      const deslocamento = ItemDePreco(
+          id: 'dl',
+          nome: 'Deslocamento',
+          unidade: UnidadeDeCobranca.peca,
+          valor: 30);
+      const sofa2 = ItemDePreco(
+          id: 's2',
+          nome: 'Higienização sofá 2 lugares',
+          unidade: UnidadeDeCobranca.peca,
+          valor: 170,
+          peca: Familia.sofa,
+          variante: '2',
+          servico: TipoDeServico.higienizar);
+      const sofa2Retratil = ItemDePreco(
+          id: 's2r',
+          nome: 'Higienização sofá 2 lugares retrátil',
+          unidade: UnidadeDeCobranca.peca,
+          valor: 30, // acréscimo sobre o sofá comum
+          peca: Familia.sofa,
+          variante: '2',
+          servico: TipoDeServico.higienizar,
+          retratil: true);
+      final tabela = [
+        sofa3,
+        sofa3Retratil,
+        sofa2,
+        sofa2Retratil,
+        casal,
+        tapete,
+        deslocamento
+      ];
 
-      expect(servicosDoTipo(tabela, 'sofá').map((s) => s.nome),
-          ['Higienização sofá 3 lugares', 'Impermeabilização sofá 3 lugares']);
-      expect(servicosDoTipo(tabela, 'tapete').single.nome,
-          'Higienização de tapete');
-      expect(servicosDoTipo(tabela, 'outro'), tabela);
-      expect(servicosDoTipo(tabela, 'colchão'), tabela);
+      test('linha da tabela por peça, variante, retrátil e serviço', () {
+        final achado = precoDoServico(
+            tabela, Familia.sofa, '3', false, TipoDeServico.higienizar);
+        expect(achado.nome, 'Higienização sofá 3 lugares');
+        expect(achado.valor, 200);
+        expect(achado.servico, TipoDeServico.higienizar);
+        expect(achado.id, isNull); // é cópia, não a linha
+
+        expect(
+            precoDoServico(
+                    tabela, Familia.colchao, 'casal', false, TipoDeServico.higienizar)
+                .valor,
+            150);
+        expect(
+            precoDoServico(
+                    tabela, Familia.tapete, null, false, TipoDeServico.higienizar)
+                .unidade,
+            UnidadeDeCobranca.m2);
+        expect(avulsos(tabela).single.nome, 'Deslocamento');
+      });
+
+      test('sem linha, ou sem valor, fica sem valor; nunca outra variante', () {
+        final quatro = precoDoServico(
+            tabela, Familia.sofa, '4', false, TipoDeServico.higienizar);
+        expect(quatro.valor, isNull);
+        expect(quatro.nome, 'Higienização sofá 4 lugares');
+
+        final imp = precoDoServico(
+            tabela, Familia.sofa, '3', false, TipoDeServico.impermeabilizar);
+        expect(imp.valor, isNull);
+        expect(imp.nome, 'Impermeabilização sofá 3 lugares');
+        expect(
+            precoDoServico(tabela, Familia.tapete, null, false,
+                    TipoDeServico.impermeabilizar)
+                .unidade,
+            UnidadeDeCobranca.m2);
+      });
+
+      // CT-096 (#134, depois do segundo teste no celular): a linha retrátil
+      // guarda só o acréscimo; sem ele, vale o preço comum.
+      test('retrátil soma o acréscimo ao preço da mesma peça', () {
+        final tres = precoDoServico(
+            tabela, Familia.sofa, '3', true, TipoDeServico.higienizar);
+        expect(tres.valor, 200);
+        expect(tres.nome, 'Higienização sofá 3 lugares retrátil');
+        expect(tres.retratil, isTrue);
+
+        final dois = precoDoServico(
+            tabela, Familia.sofa, '2', true, TipoDeServico.higienizar);
+        expect(dois.valor, 200); // 170 + 30
+        expect(dois.nome, 'Higienização sofá 2 lugares retrátil');
+        expect(dois.retratil, isTrue);
+        expect(dois.id, isNull);
+
+        // sem linha comum também: segue sem valor, com o nome retrátil
+        final quatro = precoDoServico(
+            tabela, Familia.sofa, '4', true, TipoDeServico.higienizar);
+        expect(quatro.valor, isNull);
+        expect(quatro.nome, 'Higienização sofá 4 lugares retrátil');
+      });
+
+      // CT-102: o ajuste aparece nos detalhes, ao lado do preço da tabela.
+      test('linha ajustada mostra o preço da tabela e a justificativa', () {
+        final linhas = linhasDoTotal([
+          Peca(tipo: 'sofá', variante: '2', servicos: [
+            sofa2.copia().ajustar(220, 'tecido linho'),
+          ]),
+          Peca(tipo: 'outro', servicos: [deslocamento.copia().ajustar(25, null)]),
+        ]);
+        expect(linhas[0].valor, 220);
+        expect(linhas[0].legenda,
+            '1 × R\$ 220,00 · tabela R\$ 170,00 · tecido linho');
+        expect(linhas[1].legenda, '1 × R\$ 25,00 · tabela R\$ 30,00');
+        expect(
+            calcularValor([
+              Peca(tipo: 'sofá', servicos: [sofa2.copia().ajustar(220, null)])
+            ]).total,
+            220);
+      });
+
+      test('linhas do total com legenda e valor', () {
+        final linhas = linhasDoTotal([
+          const Peca(
+              tipo: 'colchão',
+              quantidade: 2,
+              variante: 'casal',
+              servicos: [casal]),
+          const Peca(
+              tipo: 'tapete', largura: 2, comprimento: 3, servicos: [tapete]),
+          Peca(tipo: 'sofá', variante: '4', servicos: [
+            precoDoServico(
+                tabela, Familia.sofa, '4', false, TipoDeServico.higienizar),
+          ]),
+        ]);
+
+        expect(linhas.map((l) => l.servico), [
+          'Higienização colchão casal',
+          'Higienização de tapete',
+          'Higienização sofá 4 lugares',
+        ]);
+        expect(linhas[0].legenda, '2 × R\$ 150,00');
+        expect(linhas[0].valor, 300);
+        expect(linhas[1].legenda, '6 m² × R\$ 12,00');
+        expect(linhas[1].valor, 72);
+        expect(linhas[2].legenda, 'sem valor na tabela');
+        expect(linhas[2].valor, isNull);
+      });
+    });
+
+    // CT-104 (#134): o produto vem junto com o serviço da peça.
+    group('produtos do serviço:', () {
+      const imp = TipoDeServico.impermeabilizar;
+      const tabela = [
+        // o produto vem antes na tabela: o preço do serviço não pode pegá-lo
+        ItemDePreco(
+            nome: 'Impermeabilizante sofá 3 lugares',
+            unidade: UnidadeDeCobranca.peca,
+            valor: 190,
+            peca: Familia.sofa,
+            variante: '3',
+            servico: imp,
+            categoria: Categoria.produto),
+        ItemDePreco(
+            nome: 'Impermeabilização sofá 3 lugares',
+            unidade: UnidadeDeCobranca.peca,
+            valor: 90,
+            peca: Familia.sofa,
+            variante: '3',
+            servico: imp),
+        ItemDePreco(
+            nome: 'Impermeabilizante sofá 4 lugares',
+            unidade: UnidadeDeCobranca.peca,
+            valor: 250,
+            peca: Familia.sofa,
+            variante: '4',
+            servico: imp,
+            categoria: Categoria.produto),
+        ItemDePreco(
+            nome: 'Impermeabilizante de tapete',
+            unidade: UnidadeDeCobranca.m2,
+            valor: 5,
+            peca: Familia.tapete,
+            servico: imp,
+            categoria: Categoria.produto),
+      ];
+
+      test('mesma peça e serviço, variante igual ou nenhuma', () {
+        final sofa3 = produtosDoServico(tabela, Familia.sofa, '3', imp);
+        expect(sofa3.map((p) => p.nome), ['Impermeabilizante sofá 3 lugares']);
+        expect(sofa3.single.valor, 190);
+        expect(sofa3.single.categoria, Categoria.produto);
+        expect(produtosDoServico(tabela, Familia.sofa, '4', imp).single.valor,
+            250);
+        expect(produtosDoServico(tabela, Familia.sofa, '2', imp), isEmpty);
+        expect(
+            produtosDoServico(
+                tabela, Familia.sofa, '3', TipoDeServico.higienizar),
+            isEmpty);
+        // sem variante na linha do produto: vale para a peça toda
+        expect(
+            produtosDoServico(tabela, Familia.tapete, null, imp).single.nome,
+            'Impermeabilizante de tapete');
+        // o preço do serviço é o da mão de obra, nunca o do produto
+        final servico =
+            precoDoServico(tabela, Familia.sofa, '3', false, imp);
+        expect(servico.valor, 90);
+        expect(servico.categoria, Categoria.maoDeObra);
+      });
+    });
+
+    // CT-105 (#134): soma por grupo, para a nota do orçamento.
+    test('soma por grupo: produto, mão de obra e imprevisto; sem grupo é mão de obra',
+        () {
+      final pecas = [
+        const Peca(tipo: 'sofá', variante: '3', servicos: [
+          ItemDePreco(
+              nome: 'Impermeabilização sofá 3 lugares',
+              unidade: UnidadeDeCobranca.peca,
+              valor: 90),
+          ItemDePreco(
+              nome: 'Impermeabilizante sofá 3 lugares',
+              unidade: UnidadeDeCobranca.peca,
+              valor: 190,
+              categoria: Categoria.produto),
+        ]),
+        const Peca(tipo: 'outro', servicos: [
+          ItemDePreco(
+              nome: 'Tira-manchas',
+              unidade: UnidadeDeCobranca.peca,
+              valor: 15,
+              categoria: Categoria.produto),
+        ]),
+        const Peca(tipo: 'outro', servicos: [
+          ItemDePreco(
+              nome: 'Segunda lavagem',
+              unidade: UnidadeDeCobranca.peca,
+              valor: 60,
+              categoria: Categoria.imprevisto),
+        ]),
+        Peca.fromMap({
+          'tipo': 'outro',
+          'servicos': [
+            {'nome': 'Deslocamento', 'unidade': 'peca', 'valor': 20},
+          ],
+        }),
+      ];
+
+      expect(subtotaisPorGrupo(pecas), {
+        Categoria.produto: 205.0,
+        Categoria.maoDeObra: 110.0,
+        Categoria.imprevisto: 60.0,
+      });
+      expect(subtotaisPorGrupo(pecas).keys,
+          [Categoria.produto, Categoria.maoDeObra, Categoria.imprevisto]);
+      expect(calcularValor(pecas).total, 375);
+      // grupo sem valor não aparece
+      expect(subtotaisPorGrupo(pecas.sublist(0, 1)).keys,
+          [Categoria.produto, Categoria.maoDeObra]);
     });
   });
 }

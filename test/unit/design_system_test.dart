@@ -24,13 +24,19 @@ final _corProibida = RegExp(r'Color\(0x|(?<![A-Za-z0-9_])Colors\.');
 void main() {
   group('design_system_test:', () {
     test('nenhuma tela declara cor fora do design system', () {
+      // a pasta de componentes nasce com o seletor de peças (#134)
+      expect(Directory('lib/widgets').existsSync(), isTrue);
       final proibido = _corProibida;
       final infracoes = <String>[];
 
-      for (final arquivo in Directory('lib/screens')
-          .listSync(recursive: true)
-          .whereType<File>()
-          .where((f) => f.path.endsWith('.dart'))) {
+      // telas e componentes reutilizáveis (lib/widgets, #134)
+      for (final arquivo in [
+        for (final pasta in ['lib/screens', 'lib/widgets'])
+          ...Directory(pasta)
+              .listSync(recursive: true)
+              .whereType<File>()
+              .where((f) => f.path.endsWith('.dart')),
+      ]) {
         final linhas = arquivo.readAsLinesSync();
         for (var i = 0; i < linhas.length; i++) {
           if (proibido.hasMatch(linhas[i])) {

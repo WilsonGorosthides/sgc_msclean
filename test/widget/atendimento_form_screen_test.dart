@@ -82,6 +82,18 @@ void main() {
   String textoDoCampo(WidgetTester tester, String chave) =>
       tester.widget<TextFormField>(find.byKey(Key(chave))).controller!.text;
 
+  // Peças e valor ficam numa tela própria, aberta pela linha de resumo
+  // (CT-101): "Pronto" volta ao formulário com o que foi marcado.
+  Future<void> abrirPecas(WidgetTester tester) async {
+    await tester.tap(find.byKey(const Key('abrir_pecas')));
+    await tester.pumpAndSettle();
+  }
+
+  Future<void> fecharPecas(WidgetTester tester) async {
+    await tester.tap(find.byKey(const Key('pecas_pronto')));
+    await tester.pumpAndSettle();
+  }
+
   Future<Atendimento> salvarECapturar(WidgetTester tester) async {
     await tocar(tester, 'botao_salvar');
     await tester.pump();
@@ -142,53 +154,23 @@ void main() {
       expect(find.byKey(const Key('escolher_cliente_2')), findsOneWidget);
     });
 
-    testWidgets('peças: tipo medido mostra as medidas; a lista é gravada',
+    // CT-044 (#134): sem serviço, o valor é informado pelo rodapé.
+    testWidgets('sem serviço, valor mudado com vírgula; vazio grava sem valor',
         (tester) async {
       await bombear(tester);
       await tocar(tester, 'escolher_cliente_1');
       await tocar(tester, 'escolher_manha');
+      await abrirPecas(tester);
+      expect(textoDe(tester, 'total_a_cobrar'), 'sem valor');
 
-      await tocar(tester, 'adicionar_peca');
-      // a primeira peça nasce como tapete (o serviço mais comum), que é medido
-      expect(find.byKey(const Key('peca_0_largura')), findsOneWidget);
-      expect(find.byKey(const Key('peca_0_comprimento')), findsOneWidget);
-      await digitar(tester, 'peca_0_largura', '3');
-      await digitar(tester, 'peca_0_comprimento', '2,5');
-
-      await tocar(tester, 'adicionar_peca');
-      await tocar(tester, 'peca_1_tipo_sofá');
-      expect(find.byKey(const Key('peca_1_largura')), findsNothing);
-      await digitar(tester, 'peca_1_quantidade', '2');
-
-      final gravado = await salvarECapturar(tester);
-      expect(gravado.pecas, hasLength(2));
-      expect(gravado.pecas[0].tipo, 'tapete');
-      expect(gravado.pecas[0].quantidade, 1);
-      expect(gravado.pecas[0].largura, 3);
-      expect(gravado.pecas[0].comprimento, 2.5);
-      expect(gravado.pecas[1].tipo, 'sofá');
-      expect(gravado.pecas[1].quantidade, 2);
-      expect(gravado.pecas[1].largura, isNull);
-    });
-
-    testWidgets('remover peça tira a linha', (tester) async {
-      await bombear(tester);
-      await tocar(tester, 'adicionar_peca');
-      await tocar(tester, 'adicionar_peca');
-      expect(find.byKey(const Key('peca_1_quantidade')), findsOneWidget);
-
-      await tocar(tester, 'remover_peca_1');
-
-      expect(find.byKey(const Key('peca_1_quantidade')), findsNothing);
-      expect(find.byKey(const Key('peca_0_quantidade')), findsOneWidget);
-    });
-
-    testWidgets('valor digitado com vírgula; campo vazio grava sem valor',
-        (tester) async {
-      await bombear(tester);
-      await tocar(tester, 'escolher_cliente_1');
-      await tocar(tester, 'escolher_manha');
+      await tocar(tester, 'mudar_valor');
+      await tester.pumpAndSettle();
       await digitar(tester, 'campo_valor', '180,50');
+      await tocar(tester, 'confirmar_valor');
+      await tester.pumpAndSettle();
+      expect(textoDe(tester, 'total_a_cobrar'), 'R\$ 180,50');
+      await fecharPecas(tester);
+      expect(textoDe(tester, 'resumo_valor'), 'R\$ 180,50');
 
       final comValor = await salvarECapturar(tester);
       expect(comValor.valor, 180.5);
@@ -309,8 +291,8 @@ void main() {
       expect(find.text('Bruno Lima'), findsOneWidget);
       expect(textoDoCampo(tester, 'campo_hora'), '15:00');
       expect(textoDoCampo(tester, 'campo_local'), 'Loja do centro');
-      expect(textoDoCampo(tester, 'campo_valor'), '120');
-      expect(textoDoCampo(tester, 'peca_0_quantidade'), '2');
+      expect(textoDe(tester, 'resumo_valor'), 'R\$ 120,00');
+      expect(textoDe(tester, 'resumo_pecas'), '2× poltrona');
 
       await digitar(tester, 'campo_hora', '16:00');
       await tocar(tester, 'botao_salvar');
@@ -429,170 +411,184 @@ void main() {
     });
   });
 
-  // Valor calculado pela tabela de preços (RF-013, parte 2, issue #124).
+  // Seletor de peças e rodapé fixo (RF-013, issue #134).
   group('atendimento_form_screen_test:', () {
-    const higSofa = ItemDePreco(
-        id: 'p1',
-        nome: 'Higienização sofá 3 lugares',
-        unidade: UnidadeDeCobranca.peca,
-        valor: 180);
-    const impSofa = ItemDePreco(
-        id: 'p2',
-        nome: 'Impermeabilização sofá 3 lugares',
-        unidade: UnidadeDeCobranca.peca,
-        valor: 150);
-    const tapeteM2 = ItemDePreco(
-        id: 'p3',
-        nome: 'Higienização de tapete',
-        unidade: UnidadeDeCobranca.m2,
-        valor: 12);
-    const cortinaM2 = ItemDePreco(
-        id: 'p4',
-        nome: 'Higienização de cortina',
-        unidade: UnidadeDeCobranca.m2,
-        valor: 20);
-    const odor = ItemDePreco(
-        id: 'p5', nome: 'Remoção de odor', unidade: UnidadeDeCobranca.peca);
+    ItemDePreco linha(String nome, Familia? peca, String? variante,
+            TipoDeServico? servico, double? valor) =>
+        ItemDePreco(
+            id: nome,
+            nome: nome,
+            unidade: UnidadeDeCobranca.peca,
+            valor: valor,
+            peca: peca,
+            variante: variante,
+            servico: servico);
 
-    Future<void> comSofa(WidgetTester tester) async {
+    final sofa3 = linha('Higienização sofá 3 lugares', Familia.sofa, '3',
+        TipoDeServico.higienizar, 200);
+    final poltrona = linha('Higienização poltrona', Familia.poltrona, null,
+        TipoDeServico.higienizar, 90);
+
+    Future<void> pronto(WidgetTester tester) async {
       await bombear(tester);
       await tocar(tester, 'escolher_cliente_1');
       await tocar(tester, 'escolher_manha');
-      await tocar(tester, 'adicionar_peca');
-      await tocar(tester, 'peca_0_tipo_sofá');
     }
 
-    String servico(String nome) => 'peca_0_servico_$nome';
-
-    testWidgets('só impermeabilização na peça grava só ela, com o preço',
+    // CT-101: o formulário é rápido; peças e valor numa tela própria.
+    testWidgets('atendimento rápido: peças e valor numa linha que abre a tela',
         (tester) async {
-      tabela = [higSofa, impSofa, tapeteM2];
-      await comSofa(tester);
+      tabela = [sofa3];
+      await pronto(tester);
 
-      // a peça sofá oferece só os serviços de sofá
-      expect(find.byKey(Key(servico(higSofa.nome))), findsOneWidget);
-      expect(find.byKey(Key(servico(tapeteM2.nome))), findsNothing);
+      expect(find.byKey(const Key('familia_sofa')), findsNothing);
+      expect(find.byKey(const Key('total_a_cobrar')), findsNothing);
+      expect(textoDe(tester, 'resumo_pecas'), 'Adicionar peças e valor');
 
-      await tocar(tester, servico(impSofa.nome));
-      expect(textoDe(tester, 'total_calculado'), 'Total calculado: R\$ 150,00');
+      await abrirPecas(tester);
+      expect(find.text('Peças e valor'), findsOneWidget);
+      await tocar(tester, 'familia_sofa');
+      await tocar(tester, 'cartao_0_higienizar');
+      await fecharPecas(tester);
 
+      expect(textoDe(tester, 'resumo_pecas'), 'sofá 3 lugares');
+      expect(textoDe(tester, 'resumo_valor'), 'R\$ 200,00');
       final gravado = await salvarECapturar(tester);
-      final servicos = gravado.pecas.single.servicos;
-      expect(servicos.single.nome, 'Impermeabilização sofá 3 lugares');
-      expect(servicos.single.valor, 150);
-      expect(gravado.valor, 150);
+      expect(gravado.valor, 200);
+      expect(gravado.pecas.single.servicos.single.valor, 200);
     });
 
-    testWidgets('combo: os dois serviços somam; o total segue a quantidade',
+    testWidgets('voltar da tela de peças pela seta mantém o que foi marcado',
         (tester) async {
-      tabela = [higSofa, impSofa];
-      await comSofa(tester);
+      tabela = [sofa3];
+      await pronto(tester);
+      await abrirPecas(tester);
+      await tocar(tester, 'familia_sofa');
+      await tocar(tester, 'cartao_0_higienizar');
 
-      await tocar(tester, servico(higSofa.nome));
-      await tocar(tester, servico(impSofa.nome));
-      expect(textoDe(tester, 'total_calculado'), 'Total calculado: R\$ 330,00');
+      await tester.pageBack();
+      await tester.pumpAndSettle();
 
-      await digitar(tester, 'peca_0_quantidade', '2');
-      await tester.pump();
-      expect(textoDe(tester, 'total_calculado'), 'Total calculado: R\$ 660,00');
+      expect(textoDe(tester, 'resumo_valor'), 'R\$ 200,00');
+      // reabrir mostra o que já estava marcado
+      await abrirPecas(tester);
+      expect(textoDe(tester, 'selo_familia_sofa'), '×1');
+    });
 
+    testWidgets('rodapé fixo: total, detalhes e salvar sem rolar',
+        (tester) async {
+      tabela = [sofa3];
+      await pronto(tester);
+      await abrirPecas(tester);
+
+      // o rodapé não rola com a tela de peças
+      expect(
+          find.descendant(
+              of: find.byType(Scrollable),
+              matching: find.byKey(const Key('pecas_pronto'))),
+          findsNothing);
+      expect(tester.getRect(find.byKey(const Key('pecas_pronto'))).bottom,
+          lessThanOrEqualTo(2400));
+
+      await tocar(tester, 'familia_sofa');
+      await tocar(tester, 'cartao_0_higienizar');
+      expect(textoDe(tester, 'total_a_cobrar'), 'R\$ 200,00');
+
+      await tocar(tester, 'ver_detalhes');
+      expect(textoDe(tester, 'linha_total_0_servico'),
+          'Higienização sofá 3 lugares');
+      expect(textoDe(tester, 'linha_total_0_legenda'), '1 × R\$ 200,00');
+      expect(textoDe(tester, 'linha_total_0_valor'), 'R\$ 200,00');
+
+      await fecharPecas(tester);
       final gravado = await salvarECapturar(tester);
-      expect(gravado.pecas.single.servicos, hasLength(2));
-      expect(gravado.valor, 660);
+      expect(gravado.valor, 200);
+      expect(gravado.pecas.single.variante, '3');
+      expect(gravado.pecas.single.servicos.single.valor, 200);
     });
 
-    testWidgets('por m²: medidas × valor do metro; outro tipo mostra medidas',
+    testWidgets('valor mudado prevalece; usar o calculado volta ao total',
         (tester) async {
-      tabela = [tapeteM2, cortinaM2];
-      await bombear(tester);
-      await tocar(tester, 'adicionar_peca'); // nasce tapete
-      await tocar(tester, servico(tapeteM2.nome));
-      expect(find.byKey(const Key('aviso_sem_medida')), findsOneWidget);
+      tabela = [poltrona];
+      await pronto(tester);
+      await abrirPecas(tester);
+      await tocar(tester, 'familia_poltrona');
+      await tocar(tester, 'cartao_0_higienizar');
+      expect(textoDe(tester, 'total_a_cobrar'), 'R\$ 90,00');
 
-      await digitar(tester, 'peca_0_largura', '8');
-      await digitar(tester, 'peca_0_comprimento', '4,5');
-      await tester.pump();
-      expect(textoDe(tester, 'total_calculado'), 'Total calculado: R\$ 432,00');
-      expect(find.byKey(const Key('aviso_sem_medida')), findsNothing);
+      await tocar(tester, 'mudar_valor');
+      await tester.pumpAndSettle();
+      expect(textoDoCampo(tester, 'campo_valor'), '90,00');
+      await digitar(tester, 'campo_valor', '80');
+      await tocar(tester, 'confirmar_valor');
+      await tester.pumpAndSettle();
 
-      // cortina não é medida pelo tipo, mas o serviço por m² pede as medidas
-      await tocar(tester, 'adicionar_peca');
-      await tocar(tester, 'peca_1_tipo_cortina');
-      expect(find.byKey(const Key('peca_1_largura')), findsNothing);
-      await tocar(tester, 'peca_1_servico_${cortinaM2.nome}');
-      expect(find.byKey(const Key('peca_1_largura')), findsOneWidget);
-    });
-
-    testWidgets('serviço sem valor não soma e é avisado', (tester) async {
-      tabela = [higSofa, odor];
-      await bombear(tester);
-      await tocar(tester, 'adicionar_peca');
-      await tocar(tester, 'peca_0_tipo_outro'); // outro mostra todos
-
-      await tocar(tester, servico(higSofa.nome));
-      await tocar(tester, servico(odor.nome));
-
-      expect(textoDe(tester, 'total_calculado'), 'Total calculado: R\$ 180,00');
-      expect(textoDe(tester, 'aviso_sem_valor'),
-          contains('Remoção de odor'));
-    });
-
-    testWidgets('valor calculado é sugestão: digitado prevalece; volta ao total',
-        (tester) async {
-      tabela = [higSofa];
-      await comSofa(tester);
-
-      await tocar(tester, servico(higSofa.nome));
-      expect(textoDoCampo(tester, 'campo_valor'), '180,00');
-
-      await digitar(tester, 'campo_valor', '150');
-      await tester.pump();
-      await digitar(tester, 'peca_0_quantidade', '2');
-      await tester.pump();
-      expect(textoDe(tester, 'total_calculado'), 'Total calculado: R\$ 360,00');
-      expect(textoDoCampo(tester, 'campo_valor'), '150');
+      await tocar(tester, 'cartao_0_mais');
+      expect(textoDe(tester, 'total_a_cobrar'), 'R\$ 80,00');
+      expect(textoDe(tester, 'total_calculado'), 'calculado R\$ 180,00');
 
       await tocar(tester, 'usar_calculado');
-      expect(textoDoCampo(tester, 'campo_valor'), '360,00');
+      expect(textoDe(tester, 'total_a_cobrar'), 'R\$ 180,00');
+      expect(find.byKey(const Key('usar_calculado')), findsNothing);
 
+      await fecharPecas(tester);
       final gravado = await salvarECapturar(tester);
-      expect(gravado.valor, 360);
+      expect(gravado.valor, 180);
       verifyNever(() => service.updatePreco(any()));
       verifyNever(() => service.addPreco(any()));
     });
 
-    testWidgets('tabela alterada não muda o preço copiado no atendimento',
+    testWidgets('serviço sem valor aparece no aviso do rodapé', (tester) async {
+      tabela = [sofa3];
+      await pronto(tester);
+      await abrirPecas(tester);
+      await tocar(tester, 'familia_sofa');
+      await tocar(tester, 'cartao_0_higienizar');
+      await tocar(tester, 'cartao_0_mais_lugares');
+
+      expect(textoDe(tester, 'aviso_sem_valor'),
+          contains('Higienização sofá 4 lugares'));
+      expect(textoDe(tester, 'total_a_cobrar'), 'sem valor');
+    });
+
+    testWidgets('atendimento da versão anterior abre e salva os mesmos preços',
         (tester) async {
-      tabela = [
-        const ItemDePreco(
-            id: 'p1',
-            nome: 'Higienização sofá 3 lugares',
-            unidade: UnidadeDeCobranca.peca,
-            valor: 200),
-      ];
+      tabela = [sofa3]; // a tabela hoje cobra R$ 200
       final existente = Atendimento(
         id: 'a1',
         data: dia,
         periodo: Periodo.manha,
         clienteId: '1',
-        pecas: const [
-          Peca(tipo: 'sofá', servicos: [higSofa]),
+        pecas: [
+          Peca.fromMap({
+            'tipo': 'sofá',
+            'quantidade': 1,
+            'servicos': [
+              {
+                'nome': 'Higienização sofá 3 lugares',
+                'unidade': 'peca',
+                'valor': 180
+              },
+              {'nome': 'Remoção de odor', 'unidade': 'peca', 'valor': null},
+            ],
+          }),
         ],
         valor: 180,
       );
       when(() => service.updateAtendimento(any())).thenAnswer((_) async {});
       await bombear(tester, atendimento: existente);
 
-      expect(textoDe(tester, 'total_calculado'), 'Total calculado: R\$ 180,00');
-      expect(textoDoCampo(tester, 'campo_valor'), '180,00');
+      expect(textoDe(tester, 'resumo_valor'), 'R\$ 180,00');
 
       await tocar(tester, 'botao_salvar');
       await tester.pump();
       final gravado =
           verify(() => service.updateAtendimento(captureAny())).captured.single
               as Atendimento;
-      expect(gravado.pecas.single.servicos.single.valor, 180);
       expect(gravado.valor, 180);
+      expect(gravado.pecas.single.servicos.map((s) => s.nome),
+          ['Higienização sofá 3 lugares', 'Remoção de odor']);
+      expect(gravado.pecas.single.servicos.first.valor, 180);
     });
   });
 }

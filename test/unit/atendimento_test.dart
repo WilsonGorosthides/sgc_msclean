@@ -221,9 +221,170 @@ void main() {
       expect(Peca.fromMap({'tipo': 'sofá'}).servicos, isEmpty);
     });
 
+    // CT-102 (#134): o preço ajustado só no registro leva o da tabela e a
+    // justificativa junto; sem ajuste, o jsonb não muda.
+    test('ajuste do serviço vai ao jsonb com o preço da tabela e a justificativa',
+        () {
+      const tabela = ItemDePreco(
+          nome: 'Higienização sofá 2 lugares',
+          unidade: UnidadeDeCobranca.peca,
+          valor: 170,
+          servico: TipoDeServico.higienizar);
+      final ajustado = tabela.ajustar(220, 'tecido linho');
+      expect(ajustado.valor, 220);
+      expect(ajustado.valorDaTabela, 170);
+      expect(ajustado.justificativa, 'tecido linho');
+      expect(ajustado.ajustado, isTrue);
+      // ajustar de novo guarda o preço da tabela, não o ajuste anterior
+      expect(ajustado.ajustar(200, null).valorDaTabela, 170);
+      expect(ajustado.ajustar(200, '  ').justificativa, isNull);
+
+      final mapa = Peca(tipo: 'sofá', servicos: [ajustado]).toMap();
+      expect(mapa['servicos'], [
+        {
+          'nome': 'Higienização sofá 2 lugares',
+          'unidade': 'peca',
+          'valor': 220.0,
+          'servico': 'higienizar',
+          'ajustado': true,
+          'valor_tabela': 170.0,
+          'justificativa': 'tecido linho',
+        },
+      ]);
+      final lido = Peca.fromMap(mapa).servicos.single;
+      expect(lido.ajustado, isTrue);
+      expect(lido.valor, 220);
+      expect(lido.valorDaTabela, 170);
+      expect(lido.justificativa, 'tecido linho');
+
+      final volta = lido.semAjuste();
+      expect(volta.valor, 170);
+      expect(volta.ajustado, isFalse);
+      expect(volta.justificativa, isNull);
+      expect(
+          (Peca(tipo: 'sofá', servicos: [volta]).toMap()['servicos'] as List)
+              .single,
+          {
+            'nome': 'Higienização sofá 2 lugares',
+            'unidade': 'peca',
+            'valor': 170.0,
+            'servico': 'higienizar',
+          });
+      // a linha da tabela de preços não leva nada do ajuste
+      expect(ajustado.toMap().containsKey('ajustado'), isFalse);
+    });
+
+    // CT-094/CT-099 (#134): variante e retrátil na peça; serviço antigo
+    // (sem a chave servico) reconhecido pelo nome.
+    test('peça guarda variante e retrátil; serviço antigo reconhecido pelo nome',
+        () {
+      const peca = Peca(
+          tipo: 'sofá',
+          variante: '3',
+          retratil: true,
+          servicos: [
+            ItemDePreco(
+                nome: 'Higienização sofá 3 lugares retrátil',
+                unidade: UnidadeDeCobranca.peca,
+                valor: 230,
+                servico: TipoDeServico.higienizar),
+          ]);
+      final mapa = peca.toMap();
+      expect(mapa['variante'], '3');
+      expect(mapa['retratil'], isTrue);
+      expect((mapa['servicos'] as List).single['servico'], 'higienizar');
+      expect(const Peca(tipo: 'sofá').toMap().containsKey('variante'), isFalse);
+      expect(const Peca(tipo: 'sofá').toMap().containsKey('retratil'), isFalse);
+
+      final lida = Peca.fromMap(mapa);
+      expect(lida.variante, '3');
+      expect(lida.retratil, isTrue);
+      expect(lida.servicos.single.servico, TipoDeServico.higienizar);
+
+      final antiga = Peca.fromMap({
+        'tipo': 'sofá',
+        'quantidade': 1,
+        'servicos': [
+          {'nome': 'Higienização sofá 3 lugares', 'unidade': 'peca', 'valor': 180},
+          {
+            'nome': 'Impermeabilização sofá 3 lugares',
+            'unidade': 'peca',
+            'valor': 150
+          },
+          {'nome': 'Remoção de odor', 'unidade': 'peca', 'valor': null},
+        ],
+      });
+      expect(antiga.variante, isNull);
+      expect(antiga.servicos.map((s) => s.servico), [
+        TipoDeServico.higienizar,
+        TipoDeServico.impermeabilizar,
+        null,
+      ]);
+      expect(antiga.servicos.first.valor, 180);
+    });
+
+    // CT-105 (#134): o grupo de cada serviço vai ao registro; a mão de obra é
+    // o padrão e fica sem a chave.
+    test('grupo do serviço vai ao jsonb; sem a chave, mão de obra', () {
+      const peca = Peca(tipo: 'sofá', variante: '3', servicos: [
+        ItemDePreco(
+            nome: 'Impermeabilização sofá 3 lugares',
+            unidade: UnidadeDeCobranca.peca,
+            valor: 90,
+            servico: TipoDeServico.impermeabilizar),
+        ItemDePreco(
+            nome: 'Impermeabilizante sofá 3 lugares',
+            unidade: UnidadeDeCobranca.peca,
+            valor: 190,
+            servico: TipoDeServico.impermeabilizar,
+            categoria: Categoria.produto),
+        ItemDePreco(
+            nome: 'Segunda lavagem',
+            unidade: UnidadeDeCobranca.peca,
+            valor: 60,
+            categoria: Categoria.imprevisto),
+      ]);
+
+      final servicos = peca.toMap()['servicos'] as List;
+      expect((servicos[0] as Map).containsKey('categoria'), isFalse);
+      expect((servicos[1] as Map)['categoria'], 'produto');
+      expect((servicos[2] as Map)['categoria'], 'imprevisto');
+
+      final lida = Peca.fromMap(peca.toMap());
+      expect(lida.servicos.map((s) => s.categoria), [
+        Categoria.maoDeObra,
+        Categoria.produto,
+        Categoria.imprevisto,
+      ]);
+      expect(lida.servicos[1].servico, TipoDeServico.impermeabilizar);
+      // gravado antes, sem a chave: mão de obra
+      final antiga = Peca.fromMap({
+        'tipo': 'outro',
+        'servicos': [
+          {'nome': 'Deslocamento', 'unidade': 'peca', 'valor': 20},
+        ],
+      });
+      expect(antiga.servicos.single.categoria, Categoria.maoDeObra);
+    });
+
+    test('resumo leva lugares, tamanho e retrátil', () {
+      expect(const Peca(tipo: 'sofá', variante: '3').resumo, 'sofá 3 lugares');
+      expect(const Peca(tipo: 'sofá', variante: 'canto', retratil: true).resumo,
+          'sofá de canto retrátil');
+      expect(const Peca(tipo: 'colchão', quantidade: 2, variante: 'casal').resumo,
+          '2× colchão casal');
+    });
+
     test('tapete é o tipo medido por metragem; os demais são contados', () {
-      expect(Peca.tipos,
-          ['tapete', 'sofá', 'poltrona', 'cortina', 'colchão', 'outro']);
+      expect(Peca.tipos, [
+        'tapete',
+        'sofá',
+        'poltrona',
+        'cortina',
+        'colchão',
+        'cadeira',
+        'outro'
+      ]);
       expect(Peca.ehMedido('tapete'), isTrue);
       for (final t in Peca.tipos.where((t) => t != 'tapete')) {
         expect(Peca.ehMedido(t), isFalse, reason: t);

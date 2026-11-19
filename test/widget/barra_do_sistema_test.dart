@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:sgc_msclean/screens/atendimento_form_screen.dart';
 import 'package:sgc_msclean/screens/client_form_screen.dart';
+import 'package:sgc_msclean/screens/pecas_e_valor_screen.dart';
 
 import '../mocks/mock_supabase_client.dart';
 
@@ -41,6 +42,14 @@ void main() {
             clientes: const [],
           ));
       salvarAcimaDaBarra(tester);
+    });
+
+    testWidgets('tela de peças e valor termina acima da barra',
+        (tester) async {
+      await rolarAteOFim(
+          tester, const PecasEValorScreen(pecas: [], tabela: []));
+      final pronto = tester.getRect(find.byKey(const Key('pecas_pronto')));
+      expect(pronto.bottom, lessThanOrEqualTo(altura - barra));
     });
 
     testWidgets('formulário de cliente termina acima da barra',

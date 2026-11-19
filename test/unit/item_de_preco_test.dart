@@ -56,6 +56,13 @@ void main() {
         'unidade': 'm2',
         'valor': 25.5,
         'ordem': 4,
+        // sem peça, variante e serviço: item avulso (#134)
+        'peca': null,
+        'variante': null,
+        'servico': null,
+        'retratil': false,
+        // sem grupo: mão de obra (#134)
+        'categoria': 'mao_de_obra',
       });
       expect(
           const ItemDePreco(nome: 'Odor', unidade: UnidadeDeCobranca.peca)
@@ -75,11 +82,11 @@ void main() {
         'cadeira',
         'tapete',
       ]) {
-        expect(nomes.where((n) => n.startsWith('Higienização') && n.contains(peca)),
+        // as linhas de retrátil (#134) ficam de fora desta conta
+        bool comum(String n) => n.contains(peca) && !n.contains('retrátil');
+        expect(nomes.where((n) => n.startsWith('Higienização') && comum(n)),
             hasLength(1), reason: 'higienização de $peca');
-        expect(
-            nomes.where(
-                (n) => n.startsWith('Impermeabilização') && n.contains(peca)),
+        expect(nomes.where((n) => n.startsWith('Impermeabilização') && comum(n)),
             hasLength(1),
             reason: 'impermeabilização de $peca');
       }
@@ -90,6 +97,80 @@ void main() {
         expect(nomes.any((n) => n.toLowerCase().contains(outro)), isTrue,
             reason: outro);
       }
+    });
+
+    // CT-100 (#134): colunas de peça, variante, serviço e retrátil.
+    test('colunas peca, variante, servico e retratil vão e voltam', () {
+      final item = ItemDePreco.fromMap({
+        'id': 'p7',
+        'nome': 'Impermeabilização sofá 4 lugares retrátil',
+        'unidade': 'peca',
+        'valor': 260,
+        'ordem': 9,
+        'peca': 'sofa',
+        'variante': '4',
+        'servico': 'impermeabilizar',
+        'retratil': true,
+      });
+
+      expect(item.peca, Familia.sofa);
+      expect(item.variante, '4');
+      expect(item.servico, TipoDeServico.impermeabilizar);
+      expect(item.retratil, isTrue);
+      expect(item.toMap(), {
+        'nome': 'Impermeabilização sofá 4 lugares retrátil',
+        'unidade': 'peca',
+        'valor': 260.0,
+        'ordem': 9,
+        'peca': 'sofa',
+        'variante': '4',
+        'servico': 'impermeabilizar',
+        'retratil': true,
+        'categoria': 'mao_de_obra',
+      });
+
+      final avulso = ItemDePreco.fromMap(
+          {'nome': 'Deslocamento', 'unidade': 'peca', 'peca': '?'});
+      expect(avulso.peca, isNull);
+      expect(avulso.servico, isNull);
+      expect(avulso.retratil, isFalse);
+    });
+
+    test('lista sugerida com peça, variante e serviço; sem linhas de retrátil',
+        () {
+      final lista = ItemDePreco.listaSugerida();
+      ItemDePreco? achar(Familia f, String? v, TipoDeServico s,
+              {bool retratil = false}) =>
+          lista
+              .where((i) =>
+                  i.peca == f &&
+                  i.variante == v &&
+                  i.servico == s &&
+                  i.retratil == retratil)
+              .firstOrNull;
+
+      for (final v in ['2', '3', '4', 'canto']) {
+        for (final s in TipoDeServico.values) {
+          expect(achar(Familia.sofa, v, s), isNotNull, reason: 'sofá $v $s');
+        }
+      }
+      expect(achar(Familia.sofa, '3', TipoDeServico.higienizar)!.nome,
+          'Higienização sofá 3 lugares');
+      for (final t in ['solteiro', 'casal', 'queen', 'king']) {
+        expect(achar(Familia.colchao, t, TipoDeServico.higienizar), isNotNull,
+            reason: t);
+      }
+      expect(achar(Familia.tapete, null, TipoDeServico.impermeabilizar)!.unidade,
+          UnidadeDeCobranca.m2);
+      // cortina por folha (decisão de 2026-11-17)
+      expect(achar(Familia.cortina, null, TipoDeServico.higienizar)!.unidade,
+          UnidadeDeCobranca.peca);
+      // avulsos: sem peça nem serviço
+      final avulsos = lista.where((i) => i.peca == null).map((i) => i.nome);
+      expect(avulsos, containsAll(['Remoção de odor', 'Deslocamento']));
+      expect(lista.where((i) => i.peca == null && i.servico != null), isEmpty);
+      // retrátil usa o preço comum até ela cadastrar um próprio
+      expect(lista.where((i) => i.retratil), isEmpty);
     });
 
     test('lista sugerida vem sem valor, com ordem crescente e tapete por m²',
@@ -109,6 +190,67 @@ void main() {
               .where((i) => i.nome.contains('sofá'))
               .every((i) => i.unidade == UnidadeDeCobranca.peca),
           isTrue);
+    });
+
+    // CT-103 (#134): grupos da tabela, como no app de referência.
+    test('coluna categoria vai e volta; sem ela, mão de obra', () {
+      ItemDePreco ler(Object? categoria) => ItemDePreco.fromMap({
+            'nome': 'Item',
+            'unidade': 'peca',
+            if (categoria != null) 'categoria': categoria,
+          });
+
+      expect(ler('produto').categoria, Categoria.produto);
+      expect(ler('imprevisto').categoria, Categoria.imprevisto);
+      expect(ler('mao_de_obra').categoria, Categoria.maoDeObra);
+      expect(ler(null).categoria, Categoria.maoDeObra);
+      expect(ler('?').categoria, Categoria.maoDeObra);
+      expect(ler('produto').toMap()['categoria'], 'produto');
+      expect(ler('imprevisto').toMap()['categoria'], 'imprevisto');
+      expect(
+          [for (final c in Categoria.values) c.titulo],
+          ['Produtos', 'Mão de obra', 'Imprevistos']);
+      // a cópia para o registro e o ajuste não perdem o grupo
+      final produto = ler('produto');
+      expect(produto.copia().categoria, Categoria.produto);
+      expect(produto.ajustar(10, null).categoria, Categoria.produto);
+      expect(produto.ajustar(10, null).semAjuste().categoria,
+          Categoria.produto);
+    });
+
+    test('lista sugerida com produtos e imprevistos, sem valor', () {
+      final lista = ItemDePreco.listaSugerida();
+      Iterable<ItemDePreco> doGrupo(Categoria c) =>
+          lista.where((i) => i.categoria == c);
+
+      // impermeabilizante do sofá, ligado a impermeabilizar, por lugares
+      for (final v in ['2', '3', '4', 'canto']) {
+        final produto = doGrupo(Categoria.produto).where((i) =>
+            i.peca == Familia.sofa &&
+            i.variante == v &&
+            i.servico == TipoDeServico.impermeabilizar);
+        expect(produto, hasLength(1), reason: 'impermeabilizante sofá $v');
+        expect(produto.single.nome, startsWith('Impermeabilizante'));
+      }
+      final produtosAvulsos = [
+        for (final i in doGrupo(Categoria.produto))
+          if (i.peca == null) i.nome,
+      ];
+      for (final nome in ['Neutralizador', 'Tira-manchas', 'Hidratante']) {
+        expect(produtosAvulsos.any((n) => n.startsWith(nome)), isTrue,
+            reason: nome);
+      }
+      final imprevistos = doGrupo(Categoria.imprevisto).toList();
+      expect(imprevistos, hasLength(4));
+      expect(imprevistos.every((i) => i.peca == null), isTrue);
+      // deslocamento e os serviços são mão de obra
+      expect(lista.firstWhere((i) => i.nome == 'Deslocamento').categoria,
+          Categoria.maoDeObra);
+      expect(
+          lista.firstWhere((i) => i.nome == 'Higienização sofá 3 lugares')
+              .categoria,
+          Categoria.maoDeObra);
+      expect(lista.every((i) => i.valor == null), isTrue);
     });
   });
 }

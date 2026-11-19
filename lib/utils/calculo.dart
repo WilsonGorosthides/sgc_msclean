@@ -1,6 +1,7 @@
+import '../models/familia.dart';
 import '../models/item_de_preco.dart';
 import '../models/peca.dart';
-import 'texto.dart';
+import 'agenda.dart';
 
 // Valor do atendimento pela tabela de preços (RF-013, parte 2, issue #124).
 // Funções puras: o formulário mostra o total enquanto ela informa as peças.
@@ -69,14 +70,137 @@ CalculoDoValor calcularValor(List<Peca> pecas) {
   );
 }
 
-// Serviços oferecidos numa peça: os que citam o tipo dela no nome ("sofá" →
-// os de sofá). "Outro", ou um tipo sem nenhum serviço na tabela, mostra todos.
-List<ItemDePreco> servicosDoTipo(List<ItemDePreco> tabela, String tipo) {
-  if (tipo == 'outro') return tabela;
-  final termo = paraBusca(tipo);
-  final doTipo = [
-    for (final s in tabela)
-      if (paraBusca(s.nome).contains(termo)) s,
-  ];
-  return doTipo.isEmpty ? tabela : doTipo;
+// Preço de um serviço da peça (#134): a linha da tabela com a mesma peça,
+// variante e serviço, copiada para o registro. No retrátil, a linha retrátil
+// guarda só o acréscimo (como no app de referência, + R$ 30): o preço é o da
+// mesma peça comum mais esse acréscimo, com "retrátil" no nome; sem
+// acréscimo, vale o comum. Sem linha comum com valor, uma cópia sem valor com
+// o nome da combinação — o total avisa, e nunca se usa o preço de outros
+// lugares ou de outro tamanho.
+ItemDePreco precoDoServico(List<ItemDePreco> tabela, Familia familia,
+    String? variante, bool retratil, TipoDeServico servico) {
+  ItemDePreco? achar(bool r) {
+    for (final linha in tabela) {
+      // o produto que acompanha o serviço não é o preço dele (#134)
+      if (linha.produtoDoServico) continue;
+      if (linha.peca == familia &&
+          linha.servico == servico &&
+          linha.variante == variante &&
+          linha.retratil == r) {
+        return linha;
+      }
+    }
+    return null;
+  }
+
+  final comum = achar(false);
+  if (!retratil && comum != null) return comum.copia();
+  if (retratil && comum?.valor != null) {
+    final acrescimo = achar(true)?.valor ?? 0;
+    return ItemDePreco(
+      nome: nomeDoServico(familia, variante, true, servico),
+      unidade: comum!.unidade,
+      valor: comum.valor! + acrescimo,
+      peca: familia,
+      variante: variante,
+      servico: servico,
+      retratil: true,
+    );
+  }
+  return ItemDePreco(
+    nome: nomeDoServico(familia, variante, retratil, servico),
+    unidade: familia == Familia.tapete
+        ? UnidadeDeCobranca.m2
+        : UnidadeDeCobranca.peca,
+    peca: familia,
+    variante: variante,
+    servico: servico,
+    retratil: retratil,
+  );
+}
+
+// Produtos que vêm junto com o serviço da peça (#134): as linhas de produto
+// com a mesma peça e serviço, e a mesma variante ou nenhuma (vale para a peça
+// toda), copiadas para o registro. O retrátil não muda o produto.
+List<ItemDePreco> produtosDoServico(List<ItemDePreco> tabela, Familia familia,
+        String? variante, TipoDeServico servico) =>
+    [
+      for (final linha in tabela)
+        if (linha.produtoDoServico &&
+            !linha.retratil &&
+            linha.peca == familia &&
+            linha.servico == servico &&
+            (linha.variante == null || linha.variante == variante))
+          linha.copia(),
+    ];
+
+// Soma por grupo (#134), na ordem produtos, mão de obra, imprevistos; só os
+// grupos com algum valor. É o que a nota do orçamento (RF-017) separa.
+Map<Categoria, double> subtotaisPorGrupo(List<Peca> pecas) {
+  final soma = <Categoria, double>{};
+  for (final peca in pecas) {
+    for (final s in peca.servicos) {
+      final parcela = subtotal(peca, s);
+      if (parcela == null) continue;
+      soma[s.categoria] = (soma[s.categoria] ?? 0) + parcela;
+    }
+  }
+  return {
+    for (final c in Categoria.values)
+      if (soma.containsKey(c)) c: soma[c]!,
+  };
+}
+
+// Itens avulsos da tabela (sem peça), na ordem dela: quadro Outros.
+List<ItemDePreco> avulsos(List<ItemDePreco> tabela) =>
+    [for (final linha in tabela) if (linha.avulso) linha];
+
+// Uma linha da lista detalhada do rodapé: serviço, legenda (a conta) e valor.
+class LinhaDoTotal {
+  const LinhaDoTotal(this.servico, this.legenda, this.valor);
+
+  final String servico;
+  final String legenda;
+  final double? valor;
+}
+
+List<LinhaDoTotal> linhasDoTotal(List<Peca> pecas) => [
+      for (final peca in pecas)
+        for (final s in peca.servicos) _linha(peca, s),
+    ];
+
+LinhaDoTotal _linha(Peca peca, ItemDePreco servico) {
+  final valor = subtotal(peca, servico);
+  if (servico.valor == null) {
+    return LinhaDoTotal(servico.nome, 'sem valor na tabela', null);
+  }
+  final preco = valorEmReais(servico.valor!);
+  if (servico.unidade == UnidadeDeCobranca.m2) {
+    final area = peca.area;
+    if (area == null) return LinhaDoTotal(servico.nome, 'falta medida', null);
+    final vezes = peca.quantidade > 1 ? '${peca.quantidade} × ' : '';
+    return LinhaDoTotal(servico.nome,
+        '$vezes${_numero(area)} m² × $preco${_ajuste(servico)}', valor);
+  }
+  return LinhaDoTotal(
+      servico.nome, '${peca.quantidade} × $preco${_ajuste(servico)}', valor);
+}
+
+// " · tabela R$ 170,00 · tecido linho" no serviço ajustado (CT-102).
+String _ajuste(ItemDePreco servico) {
+  if (!servico.ajustado) return '';
+  final tabela = servico.valorDaTabela;
+  return [
+    '',
+    tabela == null ? 'tabela sem valor' : 'tabela ${valorEmReais(tabela)}',
+    if (servico.justificativa != null) servico.justificativa!,
+  ].join(' · ');
+}
+
+// 6.0 → "6"; 4.5 → "4,5".
+String _numero(double v) {
+  final texto = v == v.truncateToDouble()
+      ? v.toInt().toString()
+      : v.toStringAsFixed(2).replaceFirst(RegExp(r'0+$'), '');
+  return texto.replaceAll('.', ',');
 }

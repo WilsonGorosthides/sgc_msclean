@@ -145,6 +145,83 @@ void main() {
       expect(gravado.valor, isNull);
     });
 
+    // CT-100 (#134): o serviço diz a que peça, variante e serviço corresponde.
+    testWidgets('editor grava peça, variante, serviço e retrátil',
+        (tester) async {
+      await bombear(tester);
+
+      await tester.tap(find.byKey(const Key('novo_preco')));
+      await tester.pumpAndSettle();
+      // variante só aparece depois de escolher uma peça que tem variante
+      expect(find.byKey(const Key('preco_variante_4')), findsNothing);
+      await tester.tap(find.byKey(const Key('preco_peca_sofa')));
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('preco_variante_4')));
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('preco_servico_impermeabilizar')));
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('preco_retratil')));
+      await tester.pump();
+
+      // o nome se monta sozinho enquanto ela não digita outro
+      expect(
+          tester
+              .widget<TextField>(find.byKey(const Key('preco_nome')))
+              .controller!
+              .text,
+          'Impermeabilização sofá 4 lugares retrátil');
+      await tester.enterText(find.byKey(const Key('preco_valor')), '260');
+      await tester.tap(find.byKey(const Key('salvar_preco')));
+      await tester.pumpAndSettle();
+
+      final gravado =
+          verify(() => service.addPreco(captureAny())).captured.single
+              as ItemDePreco;
+      expect(gravado.peca, Familia.sofa);
+      expect(gravado.variante, '4');
+      expect(gravado.servico, TipoDeServico.impermeabilizar);
+      expect(gravado.retratil, isTrue);
+      expect(gravado.valor, 260);
+    });
+
+    // CT-100 (#134, depois do segundo teste no celular): a linha retrátil é
+    // o acréscimo sobre o preço comum.
+    testWidgets('retrátil aparece e se edita como acréscimo', (tester) async {
+      tabela = [
+        sofa,
+        const ItemDePreco(
+          id: 'p3',
+          nome: 'Higienização sofá 3 lugares retrátil',
+          unidade: UnidadeDeCobranca.peca,
+          valor: 30,
+          ordem: 2,
+          peca: Familia.sofa,
+          variante: '3',
+          servico: TipoDeServico.higienizar,
+          retratil: true,
+        ),
+      ];
+      await bombear(tester);
+
+      expect(find.text('+ R\$ 30,00'), findsOneWidget);
+      expect(find.text('acréscimo sobre o sofá comum'), findsOneWidget);
+      expect(find.text('R\$ 180,00'), findsOneWidget);
+
+      await tester.tap(find.text('Higienização sofá 3 lugares retrátil'));
+      await tester.pumpAndSettle();
+      expect(find.text('Acréscimo do retrátil'), findsOneWidget);
+      expect(find.text('+ R\$ '), findsOneWidget);
+      await tester.enterText(find.byKey(const Key('preco_valor')), '40');
+      await tester.tap(find.byKey(const Key('salvar_preco')));
+      await tester.pumpAndSettle();
+
+      final gravado = verify(() => service.updatePreco(captureAny()))
+          .captured
+          .single as ItemDePreco;
+      expect(gravado.retratil, isTrue);
+      expect(gravado.valor, 40);
+    });
+
     testWidgets('remover pede confirmação; cancelar não remove',
         (tester) async {
       await bombear(tester);
@@ -198,6 +275,80 @@ void main() {
       await bombear(tester);
 
       expect(find.byKey(const Key('lista_sugerida')), findsNothing);
+    });
+
+    // CT-103 (#134): a tabela dividida em grupos, como no app de referência.
+    testWidgets('tabela dividida em produtos, mão de obra e imprevistos',
+        (tester) async {
+      tabela = [
+        sofa,
+        const ItemDePreco(
+          id: 'p4',
+          nome: 'Impermeabilizante sofá 3 lugares',
+          unidade: UnidadeDeCobranca.peca,
+          valor: 190,
+          ordem: 5,
+          peca: Familia.sofa,
+          variante: '3',
+          servico: TipoDeServico.impermeabilizar,
+          categoria: Categoria.produto,
+        ),
+        const ItemDePreco(
+          id: 'p5',
+          nome: 'Segunda lavagem',
+          unidade: UnidadeDeCobranca.peca,
+          ordem: 6,
+          categoria: Categoria.imprevisto,
+        ),
+      ];
+      await bombear(tester);
+
+      double y(Finder f) => tester.getTopLeft(f).dy;
+      final ordem = [
+        y(find.byKey(const Key('grupo_produto'))),
+        y(find.text('Impermeabilizante sofá 3 lugares')),
+        y(find.byKey(const Key('grupo_mao_de_obra'))),
+        y(find.text('Higienização sofá 3 lugares')),
+        y(find.byKey(const Key('grupo_imprevisto'))),
+        y(find.text('Segunda lavagem')),
+      ];
+      for (var i = 1; i < ordem.length; i++) {
+        expect(ordem[i], greaterThan(ordem[i - 1]), reason: 'posição $i');
+      }
+      expect(find.text('Produtos'), findsOneWidget);
+      expect(find.text('Mão de obra'), findsOneWidget);
+      expect(find.text('Imprevistos'), findsOneWidget);
+    });
+
+    testWidgets('editor grava o grupo escolhido', (tester) async {
+      await bombear(tester);
+
+      await tester.tap(find.byKey(const Key('novo_preco')));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+          find.byKey(const Key('preco_nome')), 'Neutralizador de odor');
+      await tester.tap(find.byKey(const Key('preco_categoria_produto')));
+      await tester.pump();
+      await tester.enterText(find.byKey(const Key('preco_valor')), '35');
+      await tester.tap(find.byKey(const Key('salvar_preco')));
+      await tester.pumpAndSettle();
+
+      final gravado =
+          verify(() => service.addPreco(captureAny())).captured.single
+              as ItemDePreco;
+      expect(gravado.categoria, Categoria.produto);
+      expect(gravado.peca, isNull);
+      expect(gravado.valor, 35);
+
+      // editar um item existente abre com o grupo dele
+      await tester.tap(find.text('Higienização sofá 3 lugares'));
+      await tester.pumpAndSettle();
+      expect(
+          tester
+              .widget<ChoiceChip>(
+                  find.byKey(const Key('preco_categoria_mao_de_obra')))
+              .selected,
+          isTrue);
     });
   });
 }
