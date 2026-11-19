@@ -53,8 +53,10 @@ Usuária única: a proprietária. Desenvolvedor solo.
   achar vira issue de `fix`.
 - **PR**: título `pr(<tipo>): ...`, corpo no template da GCS §6, `Closes #N` fora
   de backticks. Merge por merge commit; branch deletada depois.
-- **Docs sincronizados** no mesmo PR + linha nova no Histórico de Versões de cada
-  doc tocado (GCS §8).
+- **Docs sincronizados** no mesmo PR + **uma** linha no Histórico de Versões de
+  cada doc tocado, uma por PR: commits seguintes do mesmo PR editam essa linha
+  (escopo cresceu) ou não mexem (mesma coisa); linhas já mergeadas não se
+  reescrevem (GCS §8).
 - **Credenciais**: nunca ler ou expor valores do `.env` (gitignored); o
   `.env.example` (valores fictícios) é o versionado.
 

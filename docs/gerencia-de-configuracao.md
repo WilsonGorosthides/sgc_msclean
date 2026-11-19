@@ -127,8 +127,15 @@ Documentação e código devem refletir um ao outro. Regras:
 - A documentação é atualizada **antes** de iniciar uma feature, não depois.
 - Toda mudança de código declara quais seções de `requisitos.md` e/ou
   `arquitetura.md` mudam junto — ou afirma "nenhuma doc muda", justificando.
-- Todo documento técnico tocado ganha uma linha nova na sua tabela de
-  **Histórico de Versões**.
+- Todo documento técnico tocado ganha **uma** linha na sua tabela de
+  **Histórico de Versões** por PR:
+  - o primeiro commit do PR que toca o doc cria a linha, com versão nova;
+  - os commits seguintes do mesmo PR **não** criam linha. Se é a mesma coisa
+    (revisão de CT já citado, "a implementar" → "implementado", ajuste depois
+    do teste no celular), o histórico não muda; se o escopo cresceu (CT novo,
+    regra nova), a descrição da mesma linha é editada e a data atualizada;
+  - linha nova só em PR novo. Linhas de PRs já mergeados não são reescritas:
+    as versões são citadas entre os docs.
 
 ## 9. Definição de Pronto (DoD)
 
@@ -142,7 +149,7 @@ migrarem para Histórias de Usuário (HU), a unidade passa a ser a HU. Uma featu
 - [ ] `flutter analyze` sem erros.
 - [ ] Código seguindo as convenções do projeto.
 - [ ] Documentação sincronizada (requisitos/arquitetura, quando aplicável).
-- [ ] Linha adicionada ao Histórico de Versões do(s) doc(s) tocado(s).
+- [ ] Uma linha no Histórico de Versões de cada doc tocado, uma por PR (§8).
 - [ ] Sem código de depuração (ex.: `print()`) no que foi alterado.
 - [ ] PR aberto seguindo a [§6](#6-pull-requests), com o CI verde.
 - [ ] Passos de verificação manual acrescentados à pilha de `execucoes-de-testes-manuais.md` (quando há comportamento observável). A rodada manual em si não bloqueia o merge: é feita em pilha, antes da instalação do APK (`plano-de-testes.md` §5.2).
@@ -191,3 +198,4 @@ tabela de Histórico de Versões do próprio doc (1.0, 1.1, ...).
 | 1.5 | 2026-07-17 | Wilson Gorosthides | §2: registra as instruções de agente de IA (`CLAUDE.md` e `.claude/skills/`) como itens de configuração versionados e `.claude/settings.local.json` como não versionado — issue #51. |
 | 1.6 | 2026-11-12 | Wilson Gorosthides | §11: registra o workflow `keep-alive.yml` e os secrets do repositório que ele lê (issue #72). |
 | 1.7 | 2026-11-13 | Wilson Gorosthides | §9: a DoD passa a exigir o CI verde e os passos manuais na pilha, em vez da rodada manual antes de cada merge (replanejamento do fluxo de entrega; `plano-de-testes.md` 1.8). |
+| 1.8 | 2026-11-19 | Wilson Gorosthides | §8 e §9: uma linha de Histórico de Versões por doc por PR (commits seguintes editam a mesma linha ou não mexem; linhas já mergeadas não se reescrevem) — issue #142. |
