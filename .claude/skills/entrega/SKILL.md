@@ -31,8 +31,9 @@ Número da issue (ex.: `/entrega 26`). Sem número, perguntar qual issue entrega
    descrevendo o comportamento esperado (nomes dos testes = nomes da matriz);
    depois commit(s) `feat:`/`fix:` da implementação até o **verde**. Docs
    sincronizados (GCS §8) em commits `docs:` próprios, incluindo a linha no
-   Histórico de Versões de cada doc tocado e a atualização da matriz
-   ("a implementar" → nome real do teste).
+   Histórico de Versões de cada doc tocado (**uma por doc por PR**: o primeiro
+   commit cria; os seguintes editam a mesma linha ou não mexem) e a
+   atualização da matriz ("a implementar" → nome real do teste).
 4. **Verificação direcionada (quando há código).** O agente roda **apenas** os
    testes do(s) arquivo(s) da feature (`fvm flutter test test/<arquivo>`) para
    confirmar o red→green descrito na matriz. **Não** roda a suíte completa nem o
