@@ -12,6 +12,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../utils/agenda.dart';
 import '../utils/calculo.dart';
+import '../utils/historico.dart';
 import '../utils/telefone.dart';
 import '../utils/validators.dart';
 import '../widgets/rodape_do_total.dart';
@@ -29,7 +30,14 @@ class AtendimentoFormScreen extends StatefulWidget {
     required this.clientes,
     this.atendimento,
     this.contatos,
+    this.atendimentos = const [],
+    this.hoje,
   });
+
+  // Atendimentos já carregados pela agenda: o resumo do histórico sob o
+  // cliente escolhido (RF-011, #129). [hoje]: nos testes, um dia fixo.
+  final List<Atendimento> atendimentos;
+  final DateTime? hoje;
 
   // Seletor de contatos do celular (RF-016); nos testes, um falso.
   final AgendaDoCelular? contatos;
@@ -355,6 +363,14 @@ class _AtendimentoFormScreenState extends State<AtendimentoFormScreen> {
                 nome: _cliente?.nome ?? _nomeNovo!,
                 provisorio: _cliente?.provisorio ?? _telefoneNovo == null,
                 aoTrocar: _trocarCliente,
+                historico: _cliente == null
+                    ? null
+                    : resumoDoHistorico(
+                        widget.atendimentos,
+                        _cliente!.id!,
+                        widget.hoje ?? DateTime.now(),
+                        semId: widget.atendimento?.id,
+                      ),
               )
             else
               _EscolhaDeCliente(
@@ -606,11 +622,14 @@ class _ClienteEscolhido extends StatelessWidget {
     required this.nome,
     required this.provisorio,
     required this.aoTrocar,
+    this.historico,
   });
 
   final String nome;
   final bool provisorio;
   final VoidCallback aoTrocar;
+  // "última vez há 3 meses · R$ 250,00" (#129); nulo no nome novo.
+  final String? historico;
 
   @override
   Widget build(BuildContext context) {
@@ -630,10 +649,26 @@ class _ClienteEscolhido extends StatelessWidget {
           ),
         ),
         title: Text(nome, style: textos.titleMedium),
-        subtitle: provisorio
-            ? Text(
-                'provisório',
-                style: textos.labelSmall?.copyWith(color: AppColors.tarde),
+        subtitle: provisorio || historico != null
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (provisorio)
+                    Text(
+                      'provisório',
+                      style: textos.labelSmall?.copyWith(
+                        color: AppColors.tarde,
+                      ),
+                    ),
+                  if (historico != null)
+                    Text(
+                      historico!,
+                      key: const Key('historico_do_cliente'),
+                      style: textos.bodySmall?.copyWith(
+                        color: AppColors.tintaFraca,
+                      ),
+                    ),
+                ],
               )
             : null,
         trailing: TextButton(
