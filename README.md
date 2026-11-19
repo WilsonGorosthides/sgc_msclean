@@ -6,18 +6,20 @@
 
 <table>
   <tr>
-    <td align="center"><img src="docs/prints/01-agenda-do-dia.png" width="230" alt="Agenda do dia"><br><sub><b>Agenda do dia</b><br>semana no topo, contagem por dia, manhã e tarde, feito e pago no próprio cartão</sub></td>
-    <td align="center"><img src="docs/prints/02-agenda-do-mes.png" width="230" alt="Agenda do mês"><br><sub><b>Visão do mês</b><br>quantos atendimentos em cada dia</sub></td>
-    <td align="center"><img src="docs/prints/03-atendimento.png" width="230" alt="Atendimento"><br><sub><b>Registrar atendimento</b><br>curto: cliente e período bastam</sub></td>
-    <td align="center"><img src="docs/prints/04-pecas-e-valor.png" width="230" alt="Peças e valor"><br><sub><b>Peças e valor</b><br>peça, lugares e serviços sem digitar; preço pela tabela</sub></td>
+    <td align="center" valign="top" width="25%"><img src="docs/prints/01-agenda-do-dia.png" width="180" alt="Agenda do dia"><br><sub><b>Agenda do dia</b><br>semana no topo, manhã e tarde, feito e pago no cartão<br><a href="docs/requisitos.md#rf-010---agenda-por-data">RF-010</a> · <a href="docs/requisitos.md#rf-014---estados-de-conclusão-do-atendimento">RF-014</a> · <a href="docs/requisitos.md#4-histórias-de-usuário-user-stories">HU 6</a></sub></td>
+    <td align="center" valign="top" width="25%"><img src="docs/prints/02-agenda-do-mes.png" width="180" alt="Visão do mês"><br><sub><b>Visão do mês</b><br>quantos atendimentos em cada dia<br><a href="docs/requisitos.md#rf-010---agenda-por-data">RF-010</a> · <a href="docs/requisitos.md#4-histórias-de-usuário-user-stories">HU 6</a></sub></td>
+    <td align="center" valign="top" width="25%"><img src="docs/prints/03-atendimento.png" width="180" alt="Registrar atendimento"><br><sub><b>Registrar atendimento</b><br>cliente e período bastam<br><a href="docs/requisitos.md#rf-005---registrar-atendimento">RF-005</a> · <a href="docs/requisitos.md#4-histórias-de-usuário-user-stories">HU 5</a></sub></td>
+    <td align="center" valign="top" width="25%"><img src="docs/prints/04-pecas-e-valor.png" width="180" alt="Peças e valor"><br><sub><b>Peças e valor</b><br>peça, lugares e serviços sem digitar<br><a href="docs/requisitos.md#rf-013---tabela-de-preços-e-cálculo-do-valor">RF-013</a> · <a href="docs/requisitos.md#4-histórias-de-usuário-user-stories">HU 9</a></sub></td>
   </tr>
   <tr>
-    <td align="center"><img src="docs/prints/05-total-por-grupo.png" width="230" alt="Total por grupo"><br><sub><b>Total à vista</b><br>produtos, mão de obra e imprevistos separados</sub></td>
-    <td align="center"><img src="docs/prints/06-tabela-de-precos.png" width="230" alt="Tabela de preços"><br><sub><b>Tabela de preços</b><br>ela mantém; o produto vem junto com o serviço</sub></td>
-    <td align="center"><img src="docs/prints/07-clientes.png" width="230" alt="Clientes"><br><sub><b>Clientes</b><br>busca por nome ou rua, endereço no Maps</sub></td>
-    <td align="center"><img src="docs/prints/08-cliente-e-historico.png" width="230" alt="Cliente e histórico"><br><sub><b>Histórico do cliente</b><br>quanto cobrou e quando foi a última visita</sub></td>
+    <td align="center" valign="top" width="25%"><img src="docs/prints/05-total-por-grupo.png" width="180" alt="Total por grupo"><br><sub><b>Total por grupo</b><br>produtos, mão de obra e imprevistos<br><a href="docs/requisitos.md#rf-013---tabela-de-preços-e-cálculo-do-valor">RF-013</a> · <a href="docs/requisitos.md#4-histórias-de-usuário-user-stories">HU 9</a></sub></td>
+    <td align="center" valign="top" width="25%"><img src="docs/prints/06-tabela-de-precos.png" width="180" alt="Tabela de preços"><br><sub><b>Tabela de preços</b><br>ela mantém; o produto vem com o serviço<br><a href="docs/requisitos.md#rf-013---tabela-de-preços-e-cálculo-do-valor">RF-013</a> · <a href="docs/requisitos.md#4-histórias-de-usuário-user-stories">HU 9</a></sub></td>
+    <td align="center" valign="top" width="25%"><img src="docs/prints/07-clientes.png" width="180" alt="Clientes"><br><sub><b>Clientes</b><br>busca por nome ou rua, endereço no Maps<br><a href="docs/requisitos.md#rf-003---visualização-da-lista">RF-003</a> · <a href="docs/requisitos.md#rf-004---busca">RF-004</a> · <a href="docs/requisitos.md#rf-009---abrir-endereço-no-mapa">RF-009</a> · <a href="docs/requisitos.md#4-histórias-de-usuário-user-stories">HU 2</a></sub></td>
+    <td align="center" valign="top" width="25%"><img src="docs/prints/08-cliente-e-historico.png" width="180" alt="Histórico do cliente"><br><sub><b>Histórico do cliente</b><br>quanto cobrou e a última visita<br><a href="docs/requisitos.md#rf-011---consultar-o-histórico-de-um-cliente">RF-011</a> · <a href="docs/requisitos.md#4-histórias-de-usuário-user-stories">HU 7</a></sub></td>
   </tr>
 </table>
+
+Cada print aponta para o requisito (RF) e a história de usuário (HU) que ele atende em [`docs/requisitos.md`](./docs/requisitos.md); de lá, a [matriz de rastreabilidade](./docs/matriz-rastreabilidade.md) leva aos casos de teste e aos testes automatizados.
 
 ## O problema
 
@@ -41,7 +43,7 @@ O projeto começou como um cadastro de clientes. Um levantamento de campo em 202
 Desenvolvedor solo, com uma usuária real e um processo que deixa rastro:
 
 - **Requisitos antes do código.** [`docs/requisitos.md`](./docs/requisitos.md) é a fonte da verdade. Cada critério de aceitação vira caso de teste ([`casos-de-teste.md`](./docs/casos-de-teste.md)) e linha na [matriz de rastreabilidade](./docs/matriz-rastreabilidade.md).
-- **Teste antes.** O commit do teste vermelho vem separado do commit da implementação; o histórico mostra o vermelho e o verde. São **240 testes** automatizados (unidade e widget).
+- **Teste antes.** O commit do teste vermelho vem separado do commit da implementação; o histórico mostra o vermelho e o verde. São **241 testes** automatizados (unidade e widget).
 - **CI como gate.** `analyze + test` no GitHub Actions; a `main` é protegida e só recebe PR com o CI verde.
 - **Teste manual registrado.** Cada entrega vai para uma pilha de verificação no celular, e cada rodada vira uma execução registrada em [`execucoes-de-testes-manuais.md`](./docs/execucoes-de-testes-manuais.md). Telas novas só entram depois do ok manual.
 - **Gerência de configuração.** Branches, Conventional Commits, template de PR e documentação sincronizada no mesmo PR ([`gerencia-de-configuracao.md`](./docs/gerencia-de-configuracao.md)).
