@@ -81,6 +81,8 @@ ItemDePreco precoDoServico(List<ItemDePreco> tabela, Familia familia,
     String? variante, bool retratil, TipoDeServico servico) {
   ItemDePreco? achar(bool r) {
     for (final linha in tabela) {
+      // o produto que acompanha o serviço não é o preço dele (#134)
+      if (linha.produtoDoServico) continue;
       if (linha.peca == familia &&
           linha.servico == servico &&
           linha.variante == variante &&
@@ -115,6 +117,38 @@ ItemDePreco precoDoServico(List<ItemDePreco> tabela, Familia familia,
     servico: servico,
     retratil: retratil,
   );
+}
+
+// Produtos que vêm junto com o serviço da peça (#134): as linhas de produto
+// com a mesma peça e serviço, e a mesma variante ou nenhuma (vale para a peça
+// toda), copiadas para o registro. O retrátil não muda o produto.
+List<ItemDePreco> produtosDoServico(List<ItemDePreco> tabela, Familia familia,
+        String? variante, TipoDeServico servico) =>
+    [
+      for (final linha in tabela)
+        if (linha.produtoDoServico &&
+            !linha.retratil &&
+            linha.peca == familia &&
+            linha.servico == servico &&
+            (linha.variante == null || linha.variante == variante))
+          linha.copia(),
+    ];
+
+// Soma por grupo (#134), na ordem produtos, mão de obra, imprevistos; só os
+// grupos com algum valor. É o que a nota do orçamento (RF-017) separa.
+Map<Categoria, double> subtotaisPorGrupo(List<Peca> pecas) {
+  final soma = <Categoria, double>{};
+  for (final peca in pecas) {
+    for (final s in peca.servicos) {
+      final parcela = subtotal(peca, s);
+      if (parcela == null) continue;
+      soma[s.categoria] = (soma[s.categoria] ?? 0) + parcela;
+    }
+  }
+  return {
+    for (final c in Categoria.values)
+      if (soma.containsKey(c)) c: soma[c]!,
+  };
 }
 
 // Itens avulsos da tabela (sem peça), na ordem dela: quadro Outros.

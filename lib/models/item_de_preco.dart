@@ -17,6 +17,31 @@ enum UnidadeDeCobranca {
       codigo == m2.codigo ? m2 : peca;
 }
 
+// Grupo do item na tabela (#134), como no app de referência: produto, mão de
+// obra ou imprevisto. É o que a nota do orçamento (RF-017) separa; sem grupo
+// informado (linhas e registros de antes), mão de obra.
+enum Categoria {
+  produto('produto', 'Produtos', 'Produto'),
+  maoDeObra('mao_de_obra', 'Mão de obra', 'Mão de obra'),
+  imprevisto('imprevisto', 'Imprevistos', 'Imprevisto');
+
+  const Categoria(this.codigo, this.titulo, this.rotulo);
+
+  // Valor da coluna `categoria` (e da chave no jsonb do registro).
+  final String codigo;
+  // Título do grupo (tabela, quadro Outros, rodapé).
+  final String titulo;
+  // Escolha no editor.
+  final String rotulo;
+
+  static Categoria deCodigo(Object? codigo) {
+    for (final c in values) {
+      if (c.codigo == codigo) return c;
+    }
+    return maoDeObra;
+  }
+}
+
 // Serviço da tabela de preços (RF-013, parte 1, issue #123). Cada serviço é
 // independente: impermeabilização é um serviço completo, como higienização, e
 // o combo é escolher os dois (ou cadastrar o combo como mais um serviço).
@@ -45,6 +70,9 @@ class ItemDePreco {
   final bool ajustado;
   final double? valorDaTabela;
   final String? justificativa;
+  // Grupo (#134). Um produto com peça e serviço vem junto com o serviço da
+  // peça (o impermeabilizante com a impermeabilização); sem peça, é avulso.
+  final Categoria categoria;
 
   const ItemDePreco({
     this.id,
@@ -59,12 +87,17 @@ class ItemDePreco {
     this.ajustado = false,
     this.valorDaTabela,
     this.justificativa,
+    this.categoria = Categoria.maoDeObra,
   });
 
   bool get semValor => valor == null;
 
   // Item avulso: entra pelo quadro Outros, sem peça.
   bool get avulso => peca == null;
+
+  // Produto que acompanha um serviço da peça (não é o preço do serviço).
+  bool get produtoDoServico =>
+      categoria == Categoria.produto && peca != null && servico != null;
 
   factory ItemDePreco.fromMap(Map<String, dynamic> map) {
     final valor = map['valor'];
@@ -87,6 +120,7 @@ class ItemDePreco {
       justificativa: (justificativa == null || justificativa.isEmpty)
           ? null
           : justificativa,
+      categoria: Categoria.deCodigo(map['categoria']),
     );
   }
 
@@ -100,6 +134,7 @@ class ItemDePreco {
         'variante': variante,
         'servico': servico?.codigo,
         'retratil': retratil,
+        'categoria': categoria.codigo,
       };
 
   // Cópia para o registro (atendimento): o preço de agora, sem id nem ordem.
@@ -111,6 +146,7 @@ class ItemDePreco {
         variante: variante,
         servico: servico,
         retratil: retratil,
+        categoria: categoria,
       );
 
   // O serviço com outro preço só neste registro (CT-102). Ajustar de novo
@@ -128,6 +164,7 @@ class ItemDePreco {
       ajustado: true,
       valorDaTabela: ajustado ? valorDaTabela : valor,
       justificativa: (texto == null || texto.isEmpty) ? null : texto,
+      categoria: categoria,
     );
   }
 
@@ -142,6 +179,7 @@ class ItemDePreco {
           variante: variante,
           servico: servico,
           retratil: retratil,
+          categoria: categoria,
         );
 
   // Lista inicial (RF-013): sem valor, para ela completar. Higienização e
@@ -149,7 +187,9 @@ class ItemDePreco {
   // Cada linha já diz peça, variante e serviço (#134). Sem linhas de
   // retrátil: a linha retrátil é só o acréscimo sobre o preço comum, e ela
   // cadastra quando quiser.
-  // Cortina por folha.
+  // Cortina por folha. Os produtos e os imprevistos (#134) seguem o app de
+  // referência: o impermeabilizante do sofá vem junto com a impermeabilização
+  // (que fica sendo a aplicação, mão de obra).
   static List<ItemDePreco> listaSugerida() {
     const hig = TipoDeServico.higienizar;
     const imp = TipoDeServico.impermeabilizar;
@@ -190,6 +230,38 @@ class ItemDePreco {
     for (final nome in ['Remoção de odor', 'Remoção de mancha', 'Deslocamento']) {
       itens.add(ItemDePreco(nome: nome, unidade: UnidadeDeCobranca.peca));
     }
+    for (final v in Familia.sofa.variantes) {
+      itens.add(ItemDePreco(
+        nome: 'Impermeabilizante ${Familia.sofa.tipo} '
+            '${Familia.sofa.nomeDaVariante(v)}',
+        unidade: UnidadeDeCobranca.peca,
+        peca: Familia.sofa,
+        variante: v,
+        servico: imp,
+        categoria: Categoria.produto,
+      ));
+    }
+    for (final nome in [
+      'Neutralizador de odor',
+      'Tira-manchas',
+      'Hidratante de couro',
+    ]) {
+      itens.add(ItemDePreco(
+          nome: nome,
+          unidade: UnidadeDeCobranca.peca,
+          categoria: Categoria.produto));
+    }
+    for (final nome in [
+      'Segunda lavagem (sujeira pesada)',
+      'Excesso de pelo de pet',
+      'Tratamento de mofo',
+      'Urina com odor',
+    ]) {
+      itens.add(ItemDePreco(
+          nome: nome,
+          unidade: UnidadeDeCobranca.peca,
+          categoria: Categoria.imprevisto));
+    }
     return [
       for (var i = 0; i < itens.length; i++)
         ItemDePreco(
@@ -200,6 +272,7 @@ class ItemDePreco {
           variante: itens[i].variante,
           servico: itens[i].servico,
           retratil: itens[i].retratil,
+          categoria: itens[i].categoria,
         ),
     ];
   }

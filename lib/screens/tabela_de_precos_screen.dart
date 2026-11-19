@@ -120,7 +120,13 @@ class _TabelaDePrecosScreenState extends State<TabelaDePrecosScreen> {
                     const _Dica(),
                     const SizedBox(height: AppSpacing.lg),
                     if (itens.isEmpty) ..._vazia(context),
-                    for (final item in itens) _linha(context, item),
+                    // dividida em grupos, como no app de referência (#134)
+                    for (final g in Categoria.values)
+                      if (itens.any((i) => i.categoria == g)) ...[
+                        _tituloDoGrupo(context, g),
+                        for (final item in itens)
+                          if (item.categoria == g) _linha(context, item),
+                      ],
                   ],
                 );
               },
@@ -164,6 +170,31 @@ class _TabelaDePrecosScreenState extends State<TabelaDePrecosScreen> {
         ),
       ];
 
+  Widget _tituloDoGrupo(BuildContext context, Categoria g) => Padding(
+        padding: const EdgeInsets.only(top: AppSpacing.md, bottom: AppSpacing.sm),
+        child: Text(
+          g.titulo,
+          key: Key('grupo_${g.codigo}'),
+          style: Theme.of(context)
+              .textTheme
+              .labelLarge
+              ?.copyWith(color: AppColors.tintaFraca),
+        ),
+      );
+
+  // Legenda da linha: a unidade; no retrátil, o acréscimo; no produto que
+  // acompanha um serviço, com qual serviço ele vem (#134).
+  static String _legenda(ItemDePreco item) {
+    if (item.retratil) {
+      return 'acréscimo sobre o ${item.peca?.tipo ?? 'item'} comum';
+    }
+    if (item.produtoDoServico) {
+      return 'vem com: ${item.servico!.rotulo.toLowerCase()} · '
+          '${item.unidade.rotulo}';
+    }
+    return item.unidade.rotulo;
+  }
+
   Widget _linha(BuildContext context, ItemDePreco item) {
     final textos = Theme.of(context).textTheme;
     return Card(
@@ -172,9 +203,7 @@ class _TabelaDePrecosScreenState extends State<TabelaDePrecosScreen> {
       child: ListTile(
         title: Text(item.nome, style: textos.titleMedium),
         // a linha retrátil guarda só o acréscimo sobre a peça comum (#134)
-        subtitle: Text(item.retratil
-            ? 'acréscimo sobre o ${item.peca?.tipo ?? 'item'} comum'
-            : item.unidade.rotulo),
+        subtitle: Text(_legenda(item)),
         onTap: () => _editar(item),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
@@ -255,6 +284,8 @@ class _EditorDePrecoState extends State<_EditorDePreco> {
   late String? _variante = widget.item?.variante;
   late TipoDeServico? _servico = widget.item?.servico;
   late bool _retratil = widget.item?.retratil ?? false;
+  // Grupo (#134): produto, mão de obra ou imprevisto.
+  late Categoria _categoria = widget.item?.categoria ?? Categoria.maoDeObra;
   // O nome se monta de peça, variante e serviço até ela digitar outro.
   late bool _nomeAutomatico = widget.item == null;
   String? _erroNome;
@@ -275,7 +306,11 @@ class _EditorDePrecoState extends State<_EditorDePreco> {
             ? UnidadeDeCobranca.m2
             : UnidadeDeCobranca.peca;
       }
-      if (_nomeAutomatico && f != null && _servico != null) {
+      // o nome automático é o do serviço; o produto ela mesma nomeia
+      if (_nomeAutomatico &&
+          _categoria != Categoria.produto &&
+          f != null &&
+          _servico != null) {
         _nome.text = nomeDoServico(f, _variante, _retratil, _servico!);
       }
     });
@@ -304,6 +339,7 @@ class _EditorDePrecoState extends State<_EditorDePreco> {
       variante: _variante,
       servico: _peca == null ? null : _servico,
       retratil: _retratil,
+      categoria: _categoria,
     ));
   }
 
@@ -330,6 +366,35 @@ class _EditorDePrecoState extends State<_EditorDePreco> {
                 if (_erroNome != null) setState(() => _erroNome = null);
               },
             ),
+            const SizedBox(height: AppSpacing.lg),
+            Text('Grupo', style: Theme.of(context).textTheme.labelLarge),
+            const SizedBox(height: AppSpacing.xs),
+            Wrap(
+              spacing: AppSpacing.xs,
+              runSpacing: AppSpacing.xs,
+              children: [
+                for (final g in Categoria.values)
+                  ChoiceChip(
+                    key: Key('preco_categoria_${g.codigo}'),
+                    label: Text(g.rotulo),
+                    selected: _categoria == g,
+                    onSelected: (_) => setState(() => _categoria = g),
+                  ),
+              ],
+            ),
+            // produto com peça e serviço vem junto com o serviço (#134)
+            if (_categoria == Categoria.produto)
+              Padding(
+                padding: const EdgeInsets.only(top: AppSpacing.xs),
+                child: Text(
+                  'Com peça e serviço, o produto entra sozinho quando o '
+                  'serviço é marcado. Sem peça, fica no quadro Outros.',
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodySmall
+                      ?.copyWith(color: AppColors.tintaFraca),
+                ),
+              ),
             const SizedBox(height: AppSpacing.lg),
             Text('Peça', style: Theme.of(context).textTheme.labelLarge),
             const SizedBox(height: AppSpacing.xs),

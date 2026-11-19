@@ -105,6 +105,10 @@ class _Cartao {
   double? comprimento;
   // Serviços marcados, com o preço copiado.
   final Map<TipoDeServico, ItemDePreco> marcados = {};
+  // Produtos que vieram junto com cada serviço marcado (#134), copiados; no
+  // colchão, por tamanho ("tamanho|serviço").
+  final Map<TipoDeServico, List<ItemDePreco>> produtos = {};
+  final Map<String, List<ItemDePreco>> produtosColchao = {};
   // Serviços sem tipo presos à peça (gravados antes da #134): seguem juntos.
   final List<ItemDePreco> outros = [];
   // Colchão: quantidade por tamanho (nulo = gravado sem tamanho) e as cópias
@@ -125,6 +129,11 @@ class _Cartao {
 // O item avulso do deslocamento (#134): pelo nome, como na tabela dela.
 bool ehDeslocamento(String nome) =>
     nome.trim().toLowerCase().contains('deslocamento');
+
+// Produto gravado junto com um serviço da peça (#134). No registro o
+// serviço não guarda a peça: basta o grupo e o serviço.
+bool _produtoGravado(ItemDePreco s) =>
+    s.categoria == Categoria.produto && s.servico != null;
 
 bool _pecaDeDeslocamento(Peca p) =>
     Familia.deTipo(p.tipo) == Familia.outros &&
@@ -172,7 +181,11 @@ class _SeletorDePecasState extends State<SeletorDePecas> {
         final c = colchao ??= _Cartao(f);
         c.tamanhos[p.variante] = (c.tamanhos[p.variante] ?? 0) + p.quantidade;
         for (final s in p.servicos) {
-          if (s.servico == null) {
+          if (_produtoGravado(s)) {
+            c.produtosColchao
+                .putIfAbsent('${p.variante}|${s.servico!.codigo}', () => [])
+                .add(s);
+          } else if (s.servico == null) {
             c.outros.add(s);
           } else {
             c.marcados[s.servico!] = s;
@@ -197,11 +210,17 @@ class _SeletorDePecasState extends State<SeletorDePecas> {
         ..largura = p.largura
         ..comprimento = p.comprimento;
       for (final s in p.servicos) {
-        if (s.servico != null && !c.marcados.containsKey(s.servico)) {
+        if (_produtoGravado(s)) {
+          c.produtos.putIfAbsent(s.servico!, () => []).add(s);
+        } else if (s.servico != null && !c.marcados.containsKey(s.servico)) {
           c.marcados[s.servico!] = s;
         } else {
           c.outros.add(s);
         }
+      }
+      // produto sem o seu serviço (não deveria acontecer): segue preso à peça
+      for (final t in [...c.produtos.keys]) {
+        if (!c.marcados.containsKey(t)) c.outros.addAll(c.produtos.remove(t)!);
       }
       cartoes.add(c);
     }
@@ -235,7 +254,10 @@ class _SeletorDePecasState extends State<SeletorDePecas> {
                 variante: e.key,
                 servicos: [
                   for (final t in TipoDeServico.values)
-                    if (c.marcados.containsKey(t)) _copiaColchao(c, e.key, t),
+                    if (c.marcados.containsKey(t)) ...[
+                      _copiaColchao(c, e.key, t),
+                      ..._produtosDoColchao(c, e.key, t),
+                    ],
                   if (primeiro) ...c.outros,
                 ],
               ),
@@ -265,7 +287,10 @@ class _SeletorDePecasState extends State<SeletorDePecas> {
               comprimento: medido ? c.comprimento : null,
               servicos: [
                 for (final t in TipoDeServico.values)
-                  if (c.marcados[t] != null) c.marcados[t]!,
+                  if (c.marcados[t] != null) ...[
+                    c.marcados[t]!,
+                    ...?c.produtos[t],
+                  ],
                 ...c.outros,
               ],
             ),
@@ -273,9 +298,7 @@ class _SeletorDePecasState extends State<SeletorDePecas> {
       }
     }
     if (_deslocamento != null) {
-      pecas.add(
-        Peca(tipo: Familia.outros.tipo, servicos: [_deslocamento!]),
-      );
+      pecas.add(Peca(tipo: Familia.outros.tipo, servicos: [_deslocamento!]));
     }
     return pecas;
   }
@@ -286,22 +309,38 @@ class _SeletorDePecasState extends State<SeletorDePecas> {
         () => precoDoServico(widget.tabela, Familia.colchao, tamanho, false, t),
       );
 
+  List<ItemDePreco> _produtosDoColchao(
+    _Cartao c,
+    String? tamanho,
+    TipoDeServico t,
+  ) => c.produtosColchao.putIfAbsent(
+    '$tamanho|${t.codigo}',
+    () => produtosDoServico(widget.tabela, Familia.colchao, tamanho, t),
+  );
+
   void _mudou(VoidCallback mudanca) {
     setState(mudanca);
     widget.aoMudar(_pecas());
   }
 
-  // Lugares, tamanho ou retrátil mudaram: os serviços marcados trocam de preço.
+  // Lugares, tamanho ou retrátil mudaram: os serviços marcados (e os produtos
+  // que vêm com eles) trocam de preço.
   void _reprecificar(_Cartao c) {
     for (final t in [...c.marcados.keys]) {
-      c.marcados[t] = precoDoServico(
-        widget.tabela,
-        c.familia,
-        c.variante,
-        c.retratil,
-        t,
-      );
+      _marcar(c, t);
     }
+  }
+
+  // O serviço da tabela e os produtos que vêm junto (#134), copiados.
+  void _marcar(_Cartao c, TipoDeServico t) {
+    c.marcados[t] = precoDoServico(
+      widget.tabela,
+      c.familia,
+      c.variante,
+      c.retratil,
+      t,
+    );
+    c.produtos[t] = produtosDoServico(widget.tabela, c.familia, c.variante, t);
   }
 
   // ---- ações ----
@@ -332,22 +371,20 @@ class _SeletorDePecasState extends State<SeletorDePecas> {
   void _alternar(_Cartao c, TipoDeServico t) => _mudou(() {
     if (c.marcados.containsKey(t)) {
       c.marcados.remove(t);
+      c.produtos.remove(t);
       c.copiasColchao.removeWhere((k, _) => k.endsWith('|${t.codigo}'));
+      c.produtosColchao.removeWhere((k, _) => k.endsWith('|${t.codigo}'));
     } else {
-      c.marcados[t] = precoDoServico(
-        widget.tabela,
-        c.familia,
-        c.variante,
-        c.retratil,
-        t,
-      );
+      _marcar(c, t);
     }
   });
 
   // Preço do serviço só neste registro (CT-102): abre o diálogo e, se ela
   // confirmar, troca a cópia pelo serviço ajustado (ou de volta ao da tabela).
-  Future<void> _ajustar(ItemDePreco atual, void Function(ItemDePreco) aplicar)
-      async {
+  Future<void> _ajustar(
+    ItemDePreco atual,
+    void Function(ItemDePreco) aplicar,
+  ) async {
     final novo = await showDialog<ItemDePreco>(
       context: context,
       builder: (_) => _DialogoDoAjuste(servico: atual),
@@ -810,59 +847,78 @@ class _SeletorDePecasState extends State<SeletorDePecas> {
         ),
       ];
     }
+    // separados por grupo, como na tabela (#134)
+    Categoria grupo(_Avulso a) =>
+        a.itens.firstOrNull?.categoria ?? Categoria.maoDeObra;
     return [
-      for (final a in linhas)
-        Padding(
-          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(a.rotulo, style: textos.bodyLarge),
-                    Text(
-                      _preco(a.itens.firstOrNull?.valor),
-                      style: textos.bodySmall?.copyWith(
-                        color: AppColors.tintaFraca,
-                      ),
-                    ),
-                    if (a.itens.firstOrNull?.ajustado ?? false)
-                      _Ajustado(
-                        chave: 'avulso_${a.rotulo}_ajustado',
-                        servico: a.itens.first,
-                      ),
-                  ],
-                ),
-              ),
-              if (a.quantidade > 0 && a.itens.isNotEmpty)
-                IconButton(
-                  key: Key('avulso_${a.rotulo}_ajustar'),
-                  tooltip: 'Ajustar o preço',
-                  icon: const Icon(
-                    Icons.edit_outlined,
-                    color: AppColors.primaria,
-                  ),
-                  onPressed: () =>
-                      _ajustar(a.itens.first, (novo) => a.itens[0] = novo),
-                ),
-                _Passos(
-                  chave: 'avulso_${a.rotulo}_quantidade',
-                  chaveMenos: 'avulso_${a.rotulo}_menos',
-                  chaveMais: 'avulso_${a.rotulo}_mais',
-                  texto: '${a.quantidade}',
-                  aoMenos: a.quantidade == 0
-                      ? null
-                      : () => _mudou(() => a.quantidade--),
-                  aoMais: () => _mudou(() {
-                    if (!c.avulsos.contains(a)) c.avulsos.add(a);
-                    a.quantidade++;
-                  }),
-                ),
-            ],
+      for (final g in Categoria.values)
+        if (linhas.any((a) => grupo(a) == g)) ...[
+          Padding(
+            padding: const EdgeInsets.only(
+              top: AppSpacing.xs,
+              bottom: AppSpacing.xs,
+            ),
+            child: Text(
+              g.titulo,
+              key: Key('outros_grupo_${g.codigo}'),
+              style: textos.labelLarge?.copyWith(color: AppColors.tintaFraca),
+            ),
           ),
-        ),
+          for (final a in linhas.where((a) => grupo(a) == g))
+            _linhaDoAvulso(context, c, a),
+        ],
     ];
+  }
+
+  Widget _linhaDoAvulso(BuildContext context, _Cartao c, _Avulso a) {
+    final textos = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(a.rotulo, style: textos.bodyLarge),
+                Text(
+                  _preco(a.itens.firstOrNull?.valor),
+                  style: textos.bodySmall?.copyWith(
+                    color: AppColors.tintaFraca,
+                  ),
+                ),
+                if (a.itens.firstOrNull?.ajustado ?? false)
+                  _Ajustado(
+                    chave: 'avulso_${a.rotulo}_ajustado',
+                    servico: a.itens.first,
+                  ),
+              ],
+            ),
+          ),
+          if (a.quantidade > 0 && a.itens.isNotEmpty)
+            IconButton(
+              key: Key('avulso_${a.rotulo}_ajustar'),
+              tooltip: 'Ajustar o preço',
+              icon: const Icon(Icons.edit_outlined, color: AppColors.primaria),
+              onPressed: () =>
+                  _ajustar(a.itens.first, (novo) => a.itens[0] = novo),
+            ),
+          _Passos(
+            chave: 'avulso_${a.rotulo}_quantidade',
+            chaveMenos: 'avulso_${a.rotulo}_menos',
+            chaveMais: 'avulso_${a.rotulo}_mais',
+            texto: '${a.quantidade}',
+            aoMenos: a.quantidade == 0
+                ? null
+                : () => _mudou(() => a.quantidade--),
+            aoMais: () => _mudou(() {
+              if (!c.avulsos.contains(a)) c.avulsos.add(a);
+              a.quantidade++;
+            }),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _quantidade(int i, _Cartao c) => _Passos(
@@ -927,10 +983,17 @@ class _SeletorDePecasState extends State<SeletorDePecas> {
     if (c.familia == Familia.colchao) {
       preco = 'conforme o tamanho';
     } else {
+      // o serviço mais os produtos que vêm com ele (#134)
       final item =
           c.marcados[t] ??
           precoDoServico(widget.tabela, c.familia, c.variante, c.retratil, t);
-      preco = _preco(item.valor, m2: item.unidade == UnidadeDeCobranca.m2);
+      final produtos =
+          c.produtos[t] ??
+          produtosDoServico(widget.tabela, c.familia, c.variante, t);
+      final soma = item.valor == null
+          ? null
+          : produtos.fold(item.valor!, (a, p) => a + (p.valor ?? 0));
+      preco = _preco(soma, m2: item.unidade == UnidadeDeCobranca.m2);
     }
     final botao = Material(
       key: Key('cartao_${i}_${t.codigo}'),
@@ -985,6 +1048,8 @@ class _SeletorDePecasState extends State<SeletorDePecas> {
       );
     }
     final servico = c.marcados[t]!;
+    final produtos = c.produtos[t] ?? const <ItemDePreco>[];
+    final m2 = servico.unidade == UnidadeDeCobranca.m2;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -992,12 +1057,26 @@ class _SeletorDePecasState extends State<SeletorDePecas> {
         Row(
           children: [
             Expanded(
-              child: servico.ajustado
-                  ? _Ajustado(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // com produto, a parte do serviço fica à vista (#134)
+                  if (produtos.isNotEmpty)
+                    Text(
+                      '${Categoria.maoDeObra.rotulo} · '
+                      '${_preco(servico.valor, m2: m2)}',
+                      key: Key('cartao_${i}_${t.codigo}_mao_de_obra'),
+                      style: textos.bodyMedium?.copyWith(
+                        fontFeatures: AppTypography.digitosTabulares,
+                      ),
+                    ),
+                  if (servico.ajustado)
+                    _Ajustado(
                       chave: 'cartao_${i}_${t.codigo}_ajustado',
                       servico: servico,
-                    )
-                  : const SizedBox.shrink(),
+                    ),
+                ],
+              ),
             ),
             TextButton.icon(
               key: Key('cartao_${i}_${t.codigo}_ajustar'),
@@ -1007,6 +1086,58 @@ class _SeletorDePecasState extends State<SeletorDePecas> {
               label: const Text('Ajustar preço'),
             ),
           ],
+        ),
+        for (var j = 0; j < produtos.length; j++)
+          _linhaDoProduto(
+            context,
+            'cartao_${i}_${t.codigo}_produto_$j',
+            produtos[j],
+            (novo) => c.produtos[t]![j] = novo,
+          ),
+      ],
+    );
+  }
+
+  // Produto que veio com o serviço (#134): nome, preço e o ajuste próprio.
+  Widget _linhaDoProduto(
+    BuildContext context,
+    String chave,
+    ItemDePreco produto,
+    void Function(ItemDePreco) aplicar,
+  ) {
+    final textos = Theme.of(context).textTheme;
+    return Row(
+      children: [
+        const Icon(
+          Icons.inventory_2_outlined,
+          size: AppSpacing.lg,
+          color: AppColors.tintaFraca,
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '${produto.nome} · ${_preco(produto.valor, m2: produto.unidade == UnidadeDeCobranca.m2)}',
+                key: Key(chave),
+                style: textos.bodyMedium?.copyWith(
+                  color: produto.valor == null
+                      ? AppColors.tarde
+                      : AppColors.tinta,
+                  fontFeatures: AppTypography.digitosTabulares,
+                ),
+              ),
+              if (produto.ajustado)
+                _Ajustado(chave: '${chave}_ajustado', servico: produto),
+            ],
+          ),
+        ),
+        IconButton(
+          key: Key('${chave}_ajustar'),
+          tooltip: 'Ajustar o preço do produto',
+          icon: const Icon(Icons.edit_outlined, color: AppColors.primaria),
+          onPressed: () => _ajustar(produto, aplicar),
         ),
       ],
     );
@@ -1025,37 +1156,74 @@ class _SeletorDePecasState extends State<SeletorDePecas> {
         ? 'Sem tamanho'
         : '${tamanho[0].toUpperCase()}${tamanho.substring(1)}';
     final base = 'colchao_${tamanho}_${t.codigo}';
+    final produtos = _produtosDoColchao(c, tamanho, t);
     return Padding(
       padding: const EdgeInsets.only(left: AppSpacing.md),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '$rotulo: $quantidade × ${_preco(servico.valor)}',
-                  key: Key('${base}_preco'),
-                  style: textos.bodyMedium?.copyWith(
-                    fontFeatures: AppTypography.digitosTabulares,
-                  ),
-                ),
-                if (servico.ajustado)
-                  _Ajustado(chave: '${base}_ajustado', servico: servico),
-              ],
-            ),
+          _linhaDoTamanho(
+            context,
+            c,
+            tamanho,
+            quantidade,
+            t,
+            servico,
+            rotulo,
+            base,
+            textos,
           ),
-          IconButton(
-            key: Key('${base}_ajustar'),
-            tooltip: 'Ajustar o preço',
-            icon: const Icon(Icons.edit_outlined, color: AppColors.primaria),
-            onPressed: () => _ajustar(
-              servico,
-              (novo) => c.copiasColchao['$tamanho|${t.codigo}'] = novo,
+          for (var j = 0; j < produtos.length; j++)
+            _linhaDoProduto(
+              context,
+              '${base}_produto_$j',
+              produtos[j],
+              (novo) => produtos[j] = novo,
             ),
-          ),
         ],
       ),
+    );
+  }
+
+  Widget _linhaDoTamanho(
+    BuildContext context,
+    _Cartao c,
+    String? tamanho,
+    int quantidade,
+    TipoDeServico t,
+    ItemDePreco servico,
+    String rotulo,
+    String base,
+    TextTheme textos,
+  ) {
+    return Row(
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '$rotulo: $quantidade × ${_preco(servico.valor)}',
+                key: Key('${base}_preco'),
+                style: textos.bodyMedium?.copyWith(
+                  fontFeatures: AppTypography.digitosTabulares,
+                ),
+              ),
+              if (servico.ajustado)
+                _Ajustado(chave: '${base}_ajustado', servico: servico),
+            ],
+          ),
+        ),
+        IconButton(
+          key: Key('${base}_ajustar'),
+          tooltip: 'Ajustar o preço',
+          icon: const Icon(Icons.edit_outlined, color: AppColors.primaria),
+          onPressed: () => _ajustar(
+            servico,
+            (novo) => c.copiasColchao['$tamanho|${t.codigo}'] = novo,
+          ),
+        ),
+      ],
     );
   }
 

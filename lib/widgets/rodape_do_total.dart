@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../models/item_de_preco.dart';
 import '../models/peca.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
@@ -92,6 +93,12 @@ class _RodapeDoTotalState extends State<RodapeDoTotal> {
                   child: ListView(
                     shrinkWrap: true,
                     children: [
+                      // subtotal de cada grupo, como a nota do orçamento
+                      // vai separar (#134)
+                      for (final e
+                          in subtotaisPorGrupo(widget.pecas).entries)
+                        _subtotal(context, e.key, e.value),
+                      const Divider(),
                       for (var k = 0; k < linhas.length; k++)
                         _linha(context, k, linhas[k]),
                       const Divider(),
@@ -179,6 +186,28 @@ class _RodapeDoTotalState extends State<RodapeDoTotal> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _subtotal(BuildContext context, Categoria grupo, double valor) {
+    final textos = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(grupo.titulo,
+                style: textos.labelLarge
+                    ?.copyWith(color: AppColors.tintaFraca)),
+          ),
+          Text(
+            valorEmReais(valor),
+            key: Key('subtotal_${grupo.codigo}'),
+            style: textos.titleSmall
+                ?.copyWith(fontFeatures: AppTypography.digitosTabulares),
+          ),
+        ],
       ),
     );
   }
