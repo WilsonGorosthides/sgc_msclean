@@ -42,215 +42,6 @@ como **outro app**: desinstalar o antigo primeiro, para não ficarem dois ícone
 Conferir também que o APK novo abre a agenda **com dados** (a permissão de
 internet passou a valer no release).
 
-### SQL a aplicar (antes dos passos)
-
-Seletor de peças (#134), no SQL Editor do painel do Supabase. O SQL da tabela
-`precos` (#123) já foi aplicado (confirmado em 2026-11-17).
-
-```sql
--- 1. colunas novas, todas opcionais (linha sem peça = item avulso)
-alter table public.precos
-  add column peca     text check (peca in ('sofa', 'tapete', 'poltrona', 'cortina', 'colchao', 'cadeira')),
-  add column variante text,
-  add column servico  text check (servico in ('higienizar', 'impermeabilizar')),
-  add column retratil boolean not null default false;
-
--- 2. linhas já gravadas pela lista sugerida: preencher pelo nome
-update public.precos set servico = 'higienizar'      where nome ilike 'higieniza%';
-update public.precos set servico = 'impermeabilizar' where nome ilike 'impermeabiliza%';
-update public.precos set peca = 'sofa', variante = '2'     where nome ilike '%sofá 2 lugares%';
-update public.precos set peca = 'sofa', variante = '3'     where nome ilike '%sofá 3 lugares%';
-update public.precos set peca = 'sofa', variante = '4'     where nome ilike '%sofá 4 lugares%';
-update public.precos set peca = 'sofa', variante = 'canto' where nome ilike '%sofá de canto%';
-update public.precos set peca = 'poltrona' where nome ilike '%poltrona%';
-update public.precos set peca = 'cadeira'  where nome ilike '%cadeira%';
-update public.precos set peca = 'tapete'   where nome ilike '%tapete%';
--- cortina passa a ser por folha (decisão de 2026-11-17)
-update public.precos set peca = 'cortina', unidade = 'peca' where nome ilike '%cortina%';
-update public.precos set peca = 'colchao', variante = 'solteiro' where nome ilike '%colchão solteiro%';
-update public.precos set peca = 'colchao', variante = 'casal'    where nome ilike '%colchão casal%';
-update public.precos set peca = 'colchao', variante = 'queen'    where nome ilike '%colchão queen%';
-update public.precos set peca = 'colchao', variante = 'king'     where nome ilike '%colchão king%';
-update public.precos set retratil = true where nome ilike '%retrátil%';
--- sem peça é avulso: não tem serviço de peça
-update public.precos set servico = null where peca is null;
-
--- 3. linhas de retrátil, sem valor (ela define depois), só se a tabela já
---    foi começada e ainda não tem nenhuma; tabela vazia usa a lista sugerida
-insert into public.precos (nome, unidade, valor, ordem, peca, variante, servico, retratil)
-select v.nome, 'peca', null,
-       (select coalesce(max(ordem), -1) from public.precos) + v.n,
-       v.peca, v.variante, v.servico, true
-from (values
-  (1,  'Higienização sofá 2 lugares retrátil',      'sofa',     '2',     'higienizar'),
-  (2,  'Higienização sofá 3 lugares retrátil',      'sofa',     '3',     'higienizar'),
-  (3,  'Higienização sofá 4 lugares retrátil',      'sofa',     '4',     'higienizar'),
-  (4,  'Higienização sofá de canto retrátil',       'sofa',     'canto', 'higienizar'),
-  (5,  'Higienização poltrona retrátil',            'poltrona', null,    'higienizar'),
-  (6,  'Impermeabilização sofá 2 lugares retrátil', 'sofa',     '2',     'impermeabilizar'),
-  (7,  'Impermeabilização sofá 3 lugares retrátil', 'sofa',     '3',     'impermeabilizar'),
-  (8,  'Impermeabilização sofá 4 lugares retrátil', 'sofa',     '4',     'impermeabilizar'),
-  (9,  'Impermeabilização sofá de canto retrátil',  'sofa',     'canto', 'impermeabilizar'),
-  (10, 'Impermeabilização poltrona retrátil',       'poltrona', null,    'impermeabilizar')
-) as v(n, nome, peca, variante, servico)
-where exists (select 1 from public.precos)
-  and not exists (select 1 from public.precos where retratil);
-```
-
-**Aplicado pelo desenvolvedor em 2026-11-19** — valores de partida (#134, revisto em 2026-11-19).
-São dados, não schema: os preços do app de referência, só onde está sem
-valor; o retrátil da higienização do sofá ganha o acréscimo de R$ 30 e o
-sofá grande impermeabilizado vai a 370. Pode rodar de novo se a versão
-anterior já rodou. O bloco 4 é estimativa (o app de referência não tem esses
-serviços): apagar se preferir "sem valor".
-
-```sql
--- #134: valores de partida copiados do app de referência (ela ajusta depois
--- na tela Tabela de preços). Só preenche o que ainda está sem valor: preço
--- que ela já informou não é sobrescrito. Pode rodar mais de uma vez.
-
--- 1) Peças: valores do app de referência.
---    Impermeabilização = produto + aplicação do app: 190 + 90 até 3 lugares;
---    no sofá grande, 250 + 90 + 30 (a aplicação no sofá grande é + R$ 30).
-update public.precos p set valor = v.valor
-from (values
-  ('sofa',    '2',        'higienizar',      170),
-  ('sofa',    '3',        'higienizar',      200),
-  ('sofa',    '4',        'higienizar',      250),
-  ('sofa',    'canto',    'higienizar',      300),
-  ('sofa',    '2',        'impermeabilizar', 280),
-  ('sofa',    '3',        'impermeabilizar', 280),
-  ('sofa',    '4',        'impermeabilizar', 370),
-  ('sofa',    'canto',    'impermeabilizar', 370),
-  ('poltrona', null,      'higienizar',       90),
-  ('cadeira',  null,      'higienizar',       30),
-  ('tapete',   null,      'higienizar',       25),
-  ('colchao', 'solteiro', 'higienizar',      110),
-  ('colchao', 'casal',    'higienizar',      160),
-  ('colchao', 'queen',    'higienizar',      180),
-  ('colchao', 'king',     'higienizar',      210)
-) as v(peca, variante, servico, valor)
-where p.peca = v.peca
-  and p.variante is not distinct from v.variante
-  and p.servico = v.servico
-  and not p.retratil
-  and p.valor is null;
-
--- 1b) Se a versão anterior deste SQL já rodou: o sofá grande tinha ido a
---     340 (suposição); o certo do app de referência é 370.
-update public.precos set valor = 370
-where peca = 'sofa' and variante in ('4', 'canto')
-  and servico = 'impermeabilizar' and not retratil and valor = 340;
-
--- 2) Avulsos: tratamento de odor 70, mancha 50 (por mancha). Deslocamento
---    20 (decisão de 2026-11-19; o app de referência usa 40): também troca
---    os 40 da versão anterior deste SQL.
-update public.precos set valor = 70 where peca is null and nome = 'Remoção de odor'   and valor is null;
-update public.precos set valor = 50 where peca is null and nome = 'Remoção de mancha' and valor is null;
-update public.precos set valor = 20 where peca is null and nome = 'Deslocamento'      and (valor is null or valor = 40);
-
--- 3) Retrátil: a linha retrátil agora guarda só o ACRÉSCIMO sobre o sofá
---    comum. No app de referência: + R$ 30 na higienização do sofá.
---    a) linhas retrátil sem valor que não são da higienização do sofá saem
---       (sem acréscimo, vale o preço comum)
-delete from public.precos
-where retratil and valor is null
-  and not (peca = 'sofa' and servico = 'higienizar');
---    b) higienização do sofá retrátil: + 30 onde a linha existe sem valor
-update public.precos set valor = 30
-where retratil and peca = 'sofa' and servico = 'higienizar' and valor is null;
---    c) e cria a linha onde ela não existe
-insert into public.precos (nome, unidade, valor, ordem, peca, variante, servico, retratil)
-select v.nome, 'peca', 30,
-       (select coalesce(max(ordem), -1) from public.precos) + v.n,
-       'sofa', v.variante, 'higienizar', true
-from (values
-  (1, 'Higienização sofá 2 lugares retrátil', '2'),
-  (2, 'Higienização sofá 3 lugares retrátil', '3'),
-  (3, 'Higienização sofá 4 lugares retrátil', '4'),
-  (4, 'Higienização sofá de canto retrátil',  'canto')
-) as v(n, nome, variante)
-where not exists (
-  select 1 from public.precos p
-  where p.retratil and p.peca = 'sofa' and p.servico = 'higienizar'
-    and p.variante = v.variante
-);
-
--- 4) OPCIONAL — o app de referência NÃO tem estes; são estimativas minhas
---    (proporção imp/hig do sofá ≈ 1,6). Apague este bloco se preferir que
---    fiquem "sem valor" até ela definir.
-update public.precos set valor = 150 where peca = 'poltrona' and servico = 'impermeabilizar' and not retratil and valor is null;
-update public.precos set valor = 50  where peca = 'cadeira'  and servico = 'impermeabilizar' and not retratil and valor is null;
-update public.precos set valor = 40  where peca = 'tapete'   and servico = 'impermeabilizar' and valor is null;
-update public.precos set valor = 60  where peca = 'cortina'  and servico = 'higienizar'      and valor is null;
-
--- conferir: o que ainda ficou sem valor
-select nome, unidade from public.precos where valor is null order by ordem;
-```
-
-**Aplicado pelo desenvolvedor em 2026-11-19** — grupos e produtos (#134, 2026-11-19). **Schema e
-dados**: rodar depois do bloco dos valores de partida. A impermeabilização do
-sofá vira só a aplicação (90 / 120) e o impermeabilizante entra como produto
-(190 / 250): o total do sofá impermeabilizado continua 280 / 370.
-
-```sql
--- #134: grupo de cada item da tabela (produto, mão de obra, imprevisto),
--- como no app de referência. Rodar DEPOIS dos valores de partida. Pode
--- rodar mais de uma vez.
-
--- 1) coluna nova (schema); as linhas que já existem ficam mão de obra
-alter table public.precos
-  add column if not exists categoria text not null default 'mao_de_obra'
-  check (categoria in ('produto', 'mao_de_obra', 'imprevisto'));
-
--- 2) a impermeabilização do sofá passa a ser só a aplicação (mão de obra):
---    90 até 3 lugares, 120 no sofá grande (90 + 30). Só troca o valor de
---    partida somado (280 / 370); preço que ela já mudou fica como está.
-update public.precos set valor = 90
-where peca = 'sofa' and variante in ('2', '3') and servico = 'impermeabilizar'
-  and not retratil and categoria = 'mao_de_obra' and valor = 280;
-update public.precos set valor = 120
-where peca = 'sofa' and variante in ('4', 'canto') and servico = 'impermeabilizar'
-  and not retratil and categoria = 'mao_de_obra' and valor = 370;
-
--- 3) o produto que vem junto com a impermeabilização do sofá: 190 até 3
---    lugares, 250 no grande (app de referência)
-insert into public.precos (nome, unidade, valor, ordem, peca, variante, servico, retratil, categoria)
-select v.nome, 'peca', v.valor,
-       (select coalesce(max(ordem), -1) from public.precos) + v.n,
-       'sofa', v.variante, 'impermeabilizar', false, 'produto'
-from (values
-  (1, 'Impermeabilizante sofá 2 lugares',  '2',     190),
-  (2, 'Impermeabilizante sofá 3 lugares',  '3',     190),
-  (3, 'Impermeabilizante sofá 4 lugares',  '4',     250),
-  (4, 'Impermeabilizante sofá de canto',   'canto', 250)
-) as v(n, nome, variante, valor)
-where not exists (
-  select 1 from public.precos p
-  where p.categoria = 'produto' and p.peca = 'sofa'
-    and p.servico = 'impermeabilizar' and p.variante = v.variante
-);
-
--- 4) produtos avulsos e imprevistos, sem valor (ela completa na tela)
-insert into public.precos (nome, unidade, valor, ordem, retratil, categoria)
-select v.nome, 'peca', null,
-       (select coalesce(max(ordem), -1) from public.precos) + v.n,
-       false, v.categoria
-from (values
-  (1, 'Neutralizador de odor',            'produto'),
-  (2, 'Tira-manchas',                     'produto'),
-  (3, 'Hidratante de couro',              'produto'),
-  (4, 'Segunda lavagem (sujeira pesada)', 'imprevisto'),
-  (5, 'Excesso de pelo de pet',           'imprevisto'),
-  (6, 'Tratamento de mofo',               'imprevisto'),
-  (7, 'Urina com odor',                   'imprevisto')
-) as v(n, nome, categoria)
-where not exists (select 1 from public.precos p where p.nome = v.nome);
-
--- conferir: a tabela por grupo
-select categoria, nome, valor from public.precos order by categoria, ordem;
-```
-
 ### #123 — Tabela de preços editável (RF-013, parte 1)
 
 Testes manuais gravam no banco real (o mesmo do celular): usar serviços com
@@ -297,59 +88,6 @@ excluir o atendimento no fim.
    atendimento salvo. **Esperado:** os serviços e o Valor seguem com os preços
    do dia do registro. Excluir o atendimento TESTE e voltar a tabela ao valor
    de antes. (CT-092)
-
-### #134 — Seletor de peças e serviços (RF-013) · **PR de interface, sem merge antes do ok**
-
-Antes: SQL acima aplicado (confirmado pelo desenvolvedor em 2026-11-17; o
-bloco "SQL a aplicar" sai da pilha quando a execução registrar). Testes gravam no banco real: cliente "TESTE", dia
-passado, e excluir o atendimento no fim.
-
-1. Tabela de preços: abrir "Higienização sofá 3 lugares". **Esperado:** peça
-   Sofá, 3 lugares e Higienizar marcados. Depois do SQL acima, a lista vem
-   com os valores de partida e a cortina "por peça"; as linhas retrátil
-   do sofá aparecem como "+ R$ 30,00" (acréscimo) e o editor delas pede o
-   "Acréscimo do retrátil". (CT-100)
-2. Novo atendimento: o formulário é curto (sem quadros nem rodapé de total) e
-   salva só com cliente e período. Tocar na linha "Adicionar peças e valor":
-   abre "Peças e valor", com os quadros na ordem Sofá, Tapete, Poltrona, Cortina,
-   Colchão, Cadeira, Outros. Tocar Sofá duas vezes e Poltrona uma. **Esperado:**
-   selos ×2 e ×1; "Sofá 1" e "Sofá 2". No Sofá 1, − / + nos lugares (2 → 3 → 4
-   → canto), ligar retrátil; tirar o Sofá 2 pelo ×. (CT-093, CT-094)
-3. Tapete: + na largura e no comprimento até 2 × 3. **Esperado:** "6 m²" a
-   cada toque. Colchão: Casal + duas vezes (selo ×2). Cortina e cadeira: − / +.
-   Nenhum teclado aparece. (CT-094, CT-101)
-4. No sofá de 3 lugares, marcar só Impermeabilizar; depois os dois. Passar a
-   4 lugares, depois voltar e ligar o retrátil. **Esperado:** cada botão mostra
-   o preço; os dois somam; sem linha ou sem valor, "sem valor" e o aviso no
-   rodapé. Ligar o retrátil no sofá de 3 lugares: **o preço vira o do sofá
-   comum + R$ 30** (R$ 230, com "retrátil" no nome). No registro novo, o
-   **Deslocamento já aparece**, num bloco próprio (fora de Outros), com o
-   valor da tabela; − / + mudam **R$ 1** por toque (20, 21, 22…) e tocar no
-   valor deixa digitar (ex.: 50); o interruptor tira. Em Outros, a mancha
-   vai por − / +. (CT-095, CT-096, CT-098)
-5. Rodapé: total sempre à vista; abrir os detalhes (serviço, conta e valor);
-   "Mudar valor" para outro número; mudar uma quantidade; "Usar o calculado";
-   "Pronto" (ou a seta): o resumo mostra as peças e o valor; salvar. Abrir
-   um atendimento salvo antes desta versão e salvar sem mexer.
-   **Esperado:** abre com os serviços e preços de antes, e nada some. Excluir
-   os atendimentos TESTE. (CT-097, CT-099, CT-101)
-6. Ajuste por serviço: no sofá de 2 lugares com Higienizar, "Ajustar preço",
-   R$ 220 e a justificativa "tecido linho". **Esperado:** o serviço mostra
-   R$ 220,00 e "ajustado · tabela R$ 170,00 · tecido linho"; os detalhes do
-   rodapé também; o total soma 220. Ajustar um colchão (pelo lápis) e digitar
-   o valor do Deslocamento; depois "Voltar ao da tabela" num deles. Salvar, reabrir: os
-   ajustes continuam. A tabela de preços não mudou. (CT-102)
-7. Grupos e produtos (depois do SQL dos grupos): na Tabela de preços,
-   **Esperado:** títulos Produtos, Mão de obra e Imprevistos; o
-   "Impermeabilizante sofá 3 lugares" em Produtos com "vem com:
-   impermeabilizar", R$ 190,00; a "Impermeabilização sofá 3 lugares" em Mão
-   de obra com R$ 90,00. No editor, o grupo aparece e muda. Num registro, sofá
-   de 3 lugares com Impermeabilizar: o botão mostra **R$ 280,00**, embaixo
-   "Mão de obra · R$ 90,00" e o impermeabilizante R$ 190,00 com o lápis
-   próprio; passar a 4 lugares: R$ 370,00. Em Outros, os avulsos por grupo; o
-   Deslocamento segue no bloco próprio. Abrir os detalhes do rodapé:
-   subtotais Produtos, Mão de obra (com o deslocamento) e Imprevistos.
-   Salvar, reabrir: o produto continua. (CT-103, CT-104, CT-105)
 
 ## Execução 001 — Verificação manual do RF-001 (pré-merge do PR #44)
 
@@ -887,6 +625,36 @@ versão nova, assinada com a mesma chave, instala por cima sem perder dados.
 ### Veredicto
 **Aprovado.** Pilha vazia.
 
+## Execução 015 — Pilha: seletor de peças, grupos e produtos (pré-merge, #134)
+
+- **Data:** 2026-11-19.
+- **Objeto:** seletor de peças e serviços (#134, PR #135, PR de interface),
+  com o retrátil como acréscimo, o deslocamento em bloco próprio, o ajuste
+  do preço por serviço e os grupos da tabela com o produto junto com o
+  serviço. Com SQL: schema de `precos` (aplicado em 2026-11-17), valores de
+  partida e grupos e produtos (aplicados em 2026-11-19).
+- **Ambiente:** APK de release instalado por cima (`adb install -r`) no
+  celular do desenvolvedor, Realme RMX3941, contra o Supabase real do MVP,
+  com rede.
+- **Executor:** o desenvolvedor (resultado informado em 2026-11-19: "testei
+  tudo, aprovado"); o agente gerou e instalou o APK.
+
+### Resultados
+
+| Passo | O que verificou | CT(s) | Resultado |
+|---|---|---|---|
+| 1 | Tabela com peça, variante e serviço; valores de partida; retrátil como "+ R$ 30,00" | CT-100 | Aprovado |
+| 2 | Formulário curto; Peças e valor com os quadros na ordem, selos ×N e ajuste dos lugares | CT-093, CT-094 | Aprovado |
+| 3 | Tapete com os m² a cada toque; colchão, cortina e cadeira por − / +, sem teclado | CT-094, CT-101 | Aprovado |
+| 4 | Higienizar e Impermeabilizar separados ou juntos; preço por variante; retrátil = comum + R$ 30; deslocamento já incluído, de R$ 1 em R$ 1 ou digitado | CT-095, CT-096, CT-098 | Aprovado |
+| 5 | Rodapé com total, detalhes, "Mudar valor" e "Usar o calculado"; atendimento de antes abre e salva sem perder | CT-097, CT-099, CT-101 | Aprovado |
+| 6 | Ajuste do preço por serviço com justificativa; "Voltar ao da tabela"; tabela inalterada | CT-102 | Aprovado |
+| 7 | Tabela em Produtos, Mão de obra e Imprevistos; sofá impermeabilizado com aplicação + impermeabilizante (R$ 280 / R$ 370); Outros por grupo; subtotais no rodapé; produto continua ao reabrir | CT-103, CT-104, CT-105 | Aprovado |
+
+### Veredicto
+**Aprovado.** O bloco #134 e o SQL saem da pilha; seguem pendentes os blocos
+#123 e #124.
+
 ## Histórico de Versões
 
 | Data | Versão | Autor | Descrição da mudança |
@@ -930,3 +698,4 @@ versão nova, assinada com a mesma chave, instala por cima sem perder dados.
 | 2026-11-19 | 1.36 | Wilson Gorosthides | Pilha #134: deslocamento em bloco próprio, já incluído, de R$ 1 em R$ 1 ou digitado; SQL com o deslocamento a 20. |
 | 2026-11-19 | 1.37 | Wilson Gorosthides | Pilha #134: SQL dos grupos e produtos (coluna `categoria`, aplicação 90 / 120 e impermeabilizante 190 / 250, produtos avulsos e imprevistos) e o passo 7 (CT-103 a CT-105). |
 | 2026-11-19 | 1.38 | Wilson Gorosthides | Pilha #134: SQL dos valores de partida e dos grupos e produtos aplicados pelo desenvolvedor no painel. |
+| 2026-11-19 | 1.39 | Wilson Gorosthides | Execução 015 (seletor de peças, grupos e produtos, pré-merge #134, PR #135): sete passos aprovados no celular; o bloco #134 e o SQL saem da pilha. |
