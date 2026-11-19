@@ -97,20 +97,21 @@ where exists (select 1 from public.precos)
   and not exists (select 1 from public.precos where retratil);
 ```
 
-**Ainda não aplicado** — valores de partida (#134, depois do teste no celular,
-2026-11-18). São dados, não schema: os preços do app de referência, só onde
-está sem valor; as linhas de retrátil sem valor saem. O bloco 4 é estimativa
-(o app de referência não tem esses serviços): apagar se preferir "sem valor".
+**Ainda não aplicado** — valores de partida (#134, revisto em 2026-11-19).
+São dados, não schema: os preços do app de referência, só onde está sem
+valor; o retrátil da higienização do sofá ganha o acréscimo de R$ 30 e o
+sofá grande impermeabilizado vai a 370. Pode rodar de novo se a versão
+anterior já rodou. O bloco 4 é estimativa (o app de referência não tem esses
+serviços): apagar se preferir "sem valor".
 
 ```sql
 -- #134: valores de partida copiados do app de referência (ela ajusta depois
 -- na tela Tabela de preços). Só preenche o que ainda está sem valor: preço
--- que ela já informou não é sobrescrito.
+-- que ela já informou não é sobrescrito. Pode rodar mais de uma vez.
 
 -- 1) Peças: valores do app de referência.
---    Impermeabilização = produto + aplicação do app (190 + 90 até 3 lugares;
---    250 + 90 no sofá grande: o app só lista a aplicação "até 3 lugares",
---    então os 90 do grande são suposição).
+--    Impermeabilização = produto + aplicação do app: 190 + 90 até 3 lugares;
+--    no sofá grande, 250 + 90 + 30 (a aplicação no sofá grande é + R$ 30).
 update public.precos p set valor = v.valor
 from (values
   ('sofa',    '2',        'higienizar',      170),
@@ -119,8 +120,8 @@ from (values
   ('sofa',    'canto',    'higienizar',      300),
   ('sofa',    '2',        'impermeabilizar', 280),
   ('sofa',    '3',        'impermeabilizar', 280),
-  ('sofa',    '4',        'impermeabilizar', 340),
-  ('sofa',    'canto',    'impermeabilizar', 340),
+  ('sofa',    '4',        'impermeabilizar', 370),
+  ('sofa',    'canto',    'impermeabilizar', 370),
   ('poltrona', null,      'higienizar',       90),
   ('cadeira',  null,      'higienizar',       30),
   ('tapete',   null,      'higienizar',       25),
@@ -135,14 +136,43 @@ where p.peca = v.peca
   and not p.retratil
   and p.valor is null;
 
+-- 1b) Se a versão anterior deste SQL já rodou: o sofá grande tinha ido a
+--     340 (suposição); o certo do app de referência é 370.
+update public.precos set valor = 370
+where peca = 'sofa' and variante in ('4', 'canto')
+  and servico = 'impermeabilizar' and not retratil and valor = 340;
+
 -- 2) Avulsos: tratamento de odor 70, mancha 50 (por mancha), deslocamento 40.
 update public.precos set valor = 70 where peca is null and nome = 'Remoção de odor'   and valor is null;
 update public.precos set valor = 50 where peca is null and nome = 'Remoção de mancha' and valor is null;
 update public.precos set valor = 40 where peca is null and nome = 'Deslocamento'      and valor is null;
 
--- 3) Retrátil: as linhas sem valor saem; o retrátil passa a usar o preço
---    da mesma peça comum até ela cadastrar um preço próprio.
-delete from public.precos where retratil and valor is null;
+-- 3) Retrátil: a linha retrátil agora guarda só o ACRÉSCIMO sobre o sofá
+--    comum. No app de referência: + R$ 30 na higienização do sofá.
+--    a) linhas retrátil sem valor que não são da higienização do sofá saem
+--       (sem acréscimo, vale o preço comum)
+delete from public.precos
+where retratil and valor is null
+  and not (peca = 'sofa' and servico = 'higienizar');
+--    b) higienização do sofá retrátil: + 30 onde a linha existe sem valor
+update public.precos set valor = 30
+where retratil and peca = 'sofa' and servico = 'higienizar' and valor is null;
+--    c) e cria a linha onde ela não existe
+insert into public.precos (nome, unidade, valor, ordem, peca, variante, servico, retratil)
+select v.nome, 'peca', 30,
+       (select coalesce(max(ordem), -1) from public.precos) + v.n,
+       'sofa', v.variante, 'higienizar', true
+from (values
+  (1, 'Higienização sofá 2 lugares retrátil', '2'),
+  (2, 'Higienização sofá 3 lugares retrátil', '3'),
+  (3, 'Higienização sofá 4 lugares retrátil', '4'),
+  (4, 'Higienização sofá de canto retrátil',  'canto')
+) as v(n, nome, variante)
+where not exists (
+  select 1 from public.precos p
+  where p.retratil and p.peca = 'sofa' and p.servico = 'higienizar'
+    and p.variante = v.variante
+);
 
 -- 4) OPCIONAL — o app de referência NÃO tem estes; são estimativas minhas
 --    (proporção imp/hig do sofá ≈ 1,6). Apague este bloco se preferir que
@@ -211,8 +241,9 @@ passado, e excluir o atendimento no fim.
 
 1. Tabela de preços: abrir "Higienização sofá 3 lugares". **Esperado:** peça
    Sofá, 3 lugares e Higienizar marcados. Depois do SQL acima, a lista vem
-   com os valores de partida, sem linhas de retrátil, e a cortina "por
-   peça". (CT-100)
+   com os valores de partida e a cortina "por peça"; as linhas retrátil
+   do sofá aparecem como "+ R$ 30,00" (acréscimo) e o editor delas pede o
+   "Acréscimo do retrátil". (CT-100)
 2. Novo atendimento: o formulário é curto (sem quadros nem rodapé de total) e
    salva só com cliente e período. Tocar na linha "Adicionar peças e valor":
    abre "Peças e valor", com os quadros na ordem Sofá, Tapete, Poltrona, Cortina,
@@ -225,8 +256,8 @@ passado, e excluir o atendimento no fim.
 4. No sofá de 3 lugares, marcar só Impermeabilizar; depois os dois. Passar a
    4 lugares, depois voltar e ligar o retrátil. **Esperado:** cada botão mostra
    o preço; os dois somam; sem linha ou sem valor, "sem valor" e o aviso no
-   rodapé. Ligar o retrátil no sofá de 3 lugares: **o preço continua o do
-   sofá comum** (com "retrátil" no nome). Outros: o Deslocamento é um
+   rodapé. Ligar o retrátil no sofá de 3 lugares: **o preço vira o do sofá
+   comum + R$ 30** (R$ 230, com "retrátil" no nome). Outros: o Deslocamento é um
    **interruptor** (R$ 40 uma vez); a mancha vai por − / +. (CT-095, CT-096,
    CT-098)
 5. Rodapé: total sempre à vista; abrir os detalhes (serviço, conta e valor);
@@ -817,3 +848,4 @@ versão nova, assinada com a mesma chave, instala por cima sem perder dados.
 | 2026-11-17 | 1.32 | Wilson Gorosthides | Pilha: SQL das colunas de peça, variante, serviço e retrátil em `precos` e os passos do seletor de peças (#134, PR de interface). |
 | 2026-11-17 | 1.33 | Wilson Gorosthides | Pilha #134: atendimento rápido, peças e valor na tela própria (CT-101); SQL das colunas de `precos` confirmado como aplicado. |
 | 2026-11-18 | 1.34 | Wilson Gorosthides | Pilha #134: SQL dos valores de partida (a aplicar), retrátil com o preço comum, deslocamento liga/desliga e o passo 6 do ajuste por serviço (CT-102). |
+| 2026-11-19 | 1.35 | Wilson Gorosthides | Pilha #134: SQL dos valores de partida revisto (retrátil + R$ 30, sofá grande impermeabilizado 370) e passos do retrátil como acréscimo. |

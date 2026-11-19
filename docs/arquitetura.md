@@ -101,7 +101,7 @@ alter publication supabase_realtime add table public.atendimentos;
 
 Cada serviço é **independente** (regra da proprietária): impermeabilização é uma linha como higienização, nunca um extra dela; o combo é escolher as duas linhas, ou cadastrar o combo como mais uma. Por isso não há coluna de "extra" nem relação entre linhas. A leitura passa pelo `EspelhoLocal` (guardada no aparelho, chave `espelho.precos`, para o cálculo sem internet da #124); a escrita (`addPreco`, `addPrecos`, `updatePreco`, `deletePreco`) vai direto ao banco, como a de clientes, e a tela renova a stream ao voltar. A tabela é lida via stream ordenada por `ordem`.
 
-**Peça, variante e serviço (issue #134).** O seletor de peças acha o preço pela combinação, não pelo nome (que ela pode mudar): quatro colunas opcionais — `peca` (`sofa`, `tapete`, `poltrona`, `cortina`, `colchao`, `cadeira`; nula = item avulso, que entra pelo quadro Outros), `variante` (lugares do sofá `2`/`3`/`4`/`canto`, tamanho do colchão `solteiro`/`casal`/`queen`/`king`), `servico` (`higienizar` ou `impermeabilizar`) e `retratil` (boolean, sofá e poltrona). Sem a linha da combinação, o serviço marcado fica "sem valor" — nunca se usa o preço de outros lugares ou de outro tamanho. Retrátil sem linha própria com valor usa o preço da mesma peça comum (decisão de 2026-11-18, depois do teste no celular). A cortina passa a ser cobrada por folha. O mapeamento vive em `lib/models/familia.dart` (`Familia`, `TipoDeServico`, `nomeDoServico`).
+**Peça, variante e serviço (issue #134).** O seletor de peças acha o preço pela combinação, não pelo nome (que ela pode mudar): quatro colunas opcionais — `peca` (`sofa`, `tapete`, `poltrona`, `cortina`, `colchao`, `cadeira`; nula = item avulso, que entra pelo quadro Outros), `variante` (lugares do sofá `2`/`3`/`4`/`canto`, tamanho do colchão `solteiro`/`casal`/`queen`/`king`), `servico` (`higienizar` ou `impermeabilizar`) e `retratil` (boolean, sofá e poltrona). Sem a linha da combinação, o serviço marcado fica "sem valor" — nunca se usa o preço de outros lugares ou de outro tamanho. No retrátil, o `valor` da linha retrátil é só o **acréscimo** sobre a mesma peça comum (como no app de referência, + R$ 30 na higienização do sofá); o serviço copiado para o atendimento já leva o preço final (comum + acréscimo), e sem acréscimo vale o comum (decisões de 2026-11-18 e 2026-11-19, depois dos testes no celular). A cortina passa a ser cobrada por folha. O mapeamento vive em `lib/models/familia.dart` (`Familia`, `TipoDeServico`, `nomeDoServico`).
 
 SQL a aplicar no painel do Supabase (issue #134):
 
@@ -155,17 +155,16 @@ where exists (select 1 from public.precos)
   and not exists (select 1 from public.precos where retratil);
 ```
 
-Valores de partida (issue #134, depois do teste no celular; **dados, não schema** — a aplicar no painel): os preços do app de referência para ela ajustar depois; só preenche o que está sem valor e tira as linhas de retrátil sem valor.
+Valores de partida (issue #134, depois do teste no celular; **dados, não schema** — a aplicar no painel): os preços do app de referência para ela ajustar depois; só preenche o que está sem valor, corrige o sofá grande (370) se a versão anterior já rodou e deixa o retrátil da higienização do sofá com o acréscimo de R$ 30.
 
 ```sql
 -- #134: valores de partida copiados do app de referência (ela ajusta depois
 -- na tela Tabela de preços). Só preenche o que ainda está sem valor: preço
--- que ela já informou não é sobrescrito.
+-- que ela já informou não é sobrescrito. Pode rodar mais de uma vez.
 
 -- 1) Peças: valores do app de referência.
---    Impermeabilização = produto + aplicação do app (190 + 90 até 3 lugares;
---    250 + 90 no sofá grande: o app só lista a aplicação "até 3 lugares",
---    então os 90 do grande são suposição).
+--    Impermeabilização = produto + aplicação do app: 190 + 90 até 3 lugares;
+--    no sofá grande, 250 + 90 + 30 (a aplicação no sofá grande é + R$ 30).
 update public.precos p set valor = v.valor
 from (values
   ('sofa',    '2',        'higienizar',      170),
@@ -174,8 +173,8 @@ from (values
   ('sofa',    'canto',    'higienizar',      300),
   ('sofa',    '2',        'impermeabilizar', 280),
   ('sofa',    '3',        'impermeabilizar', 280),
-  ('sofa',    '4',        'impermeabilizar', 340),
-  ('sofa',    'canto',    'impermeabilizar', 340),
+  ('sofa',    '4',        'impermeabilizar', 370),
+  ('sofa',    'canto',    'impermeabilizar', 370),
   ('poltrona', null,      'higienizar',       90),
   ('cadeira',  null,      'higienizar',       30),
   ('tapete',   null,      'higienizar',       25),
@@ -190,14 +189,43 @@ where p.peca = v.peca
   and not p.retratil
   and p.valor is null;
 
+-- 1b) Se a versão anterior deste SQL já rodou: o sofá grande tinha ido a
+--     340 (suposição); o certo do app de referência é 370.
+update public.precos set valor = 370
+where peca = 'sofa' and variante in ('4', 'canto')
+  and servico = 'impermeabilizar' and not retratil and valor = 340;
+
 -- 2) Avulsos: tratamento de odor 70, mancha 50 (por mancha), deslocamento 40.
 update public.precos set valor = 70 where peca is null and nome = 'Remoção de odor'   and valor is null;
 update public.precos set valor = 50 where peca is null and nome = 'Remoção de mancha' and valor is null;
 update public.precos set valor = 40 where peca is null and nome = 'Deslocamento'      and valor is null;
 
--- 3) Retrátil: as linhas sem valor saem; o retrátil passa a usar o preço
---    da mesma peça comum até ela cadastrar um preço próprio.
-delete from public.precos where retratil and valor is null;
+-- 3) Retrátil: a linha retrátil agora guarda só o ACRÉSCIMO sobre o sofá
+--    comum. No app de referência: + R$ 30 na higienização do sofá.
+--    a) linhas retrátil sem valor que não são da higienização do sofá saem
+--       (sem acréscimo, vale o preço comum)
+delete from public.precos
+where retratil and valor is null
+  and not (peca = 'sofa' and servico = 'higienizar');
+--    b) higienização do sofá retrátil: + 30 onde a linha existe sem valor
+update public.precos set valor = 30
+where retratil and peca = 'sofa' and servico = 'higienizar' and valor is null;
+--    c) e cria a linha onde ela não existe
+insert into public.precos (nome, unidade, valor, ordem, peca, variante, servico, retratil)
+select v.nome, 'peca', 30,
+       (select coalesce(max(ordem), -1) from public.precos) + v.n,
+       'sofa', v.variante, 'higienizar', true
+from (values
+  (1, 'Higienização sofá 2 lugares retrátil', '2'),
+  (2, 'Higienização sofá 3 lugares retrátil', '3'),
+  (3, 'Higienização sofá 4 lugares retrátil', '4'),
+  (4, 'Higienização sofá de canto retrátil',  'canto')
+) as v(n, nome, variante)
+where not exists (
+  select 1 from public.precos p
+  where p.retratil and p.peca = 'sofa' and p.servico = 'higienizar'
+    and p.variante = v.variante
+);
 
 -- 4) OPCIONAL — o app de referência NÃO tem estes; são estimativas minhas
 --    (proporção imp/hig do sofá ≈ 1,6). Apague este bloco se preferir que
@@ -426,6 +454,7 @@ A auditoria registrou cobertura real de 0% — o único teste era o template pad
 | 2026-11-17 | 2.28 | Wilson Gorosthides | Seletor de peças (#134): §4 com as colunas `peca`, `variante`, `servico` e `retratil` em `precos` (SQL a aplicar, com o preenchimento pelos nomes e as linhas de retrátil sem valor) e as chaves novas da peça no jsonb; árvore §5 com `models/familia.dart` e a pasta `widgets/`. |
 | 2026-11-17 | 2.29 | Wilson Gorosthides | Árvore §5 com `screens/pecas_e_valor_screen.dart`: no atendimento, o seletor de peças sai do formulário para uma tela própria, aberta por uma linha de resumo (#134). |
 | 2026-11-18 | 2.30 | Wilson Gorosthides | §4: chaves `ajustado`, `valor_tabela` e `justificativa` do serviço no jsonb (preço ajustado só no registro, CT-102); retrátil sem preço próprio usa o comum; SQL de dados com os valores de partida do app de referência (#134). |
+| 2026-11-19 | 2.31 | Wilson Gorosthides | §4: a linha retrátil de `precos` guarda o acréscimo sobre a peça comum (+ R$ 30 no app de referência); SQL de dados revisto (retrátil + 30, impermeabilização do sofá grande 370) (#134). |
 
 ## 12. Ambiente de Desenvolvimento
 Os seguintes softwares e configurações são necessários para iniciar o desenvolvimento:

@@ -996,7 +996,7 @@
 
 ### CT-096 — Preço por peça, variante e serviço
 - **Critério:** "O preço de cada serviço marcado vem da linha da tabela com a **mesma peça, variante (lugares, tamanho) e serviço** [...] No sofá ou na poltrona **retrátil/reclinável**, o preço é o da mesma peça não retrátil **mais o acréscimo do retrátil** [...]; sem acréscimo cadastrado, vale o preço comum."
-- **Tipo:** Unitário + Widget · **Situação:** a implementar (retrátil como acréscimo, #134 depois do segundo teste no celular)
+- **Tipo:** Unitário + Widget · **Situação:** implementado — `calculo_test: linha da tabela por peça, variante, retrátil e serviço` · `calculo_test: sem linha, ou sem valor, fica sem valor; nunca outra variante` · `calculo_test: retrátil soma o acréscimo ao preço da mesma peça` · `seletor_de_pecas_test: preço troca com a variante; sem linha fica sem valor` · `atendimento_form_screen_test: serviço sem valor aparece no aviso do rodapé`
 - **Pré-condições:** tabela com higienizar sofá 3 lugares (R$ 200), sofá 4 lugares sem linha, retrátil 3 lugares sem valor, acréscimo do retrátil 2 lugares (R$ 30) e sofá 2 lugares (R$ 170), colchão casal (R$ 150), tapete por m² (R$ 12).
 - **Passos:**
   1. Procurar o preço de cada combinação (função pura).
@@ -1032,7 +1032,7 @@
 
 ### CT-100 — Tabela com peça, variante e serviço
 - **Critério:** "Na tabela de preços, cada serviço informa a **peça**, a **variante** e o **serviço** [...] sem linhas de retrátil (ela cadastra o acréscimo quando quiser); a linha retrátil aparece e se edita como acréscimo ("+ R$"); a cortina é cobrada por folha."
-- **Tipo:** Unitário + Widget · **Situação:** a implementar (retrátil como acréscimo, #134 depois do segundo teste no celular)
+- **Tipo:** Unitário + Widget · **Situação:** implementado — `item_de_preco_test: colunas peca, variante, servico e retratil vão e voltam` · `item_de_preco_test: lista sugerida com peça, variante e serviço; sem linhas de retrátil` · `tabela_de_precos_screen_test: editor grava peça, variante, serviço e retrátil` · `tabela_de_precos_screen_test: retrátil aparece e se edita como acréscimo`
 - **Pré-condições:** nenhuma.
 - **Passos:**
   1. Ler e gravar um item com as colunas novas.
@@ -1339,4 +1339,5 @@ falso, que pode estar "fora do ar", e um armazenamento em memória no lugar do
 | 2026-11-18 | 1.44 | Wilson Gorosthides | Depois do teste no celular (#134): CT-096 (retrátil usa o preço comum), CT-098 (deslocamento liga/desliga) e CT-100 (lista sem retrátil) revistos; CT-102 novo (preço do serviço ajustado só no registro, com justificativa). "A implementar". |
 | 2026-11-18 | 1.45 | Wilson Gorosthides | CT-096, CT-098, CT-100 e CT-102 passam a "implementado" (issue #134, ajustes depois do teste no celular). |
 | 2026-11-19 | 1.46 | Wilson Gorosthides | Depois do segundo teste no celular (#134): CT-096 e CT-100 revistos, o retrátil passa a ser o preço comum mais um acréscimo. "A implementar". |
+| 2026-11-19 | 1.47 | Wilson Gorosthides | CT-096 e CT-100 passam a "implementado" (retrátil como acréscimo, issue #134). |
 | 2026-11-17 | 1.36 | Wilson Gorosthides | CT-055 ganha o teste da linha repetida pelo banco (bug #128: atendimento em dobro na agenda). |
