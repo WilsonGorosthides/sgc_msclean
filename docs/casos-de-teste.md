@@ -622,7 +622,7 @@
 
 ### CT-106 — Item avulso pelo nome no resumo
 - **Critério:** "No resumo das peças (cartão da agenda, linha do formulário e histórico do cliente), o item do quadro Outros aparece pelo **nome** ("deslocamento", "excesso de pelo de pet"), e não como "outro"."
-- **Tipo:** Unitário · **Situação:** a implementar
+- **Tipo:** Unitário · **Situação:** implementado — `atendimento_test: item avulso aparece pelo nome no resumo, e não como "outro"`
 - **Pré-condições:** peças: sofá de canto; "outro" com o serviço "Excesso de pelo de pet"; "outro" com o serviço "Deslocamento"; "outro" com 2 × "Tira-manchas"; "outro" antigo, sem serviço.
 - **Passos:**
   1. Montar o resumo de cada peça (função pura, a mesma do cartão, do formulário e do histórico).
@@ -1385,4 +1385,5 @@ falso, que pode estar "fora do ar", e um armazenamento em memória no lugar do
 | 2026-11-19 | 1.50 | Wilson Gorosthides | CT-103, CT-104 e CT-105 (issue #134): grupos da tabela (produto, mão de obra, imprevisto), produto junto com o serviço da peça e grupo de cada serviço no registro e no rodapé. "A implementar". |
 | 2026-11-19 | 1.51 | Wilson Gorosthides | CT-103, CT-104 e CT-105 passam a "implementado" (grupos da tabela e produto junto com o serviço, issue #134). |
 | 2026-11-19 | 1.52 | Wilson Gorosthides | CT-106 (issue #141): item avulso pelo nome no resumo das peças, e não "outro". "A implementar". |
+| 2026-11-19 | 1.53 | Wilson Gorosthides | CT-106 passa a "implementado" (item avulso pelo nome no resumo, issue #141). |
 | 2026-11-17 | 1.36 | Wilson Gorosthides | CT-055 ganha o teste da linha repetida pelo banco (bug #128: atendimento em dobro na agenda). |

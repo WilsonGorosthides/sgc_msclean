@@ -117,7 +117,14 @@ class Peca {
       };
 
   // Texto do cartão da agenda: "2× tapete 3 × 2", "6 folhas de cortina".
+  // O item do quadro Outros vai pelo nome: "deslocamento" (#141).
   String get resumo {
+    if (tipo == 'outro' &&
+        servicos.isNotEmpty &&
+        servicos.first.nome.isNotEmpty) {
+      final nome = servicos.first.nome;
+      return '${_prefixo()}${nome[0].toLowerCase()}${nome.substring(1)}';
+    }
     if (largura != null && comprimento != null) {
       final medidas = '${_numero(largura!)} × ${_numero(comprimento!)}';
       return '${_prefixo()}$tipo $medidas';

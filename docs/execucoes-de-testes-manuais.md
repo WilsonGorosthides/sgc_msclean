@@ -89,6 +89,13 @@ excluir o atendimento no fim.
    do dia do registro. Excluir o atendimento TESTE e voltar a tabela ao valor
    de antes. (CT-092)
 
+### #141 — Item avulso pelo nome no resumo (RF-005)
+
+1. Num atendimento com o deslocamento e um avulso do quadro Outros (ex.:
+   "Excesso de pelo de pet"), olhar o cartão na agenda, a linha de peças do
+   formulário e o histórico na tela da cliente. **Esperado:** em vez de
+   "outro", aparecem "deslocamento" e "excesso de pelo de pet". (CT-106)
+
 ## Execução 001 — Verificação manual do RF-001 (pré-merge do PR #44)
 
 - **Data:** 2026-07-16
@@ -699,3 +706,4 @@ versão nova, assinada com a mesma chave, instala por cima sem perder dados.
 | 2026-11-19 | 1.37 | Wilson Gorosthides | Pilha #134: SQL dos grupos e produtos (coluna `categoria`, aplicação 90 / 120 e impermeabilizante 190 / 250, produtos avulsos e imprevistos) e o passo 7 (CT-103 a CT-105). |
 | 2026-11-19 | 1.38 | Wilson Gorosthides | Pilha #134: SQL dos valores de partida e dos grupos e produtos aplicados pelo desenvolvedor no painel. |
 | 2026-11-19 | 1.39 | Wilson Gorosthides | Execução 015 (seletor de peças, grupos e produtos, pré-merge #134, PR #135): sete passos aprovados no celular; o bloco #134 e o SQL saem da pilha. |
+| 2026-11-19 | 1.40 | Wilson Gorosthides | Pilha: entra o passo do item avulso pelo nome no resumo (#141, CT-106), sem SQL. |
