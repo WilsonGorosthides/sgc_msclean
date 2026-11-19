@@ -20,7 +20,11 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({super.key, this.inicio});
+
+  // Tela de abertura; nula = a agenda real. O modo demonstração (#139) passa
+  // a agenda com os dados fictícios.
+  final Widget? inicio;
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +44,7 @@ class MyApp extends StatelessWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       // A agenda e a tela inicial (RF-010); a lista de clientes abre a partir dela.
-      home: const AgendaScreen(),
+      home: inicio ?? const AgendaScreen(),
     );
   }
 }
