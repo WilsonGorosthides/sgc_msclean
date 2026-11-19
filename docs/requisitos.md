@@ -194,6 +194,7 @@ O sistema deve permitir consultar, para um cliente, **quanto foi cobrado** e **q
   - O sistema exibe o **valor do atendimento mais recente** que tenha valor registrado, junto da data desse atendimento e das peças que o compuseram.
   - O sistema exibe o histórico dos atendimentos anteriores daquele cliente, do mais recente para o mais antigo, com data, peças e valor de cada um.
   - Quando o cliente não tem nenhum atendimento registrado, o sistema exibe "Nenhum atendimento registrado" em vez de campos vazios ou zero.
+  - No **atendimento**, ao escolher o cliente, uma linha sob o nome mostra **há quanto tempo** foi a última visita e o **último valor cobrado** ("última vez há 3 meses · R$ 250,00"; quando o valor é de uma visita mais antiga, com a data dela), ou "primeiro atendimento" quando não há visita anterior. Na edição, o próprio atendimento não conta.
 * **Nota de entrega (issue #81):** o histórico fica no topo da tela do cliente, a que abre ao tocar no nome na lista. Conta só os atendimentos **até hoje** — o que está marcado para depois ainda não é visita e aparece só na agenda.
 
 #### RF-012 - Aviso de Conflito de Horário
@@ -431,3 +432,4 @@ O sistema deve ter um mecanismo de login para o único usuário (a proprietária
 | 2026-11-19 | 3.17 | Wilson Gorosthides | RF-013, depois do terceiro teste no celular (#134): deslocamento fora do quadro Outros, já incluído ao abrir Peças e valor sem peças, com o valor de R$ 1 em R$ 1 ou digitado, e um interruptor para tirar. |
 | 2026-11-19 | 3.18 | Wilson Gorosthides | RF-013, pedido do desenvolvedor depois do terceiro teste no celular (#134): itens da tabela em grupos (produto, mão de obra, imprevisto) como no app de referência; produto vem junto com o serviço da peça (impermeabilizar = aplicação + impermeabilizante); o registro grava o grupo e o deslocamento é mão de obra, para a nota do orçamento (RF-017). |
 | 2026-11-19 | 3.19 | Wilson Gorosthides | RF-005: no resumo das peças, o item do quadro Outros aparece pelo nome (deslocamento, avulso), e não como "outro" (issue #141, achado nos prints do modo demonstração). |
+| 2026-11-19 | 3.20 | Wilson Gorosthides | RF-011: resumo do histórico no atendimento, sob o cliente escolhido (issue #129, achado do teste manual do #81). |
