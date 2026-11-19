@@ -194,5 +194,4 @@ descoberto.
 | 2026-11-19 | 1.53 | Wilson Gorosthides | CT-098 entregue (deslocamento em bloco próprio, issue #134): nomes reais dos testes. |
 | 2026-11-19 | 1.54 | Wilson Gorosthides | RF-013 (#134): grupos da tabela, produto junto com o serviço e grupo no registro ↔ CT-103, CT-104 e CT-105, "a implementar". |
 | 2026-11-19 | 1.55 | Wilson Gorosthides | CT-103, CT-104 e CT-105 entregues (issue #134): nomes reais dos testes. |
-| 2026-11-19 | 1.56 | Wilson Gorosthides | RF-005: item avulso pelo nome no resumo ↔ CT-106 (issue #141), "a implementar". |
-| 2026-11-19 | 1.57 | Wilson Gorosthides | CT-106 entregue (issue #141): nome real do teste. |
+| 2026-11-19 | 1.56 | Wilson Gorosthides | RF-005: item avulso pelo nome no resumo ↔ CT-106 (issue #141). |

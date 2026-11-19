@@ -1384,6 +1384,5 @@ falso, que pode estar "fora do ar", e um armazenamento em memória no lugar do
 | 2026-11-19 | 1.49 | Wilson Gorosthides | CT-098 passa a "implementado" (deslocamento em bloco próprio, issue #134). |
 | 2026-11-19 | 1.50 | Wilson Gorosthides | CT-103, CT-104 e CT-105 (issue #134): grupos da tabela (produto, mão de obra, imprevisto), produto junto com o serviço da peça e grupo de cada serviço no registro e no rodapé. "A implementar". |
 | 2026-11-19 | 1.51 | Wilson Gorosthides | CT-103, CT-104 e CT-105 passam a "implementado" (grupos da tabela e produto junto com o serviço, issue #134). |
-| 2026-11-19 | 1.52 | Wilson Gorosthides | CT-106 (issue #141): item avulso pelo nome no resumo das peças, e não "outro". "A implementar". |
-| 2026-11-19 | 1.53 | Wilson Gorosthides | CT-106 passa a "implementado" (item avulso pelo nome no resumo, issue #141). |
+| 2026-11-19 | 1.52 | Wilson Gorosthides | CT-106 (issue #141): item avulso pelo nome no resumo das peças, e não "outro". |
 | 2026-11-17 | 1.36 | Wilson Gorosthides | CT-055 ganha o teste da linha repetida pelo banco (bug #128: atendimento em dobro na agenda). |
