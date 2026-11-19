@@ -67,6 +67,8 @@ class _PecasEValorScreenState extends State<PecasEValorScreen> {
               pecas: widget.pecas,
               tabela: widget.tabela,
               aoMudar: (pecas) => setState(() => _pecas = pecas),
+              // registro sem peças: o deslocamento já vem (CT-098)
+              incluirDeslocamento: widget.pecas.isEmpty,
             ),
           ],
         ),

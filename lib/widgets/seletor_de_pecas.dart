@@ -17,7 +17,8 @@ import '../utils/calculo.dart';
 // (combo) ou só um. O preço sai da tabela pela peça + variante + serviço e é
 // copiado na peça: mudar a tabela depois não muda o que foi registrado. O
 // preço de cada serviço marcado pode ser ajustado só no registro, com
-// justificativa opcional (CT-102).
+// justificativa opcional (CT-102). O deslocamento fica num bloco próprio,
+// fora do quadro Outros: o valor vai de R$ 1 em R$ 1 ou digitado (CT-098).
 //
 // Não rola sozinho: vive dentro do formulário de quem o usa. Cada mudança
 // devolve a lista inteira de peças por [aoMudar].
@@ -27,12 +28,16 @@ class SeletorDePecas extends StatefulWidget {
     required this.pecas,
     required this.tabela,
     required this.aoMudar,
+    this.incluirDeslocamento = false,
   });
 
   // Peças iniciais (atendimento em edição); lidas uma vez, ao abrir.
   final List<Peca> pecas;
   final List<ItemDePreco> tabela;
   final ValueChanged<List<Peca>> aoMudar;
+  // Abre já com o deslocamento da tabela (registro novo, sem peças): é
+  // cobrado quase sempre (CT-098).
+  final bool incluirDeslocamento;
 
   @override
   State<SeletorDePecas> createState() => _SeletorDePecasState();
@@ -117,8 +122,43 @@ class _Cartao {
   };
 }
 
+// O item avulso do deslocamento (#134): pelo nome, como na tabela dela.
+bool ehDeslocamento(String nome) =>
+    nome.trim().toLowerCase().contains('deslocamento');
+
+bool _pecaDeDeslocamento(Peca p) =>
+    Familia.deTipo(p.tipo) == Familia.outros &&
+    p.servicos.length == 1 &&
+    ehDeslocamento(p.servicos.single.nome);
+
 class _SeletorDePecasState extends State<SeletorDePecas> {
-  late final List<_Cartao> _cartoes = _abrir(widget.pecas);
+  late final List<_Cartao> _cartoes = _abrir(
+    widget.pecas.where((p) => !_pecaDeDeslocamento(p)).toList(),
+  );
+  // Deslocamento cobrado neste registro (cópia, talvez ajustada); nulo = não
+  // cobrado. Fica fora do quadro Outros (CT-098).
+  late ItemDePreco? _deslocamento = widget.pecas
+      .where(_pecaDeDeslocamento)
+      .map((p) => p.servicos.single)
+      .firstOrNull;
+
+  ItemDePreco? get _deslocamentoDaTabela =>
+      avulsos(widget.tabela).where((i) => ehDeslocamento(i.nome)).firstOrNull;
+
+  @override
+  void initState() {
+    super.initState();
+    final daTabela = _deslocamentoDaTabela;
+    if (widget.incluirDeslocamento &&
+        _deslocamento == null &&
+        daTabela != null) {
+      _deslocamento = daTabela.copia();
+      // quem usa fica sabendo depois do primeiro quadro
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) widget.aoMudar(_pecas());
+      });
+    }
+  }
 
   // ---- peças ⇄ cartões ----
 
@@ -232,6 +272,11 @@ class _SeletorDePecasState extends State<SeletorDePecas> {
           );
       }
     }
+    if (_deslocamento != null) {
+      pecas.add(
+        Peca(tipo: Familia.outros.tipo, servicos: [_deslocamento!]),
+      );
+    }
     return pecas;
   }
 
@@ -310,6 +355,18 @@ class _SeletorDePecasState extends State<SeletorDePecas> {
     if (novo != null && mounted) _mudou(() => aplicar(novo));
   }
 
+  // Deslocamento de R$ 1 em R$ 1 (CT-098): diferente da tabela fica como
+  // ajuste; igual, volta ao da tabela.
+  void _passoDoDeslocamento(int passo) => _mudou(() {
+    final atual = _deslocamento!;
+    final novo = (atual.valor ?? 0) + passo;
+    if (novo < 0) return;
+    final daTabela = atual.ajustado ? atual.valorDaTabela : atual.valor;
+    _deslocamento = novo == daTabela
+        ? atual.semAjuste()
+        : atual.ajustar(novo, atual.justificativa);
+  });
+
   void _trocarVariante(_Cartao c, int passo) {
     final vs = c.familia.variantes;
     final i = c.variante == null ? -1 : vs.indexOf(c.variante!);
@@ -347,6 +404,9 @@ class _SeletorDePecasState extends State<SeletorDePecas> {
           _porOutro('por_outro_tapete', 'Pôr outro tapete', Familia.tapete),
         );
       }
+    }
+    if (_deslocamento != null || _deslocamentoDaTabela != null) {
+      widgets.add(_blocoDoDeslocamento(context));
     }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -657,9 +717,83 @@ class _SeletorDePecasState extends State<SeletorDePecas> {
     );
   }
 
+  // Bloco próprio do deslocamento (CT-098): interruptor e o valor por − / +
+  // de R$ 1, ou digitado tocando nele.
+  Widget _blocoDoDeslocamento(BuildContext context) {
+    final textos = Theme.of(context).textTheme;
+    final d = _deslocamento;
+    return Card(
+      key: const Key('deslocamento'),
+      margin: const EdgeInsets.only(top: AppSpacing.md, bottom: AppSpacing.sm),
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                const Icon(
+                  Icons.directions_car_outlined,
+                  color: AppColors.primaria,
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Deslocamento', style: textos.titleMedium),
+                      Text(
+                        d == null ? 'não cobrado' : 'cobrado uma vez',
+                        style: textos.bodySmall?.copyWith(
+                          color: AppColors.tintaFraca,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Switch(
+                  key: const Key('deslocamento_cobrar'),
+                  value: d != null,
+                  onChanged: (v) => _mudou(() {
+                    _deslocamento = v ? _deslocamentoDaTabela?.copia() : null;
+                  }),
+                ),
+              ],
+            ),
+            if (d != null) ...[
+              const SizedBox(height: AppSpacing.sm),
+              _linha(
+                context,
+                'Valor',
+                _Passos(
+                  chave: 'deslocamento_valor',
+                  chaveMenos: 'deslocamento_menos',
+                  chaveMais: 'deslocamento_mais',
+                  texto: _preco(d.valor),
+                  aoMenos: (d.valor ?? 0) < 1
+                      ? null
+                      : () => _passoDoDeslocamento(-1),
+                  aoMais: () => _passoDoDeslocamento(1),
+                  aoTocarTexto: () =>
+                      _ajustar(d, (novo) => _deslocamento = novo),
+                ),
+              ),
+              if (d.ajustado)
+                _Ajustado(chave: 'deslocamento_ajustado', servico: d),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
   List<Widget> _avulsos(BuildContext context, _Cartao c) {
     final textos = Theme.of(context).textTheme;
-    final daTabela = avulsos(widget.tabela);
+    // o deslocamento tem bloco próprio (CT-098)
+    final daTabela = [
+      for (final item in avulsos(widget.tabela))
+        if (!ehDeslocamento(item.nome)) item,
+    ];
     // os da tabela, na ordem dela, e os gravados que a tabela não tem mais
     final linhas = <_Avulso>[
       for (final item in daTabela)
@@ -712,18 +846,6 @@ class _SeletorDePecasState extends State<SeletorDePecas> {
                   onPressed: () =>
                       _ajustar(a.itens.first, (novo) => a.itens[0] = novo),
                 ),
-              // deslocamento é cobrado uma vez: liga/desliga, como no app
-              // de referência (#134)
-              if (_ligaDesliga(a.rotulo))
-                Switch(
-                  key: Key('avulso_${a.rotulo}_liga'),
-                  value: a.quantidade > 0,
-                  onChanged: (v) => _mudou(() {
-                    if (!c.avulsos.contains(a)) c.avulsos.add(a);
-                    a.quantidade = v ? 1 : 0;
-                  }),
-                )
-              else
                 _Passos(
                   chave: 'avulso_${a.rotulo}_quantidade',
                   chaveMenos: 'avulso_${a.rotulo}_menos',
@@ -742,9 +864,6 @@ class _SeletorDePecasState extends State<SeletorDePecas> {
         ),
     ];
   }
-
-  static bool _ligaDesliga(String nome) =>
-      nome.trim().toLowerCase().startsWith('deslocamento');
 
   Widget _quantidade(int i, _Cartao c) => _Passos(
     chave: 'cartao_${i}_quantidade',
@@ -1113,6 +1232,7 @@ class _Passos extends StatelessWidget {
     this.aoMenos,
     this.chaveMenos,
     this.chaveMais,
+    this.aoTocarTexto,
   });
 
   // Chave do texto; as dos botões, se não vierem, são "<chave sem o fim>
@@ -1123,6 +1243,8 @@ class _Passos extends StatelessWidget {
   final String texto;
   final VoidCallback? aoMenos;
   final VoidCallback aoMais;
+  // Tocar no valor (deslocamento): digitar em vez de ir de 1 em 1.
+  final VoidCallback? aoTocarTexto;
 
   String _botao(String lado) {
     final i = chave.lastIndexOf('_');
@@ -1151,15 +1273,22 @@ class _Passos extends StatelessWidget {
                   : AppColors.primaria,
             ),
           ),
-          ConstrainedBox(
-            constraints: const BoxConstraints(minWidth: AppSpacing.xxl * 2),
-            child: Text(
-              texto,
-              key: Key(chave),
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: AppColors.primaria,
-                fontFeatures: AppTypography.digitosTabulares,
+          InkWell(
+            onTap: aoTocarTexto,
+            borderRadius: BorderRadius.circular(AppRadius.pequeno),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minWidth: AppSpacing.xxl * 2),
+              child: Text(
+                texto,
+                key: Key(chave),
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: AppColors.primaria,
+                  fontFeatures: AppTypography.digitosTabulares,
+                  decoration: aoTocarTexto == null
+                      ? null
+                      : TextDecoration.underline,
+                ),
               ),
             ),
           ),
