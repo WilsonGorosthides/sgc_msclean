@@ -184,6 +184,44 @@ void main() {
       expect(gravado.valor, 260);
     });
 
+    // CT-100 (#134, depois do segundo teste no celular): a linha retrátil é
+    // o acréscimo sobre o preço comum.
+    testWidgets('retrátil aparece e se edita como acréscimo', (tester) async {
+      tabela = [
+        sofa,
+        const ItemDePreco(
+          id: 'p3',
+          nome: 'Higienização sofá 3 lugares retrátil',
+          unidade: UnidadeDeCobranca.peca,
+          valor: 30,
+          ordem: 2,
+          peca: Familia.sofa,
+          variante: '3',
+          servico: TipoDeServico.higienizar,
+          retratil: true,
+        ),
+      ];
+      await bombear(tester);
+
+      expect(find.text('+ R\$ 30,00'), findsOneWidget);
+      expect(find.text('acréscimo sobre o sofá comum'), findsOneWidget);
+      expect(find.text('R\$ 180,00'), findsOneWidget);
+
+      await tester.tap(find.text('Higienização sofá 3 lugares retrátil'));
+      await tester.pumpAndSettle();
+      expect(find.text('Acréscimo do retrátil'), findsOneWidget);
+      expect(find.text('+ R\$ '), findsOneWidget);
+      await tester.enterText(find.byKey(const Key('preco_valor')), '40');
+      await tester.tap(find.byKey(const Key('salvar_preco')));
+      await tester.pumpAndSettle();
+
+      final gravado = verify(() => service.updatePreco(captureAny()))
+          .captured
+          .single as ItemDePreco;
+      expect(gravado.retratil, isTrue);
+      expect(gravado.valor, 40);
+    });
+
     testWidgets('remover pede confirmação; cancelar não remove',
         (tester) async {
       await bombear(tester);

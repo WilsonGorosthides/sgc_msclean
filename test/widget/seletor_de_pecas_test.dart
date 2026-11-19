@@ -38,7 +38,8 @@ void main() {
   final tabela = [
     linha('Higienização sofá 3 lugares', Familia.sofa, '3', hig, 200),
     linha('Impermeabilização sofá 3 lugares', Familia.sofa, '3', imp, 150),
-    linha('Higienização sofá 3 lugares retrátil', Familia.sofa, '3', hig, null,
+    // a linha retrátil guarda só o acréscimo (#134)
+    linha('Higienização sofá 3 lugares retrátil', Familia.sofa, '3', hig, 30,
         retratil: true),
     linha('Higienização colchão casal', Familia.colchao, 'casal', hig, 150),
     linha('Higienização de tapete', Familia.tapete, null, hig, 12,
@@ -240,12 +241,12 @@ void main() {
       expect(texto(tester, 'cartao_0_higienizar_preco'), 'sem valor');
 
       await tocar(tester, 'cartao_0_menos_lugares');
-      // retrátil com a linha sem valor: segue o preço comum
+      // retrátil: o preço comum mais o acréscimo da linha retrátil
       await tocar(tester, 'cartao_0_retratil');
       expect(mudou.single.servicos.single.nome,
           'Higienização sofá 3 lugares retrátil');
-      expect(mudou.single.servicos.single.valor, 200);
-      expect(texto(tester, 'cartao_0_higienizar_preco'), 'R\$ 200,00');
+      expect(mudou.single.servicos.single.valor, 230);
+      expect(texto(tester, 'cartao_0_higienizar_preco'), 'R\$ 230,00');
 
       await tocar(tester, 'familia_colchao');
       await tocar(tester, 'colchao_casal_mais');

@@ -131,7 +131,7 @@ void main() {
           id: 's2r',
           nome: 'Higienização sofá 2 lugares retrátil',
           unidade: UnidadeDeCobranca.peca,
-          valor: 230,
+          valor: 30, // acréscimo sobre o sofá comum
           peca: Familia.sofa,
           variante: '2',
           servico: TipoDeServico.higienizar,
@@ -184,9 +184,9 @@ void main() {
             UnidadeDeCobranca.m2);
       });
 
-      // CT-096 (#134, depois do teste no celular): retrátil sem preço
-      // próprio não deixa o serviço sem valor.
-      test('retrátil sem preço próprio usa o da mesma peça', () {
+      // CT-096 (#134, depois do segundo teste no celular): a linha retrátil
+      // guarda só o acréscimo; sem ele, vale o preço comum.
+      test('retrátil soma o acréscimo ao preço da mesma peça', () {
         final tres = precoDoServico(
             tabela, Familia.sofa, '3', true, TipoDeServico.higienizar);
         expect(tres.valor, 200);
@@ -195,7 +195,10 @@ void main() {
 
         final dois = precoDoServico(
             tabela, Familia.sofa, '2', true, TipoDeServico.higienizar);
-        expect(dois.valor, 230);
+        expect(dois.valor, 200); // 170 + 30
+        expect(dois.nome, 'Higienização sofá 2 lugares retrátil');
+        expect(dois.retratil, isTrue);
+        expect(dois.id, isNull);
 
         // sem linha comum também: segue sem valor, com o nome retrátil
         final quatro = precoDoServico(
