@@ -995,13 +995,13 @@
 - **Resultado esperado:** só a impermeabilização é gravada; com os dois, as duas linhas somam; cada botão mostra o preço do serviço.
 
 ### CT-096 — Preço por peça, variante e serviço
-- **Critério:** "O preço de cada serviço marcado vem da linha da tabela com a **mesma peça, variante (lugares, tamanho) e serviço** [...] No sofá ou na poltrona **retrátil/reclinável**, vale a linha retrátil quando ela tem valor; senão, o preço da mesma peça não retrátil."
-- **Tipo:** Unitário + Widget · **Situação:** implementado — `calculo_test: linha da tabela por peça, variante, retrátil e serviço` · `calculo_test: sem linha, ou sem valor, fica sem valor; nunca outra variante` · `calculo_test: retrátil sem preço próprio usa o da mesma peça` · `seletor_de_pecas_test: preço troca com a variante; sem linha fica sem valor` · `atendimento_form_screen_test: serviço sem valor aparece no aviso do rodapé`
-- **Pré-condições:** tabela com higienizar sofá 3 lugares (R$ 200), sofá 4 lugares sem linha, retrátil 3 lugares sem valor, retrátil 2 lugares (R$ 230) e sofá 2 lugares (R$ 170), colchão casal (R$ 150), tapete por m² (R$ 12).
+- **Critério:** "O preço de cada serviço marcado vem da linha da tabela com a **mesma peça, variante (lugares, tamanho) e serviço** [...] No sofá ou na poltrona **retrátil/reclinável**, o preço é o da mesma peça não retrátil **mais o acréscimo do retrátil** [...]; sem acréscimo cadastrado, vale o preço comum."
+- **Tipo:** Unitário + Widget · **Situação:** a implementar (retrátil como acréscimo, #134 depois do segundo teste no celular)
+- **Pré-condições:** tabela com higienizar sofá 3 lugares (R$ 200), sofá 4 lugares sem linha, retrátil 3 lugares sem valor, acréscimo do retrátil 2 lugares (R$ 30) e sofá 2 lugares (R$ 170), colchão casal (R$ 150), tapete por m² (R$ 12).
 - **Passos:**
   1. Procurar o preço de cada combinação (função pura).
   2. No seletor, marcar Higienizar num sofá de 3 lugares; passar a 4 lugares; voltar a 3 e ligar o retrátil.
-- **Resultado esperado:** 3 lugares acha R$ 200; ao mudar a variante, o serviço marcado troca de preço; 4 lugares fica "sem valor" com o aviso; 3 lugares retrátil (linha sem valor) usa os R$ 200 do comum, com "retrátil" no nome; 2 lugares retrátil usa a própria linha (R$ 230); colchão casal × 2 soma R$ 300; tapete 2 × 3 soma R$ 72.
+- **Resultado esperado:** 3 lugares acha R$ 200; ao mudar a variante, o serviço marcado troca de preço; 4 lugares fica "sem valor" com o aviso; 3 lugares retrátil (acréscimo sem valor) fica nos R$ 200 do comum, com "retrátil" no nome; 2 lugares retrátil soma o acréscimo: R$ 170 + R$ 30 = R$ 200; colchão casal × 2 soma R$ 300; tapete 2 × 3 soma R$ 72.
 
 ### CT-097 — Rodapé fixo com total, detalhes e salvar
 - **Critério:** "Um **rodapé fixo** mostra o total em destaque, a lista detalhada (serviço, legenda e valor de cada linha) e o botão de salvar; o valor segue sugestão, com \"Usar o calculado\" depois de sobrescrito."
@@ -1031,14 +1031,15 @@
 - **Resultado esperado:** a higienização é reconhecida como Higienizar, com R$ 180; a remoção de odor segue na peça; o update grava os mesmos serviços e preços.
 
 ### CT-100 — Tabela com peça, variante e serviço
-- **Critério:** "Na tabela de preços, cada serviço informa a **peça**, a **variante** e o **serviço** [...] sem linhas de retrátil (ela cadastra uma quando tiver preço próprio); a cortina é cobrada por folha."
-- **Tipo:** Unitário + Widget · **Situação:** implementado — `item_de_preco_test: colunas peca, variante, servico e retratil vão e voltam` · `item_de_preco_test: lista sugerida com peça, variante e serviço; sem linhas de retrátil` · `tabela_de_precos_screen_test: editor grava peça, variante, serviço e retrátil`
+- **Critério:** "Na tabela de preços, cada serviço informa a **peça**, a **variante** e o **serviço** [...] sem linhas de retrátil (ela cadastra o acréscimo quando quiser); a linha retrátil aparece e se edita como acréscimo ("+ R$"); a cortina é cobrada por folha."
+- **Tipo:** Unitário + Widget · **Situação:** a implementar (retrátil como acréscimo, #134 depois do segundo teste no celular)
 - **Pré-condições:** nenhuma.
 - **Passos:**
   1. Ler e gravar um item com as colunas novas.
   2. Montar a lista sugerida.
   3. No editor da tabela, criar "Impermeabilização sofá 4 lugares" escolhendo peça, variante e serviço.
-- **Resultado esperado:** as colunas `peca`, `variante`, `servico` e `retratil` vão e voltam; a lista sugerida traz higienizar e impermeabilizar com peça e variante, nenhuma linha de retrátil e a cortina por peça; o editor grava peça, variante e serviço escolhidos.
+  4. Abrir a tabela com a linha "Higienização sofá 3 lugares retrátil" (R$ 30) e editá-la.
+- **Resultado esperado:** as colunas `peca`, `variante`, `servico` e `retratil` vão e voltam; a lista sugerida traz higienizar e impermeabilizar com peça e variante, nenhuma linha de retrátil e a cortina por peça; o editor grava peça, variante e serviço escolhidos; a linha retrátil aparece como "+ R$ 30,00" e o editor pede o "Acréscimo do retrátil".
 
 ### CT-102 — Preço de um serviço ajustado só no registro
 - **Critério:** "O **preço de cada serviço** marcado pode ser **ajustado só neste registro** (tecido especial, desconto, combinado), com uma **justificativa opcional**; o serviço e os detalhes do total mostram o valor ajustado ao lado do preço da tabela, e "Voltar ao da tabela" desfaz. A tabela não muda."
@@ -1337,4 +1338,5 @@ falso, que pode estar "fora do ar", e um armazenamento em memória no lugar do
 | 2026-11-17 | 1.43 | Wilson Gorosthides | CT-101 passa a "implementado"; CT-097 ganha o teste da tela Peças e valor acima da barra (issue #134). |
 | 2026-11-18 | 1.44 | Wilson Gorosthides | Depois do teste no celular (#134): CT-096 (retrátil usa o preço comum), CT-098 (deslocamento liga/desliga) e CT-100 (lista sem retrátil) revistos; CT-102 novo (preço do serviço ajustado só no registro, com justificativa). "A implementar". |
 | 2026-11-18 | 1.45 | Wilson Gorosthides | CT-096, CT-098, CT-100 e CT-102 passam a "implementado" (issue #134, ajustes depois do teste no celular). |
+| 2026-11-19 | 1.46 | Wilson Gorosthides | Depois do segundo teste no celular (#134): CT-096 e CT-100 revistos, o retrátil passa a ser o preço comum mais um acréscimo. "A implementar". |
 | 2026-11-17 | 1.36 | Wilson Gorosthides | CT-055 ganha o teste da linha repetida pelo banco (bug #128: atendimento em dobro na agenda). |
