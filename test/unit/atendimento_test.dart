@@ -375,6 +375,21 @@ void main() {
           '2× colchão casal');
     });
 
+    test('item avulso aparece pelo nome no resumo, e não como "outro"', () {
+      Peca outro(String nome, {int quantidade = 1}) => Peca(
+        tipo: 'outro',
+        quantidade: quantidade,
+        servicos: [
+          ItemDePreco(nome: nome, unidade: UnidadeDeCobranca.peca, valor: 20),
+        ],
+      );
+      expect(outro('Excesso de pelo de pet').resumo, 'excesso de pelo de pet');
+      expect(outro('Deslocamento').resumo, 'deslocamento');
+      expect(outro('Tira-manchas', quantidade: 2).resumo, '2× tira-manchas');
+      // peça "outro" antiga, sem serviço
+      expect(const Peca(tipo: 'outro').resumo, 'outro');
+    });
+
     test('tapete é o tipo medido por metragem; os demais são contados', () {
       expect(Peca.tipos, [
         'tapete',

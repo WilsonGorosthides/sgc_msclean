@@ -332,6 +332,10 @@ A organização real do código:
 ```
 lib/
 ├── main.dart                       # inicializa o app e o Supabase via .env; abre na AgendaScreen
+├── main_demo.dart                  # modo demonstração (#139): o app com dados fictícios em memória, sem .env nem Supabase
+├── demo/
+│   ├── dados_de_demonstracao.dart  # clientes, semana de agenda e tabela de preços fictícios, em volta de "hoje"
+│   └── servico_de_demonstracao.dart # ServicoDeDemonstracao (o SupabaseService em memória), avisos desligados e a tela de abertura
 ├── models/
 │   ├── atendimento.dart            # Atendimento e Periodo (manhã/tarde): a linha da agenda
 │   ├── peca.dart                   # Peca: value object das peças do serviço (jsonb), com o resumo do cartão
@@ -522,6 +526,7 @@ A auditoria registrou cobertura real de 0% — o único teste era o template pad
 | 2026-11-19 | 2.31 | Wilson Gorosthides | §4: a linha retrátil de `precos` guarda o acréscimo sobre a peça comum (+ R$ 30 no app de referência); SQL de dados revisto (retrátil + 30, impermeabilização do sofá grande 370) (#134). |
 | 2026-11-19 | 2.32 | Wilson Gorosthides | §4: deslocamento em bloco próprio, gravado como peça `outro` com o valor ajustável; SQL de dados com o deslocamento a 20 (#134). |
 | 2026-11-19 | 2.33 | Wilson Gorosthides | §4: coluna `categoria` em `precos` (produto, mão de obra, imprevisto), produto que vem junto com o serviço da peça, chave `categoria` no jsonb `pecas` (ausente = mão de obra, inclusive o deslocamento) e o SQL dos grupos (issue #134). |
+| 2026-11-19 | 2.34 | Wilson Gorosthides | §5: modo demonstração (`lib/main_demo.dart` e `lib/demo/`), com dados fictícios em memória, para os prints do README sem expor clientes reais (issue #139). |
 
 ## 12. Ambiente de Desenvolvimento
 Os seguintes softwares e configurações são necessários para iniciar o desenvolvimento:
